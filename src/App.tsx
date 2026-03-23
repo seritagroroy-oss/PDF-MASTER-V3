@@ -27,6 +27,7 @@ import {
   Zap,
   MessageSquare,
   ScanText,
+  Camera,
   ChevronDown,
   Hash,
   Package,
@@ -42,7 +43,7 @@ interface AppUser {
   email: string;
 }
 
-type Tool = 'merge' | 'edit' | 'compress' | 'watermark' | 'convert' | 'split' | 'protect' | 'chat' | 'ocr' | 'numbering' | 'batch' | 'dashboard' | 'home';
+type Tool = 'merge' | 'edit' | 'compress' | 'watermark' | 'convert' | 'split' | 'protect' | 'chat' | 'ocr' | 'numbering' | 'batch' | 'scanner' | 'dashboard' | 'home';
 
 type BeforeInstallPromptEvent = Event & {
   prompt: () => Promise<void>;
@@ -81,6 +82,9 @@ const PDFNumbering = lazy(() =>
 );
 const PDFBatch = lazy(() =>
   import('./components/PDFBatch').then((module) => ({ default: module.PDFBatch })),
+);
+const PDFScanner = lazy(() =>
+  import('./components/PDFScanner').then((module) => ({ default: module.PDFScanner })),
 );
 
 const tools = [
@@ -181,6 +185,17 @@ const tools = [
     icon: ScanText,
     color: 'bg-teal-500',
     soft: 'from-teal-500/15 to-cyan-500/10',
+    textColor: 'text-teal-600',
+  },
+  {
+    id: 'scanner' as const,
+    name: 'Scanner (Caméra)',
+    shortName: 'Scanner',
+    description: 'Prenez en photo vos documents papier et transformez-les en PDF instantanément.',
+    detail: 'Une numérisation rapide, nette, directement depuis votre appareil photo ou webcam.',
+    icon: Camera,
+    color: 'bg-teal-500',
+    soft: 'from-teal-500/15 to-emerald-500/10',
     textColor: 'text-teal-600',
   },
   {
@@ -360,6 +375,7 @@ export default function App() {
       case 'ocr': return <PDFOCR />;
       case 'numbering': return <PDFNumbering />;
       case 'batch': return <PDFBatch />;
+      case 'scanner': return <PDFScanner />;
       default: return null;
     }
   };
