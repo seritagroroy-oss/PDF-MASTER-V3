@@ -1,12 +1,8 @@
 import * as pdfjs from 'pdfjs-dist';
+// Vite ?url import: copies the worker to dist with a unique content hash.
+// This is the official Vite way to get a stable, cache-busted URL for any asset.
+import pdfjsWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 
-// Use Vite's asset URL mechanism - this bundles the worker with a unique hash
-// to bypass all browser and service worker caches.
-const workerUrl = new URL(
-    'pdfjs-dist/build/pdf.worker.min.mjs',
-    import.meta.url
-).href;
-
-pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
+pdfjs.GlobalWorkerOptions.workerSrc = pdfjsWorkerUrl;
 
 export { pdfjs };
