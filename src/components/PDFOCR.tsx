@@ -1,7 +1,6 @@
 import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import * as pdfjs from 'pdfjs-dist';
-pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
+import { pdfjs } from '../pdfjs-setup';
 import Tesseract from 'tesseract.js';
 import { ScanText, Upload, FileText, Copy, Loader2, CheckCircle2, Languages, X, Activity } from 'lucide-react';
 import { cn } from '../utils/cn';

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { PDFDocument } from 'pdf-lib';
-import * as pdfjs from 'pdfjs-dist';
-pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
+import { pdfjs } from '../pdfjs-setup';
 import { FileUpload } from './FileUpload';
 import { Combine, Download, Loader2, CheckCircle2, AlertCircle, FileText, Edit3, Eye, X, ZoomIn, ZoomOut, Maximize2, Minimize2, Filter, Search, Calendar, HardDrive, ChevronDown, ChevronUp } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';

@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import * as pdfjs from 'pdfjs-dist';
-pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
+import { pdfjs } from '../pdfjs-setup';
 import { MessageSquare, Upload, FileText, Send, Loader2, Sparkles, X, AlertCircle } from 'lucide-react';
 import { cn } from '../utils/cn';
 

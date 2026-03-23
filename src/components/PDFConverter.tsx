@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import * as pdfjs from 'pdfjs-dist';
-pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
+import { pdfjs } from '../pdfjs-setup';
 import JSZip from 'jszip';
 import { FileUpload } from './FileUpload';
 import { FileImage, Download, Loader2, CheckCircle2, AlertCircle, Image as ImageIcon, Type } from 'lucide-react';

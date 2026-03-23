@@ -12,6 +12,17 @@ export default defineConfig(({ mode }) => {
       react(),
       VitePWA({
         registerType: 'autoUpdate',
+        workbox: {
+          skipWaiting: true,
+          clientsClaim: true,
+          // Do not cache the PDF worker - always fetch fresh from server
+          runtimeCaching: [
+            {
+              urlPattern: /pdf\.worker/,
+              handler: 'NetworkOnly',
+            },
+          ],
+        },
         manifest: {
           name: 'PDF Master - ROY INDUSTRIE',
           short_name: 'PDFMaster',
