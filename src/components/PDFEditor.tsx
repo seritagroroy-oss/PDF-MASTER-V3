@@ -1212,8 +1212,9 @@ export const PDFEditor: React.FC = () => {
   };
 
   return (
-    <div className={cn("min-h-screen transition-colors duration-500", isDarkMode ? "bg-slate-950 text-slate-100" : "bg-slate-50 text-slate-900")}>
-      <div className="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
+    <div className={cn("min-h-screen transition-colors duration-500 overflow-x-hidden", isDarkMode ? "bg-slate-950 text-slate-100" : "bg-slate-50 text-slate-900")}>
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-8 sm:py-12">
+
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-12">
           <div className="flex items-center gap-4 w-full lg:w-auto">
             <div className="p-3 sm:p-4 bg-indigo-600 rounded-3xl shadow-xl shadow-indigo-200 rotate-3 shrink-0">
@@ -1281,51 +1282,52 @@ export const PDFEditor: React.FC = () => {
               </button>
             </div>
             
-            <div className="flex-1 min-w-[120px] max-w-full lg:max-w-[200px]">
-              <div className="flex items-center gap-2 p-1 bg-white dark:bg-slate-800 rounded-2xl shadow-md relative group/wm border border-slate-100 dark:border-slate-700">
+            <div className="flex-1 min-w-[100px] max-w-full lg:max-w-[200px]">
+              <div className="flex items-center gap-1.5 p-1 bg-white dark:bg-slate-800 rounded-2xl shadow-sm relative group/wm border border-slate-100 dark:border-slate-700">
                 <input
                   type="text"
                   placeholder="Filigrane..."
                   value={watermark}
                   onChange={(e) => setWatermark(e.target.value)}
-                  className="bg-transparent px-3 sm:px-4 py-2 text-sm outline-none w-full dark:text-white"
+                  className="bg-transparent px-2 sm:px-4 py-1.5 text-xs sm:text-sm outline-none w-full dark:text-white"
                 />
                 {watermark && (
                   <button
                     onClick={() => setWatermark("")}
-                    className="p-1 mr-1 bg-slate-100 dark:bg-slate-700 rounded-lg hover:bg-rose-100 hover:text-rose-600 transition-all"
+                    className="p-1 mr-0.5 bg-slate-100 dark:bg-slate-700 rounded-lg hover:bg-rose-100 hover:text-rose-600 transition-all shrink-0"
                   >
-                    <X size={12} />
+                    <X size={10} />
                   </button>
                 )}
-                <div className="p-2 bg-slate-100 dark:bg-slate-700 rounded-xl shrink-0">
-                  <Stamp size={16} className="text-slate-400" />
+                <div className="p-1.5 bg-slate-100 dark:bg-slate-700 rounded-xl shrink-0">
+                  <Stamp size={14} className="text-slate-400" />
                 </div>
               </div>
             </div>
 
             <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
-              <div className="hidden xs:flex items-center gap-2 p-1 bg-white dark:bg-slate-800 rounded-2xl shadow-md border border-slate-100 dark:border-slate-700">
+              <div className="flex flex-1 sm:flex-none items-center gap-1.5 p-1 bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
                 <input
                   type="password"
                   placeholder="Pass..."
                   value={exportPassword}
                   onChange={(e) => setExportPassword(e.target.value)}
-                  className="bg-transparent px-3 py-2 text-xs outline-none w-16 sm:w-20 dark:text-white"
+                  className="bg-transparent px-2 py-1.5 text-xs outline-none w-full sm:w-20 dark:text-white min-w-0"
                 />
-                <div className="p-2 bg-slate-100 dark:bg-slate-700 rounded-xl">
+                <div className="p-1.5 bg-slate-100 dark:bg-slate-700 rounded-xl shrink-0">
                   <Lock size={14} className="text-slate-400" />
                 </div>
               </div>
               <button
                 onClick={editPDF}
                 disabled={thumbnails.length === 0 || isProcessing}
-                className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 sm:px-6 py-2 sm:py-3 bg-indigo-600 text-white rounded-2xl shadow-lg shadow-indigo-200 dark:shadow-none hover:bg-indigo-700 transition-all text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 sm:px-6 py-2 sm:py-3 bg-indigo-600 text-white rounded-2xl shadow-lg shadow-indigo-200 dark:shadow-none hover:bg-indigo-700 transition-all text-xs sm:text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isProcessing ? <Loader2 className="animate-spin" size={18} /> : <Download size={18} />}
+                {isProcessing ? <Loader2 className="animate-spin" size={16} /> : <Download size={16} />}
                 <span>Exporter</span>
               </button>
             </div>
+
           </div>
         </div>
 
@@ -1769,9 +1771,10 @@ export const PDFEditor: React.FC = () => {
 
               <div className="flex-1 flex overflow-hidden">
                 {/* Main Workspace */}
-                <main className="flex-1 overflow-auto bg-slate-200 flex flex-col items-center py-12 px-4 scrollbar-thin scroll-smooth relative">
-                  <div className="max-w-5xl w-full flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-8 duration-700">
-                    <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-10 border border-white/40">
+                <main className="flex-1 overflow-x-hidden overflow-y-auto bg-slate-200 flex flex-col items-center py-6 sm:py-12 px-2 sm:px-4 scrollbar-thin scroll-smooth relative">
+                  <div className="max-w-5xl w-full flex flex-col gap-4 sm:gap-6 animate-in fade-in slide-in-from-bottom-8 duration-700">
+                    <div className="bg-white rounded-2xl shadow-xl p-2 sm:p-10 border border-white/40 overflow-hidden">
+
                       {activeEditMode === 'text' ? (
                         <div className="space-y-6">
                           <div className="flex justify-between items-center px-2">
@@ -1830,22 +1833,22 @@ export const PDFEditor: React.FC = () => {
                         </div>
                       ) : (
                         <div className="space-y-6">
-                          <div className="flex flex-wrap items-center justify-between gap-4 px-2 sm:px-4 py-3 bg-slate-50 rounded-xl border border-slate-100">
-                            <div className="flex flex-wrap items-center gap-1 sm:gap-2 border-r border-slate-200 pr-2 sm:pr-4">
-                              <button onClick={() => setVisualTool('move')} title="Déplacer" className={cn("p-1.5 sm:p-2 rounded-lg", visualTool === 'move' ? "bg-indigo-600 text-white" : "text-slate-400")}><GripVertical size={16} /></button>
-                              <button onClick={() => setVisualTool('pen')} title="Stylo / Dessin" className={cn("p-1.5 sm:p-2 rounded-lg", visualTool === 'pen' ? "bg-indigo-600 text-white" : "text-slate-400")}><Pencil size={16} /></button>
-                              <button onClick={() => setVisualTool('text')} title="Ajouter du texte" className={cn("p-1.5 sm:p-2 rounded-lg", visualTool === 'text' ? "bg-indigo-600 text-white" : "text-slate-400")}><Type size={16} /></button>
-                              <button onClick={() => setVisualTool('rect')} title="Rectangle" className={cn("p-1.5 sm:p-2 rounded-lg", visualTool === 'rect' ? "bg-indigo-600 text-white" : "text-slate-400")}><SquareIcon size={16} /></button>
-                              <button onClick={() => setVisualTool('circle')} title="Cercle" className={cn("p-1.5 sm:p-2 rounded-lg", visualTool === 'circle' ? "bg-indigo-600 text-white" : "text-slate-400")}><Circle size={16} /></button>
-                              <button onClick={() => setVisualTool('arrow')} title="Flèche" className={cn("p-1.5 sm:p-2 rounded-lg", visualTool === 'arrow' ? "bg-indigo-600 text-white" : "text-slate-400")}><ArrowRight size={16} /></button>
-                              <button onClick={() => setVisualTool('eraser')} title="Gomme" className={cn("p-1.5 sm:p-2 rounded-lg", visualTool === 'eraser' ? "bg-indigo-600 text-white" : "text-slate-400")}><Eraser size={16} /></button>
-                              <button onClick={() => setVisualTool('magic-eraser')} title="Gomme Magique (IA)" className={cn("p-1.5 sm:p-2 rounded-lg", visualTool === 'magic-eraser' ? "bg-cyan-500 text-white" : "text-slate-400")}><Zap size={16} /></button>
-                              <button onClick={() => askAI('detect_wm')} title="Détecter filigranes AI" disabled={isAIProcessing} className="p-1.5 sm:p-2 bg-indigo-500 text-white rounded-lg"><Sparkles size={16} /></button>
-                              <button onClick={clearDrawings} title="Tout effacer" className="p-1.5 sm:p-2 text-rose-500"><Trash2 size={16} /></button>
+                          <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 px-2 sm:px-4 py-3 bg-slate-50 rounded-xl border border-slate-100">
+                            <div className="flex flex-wrap items-center justify-center gap-1 sm:gap-2 border-b md:border-b-0 md:border-r border-slate-200 pb-3 md:pb-0 pr-0 md:pr-4">
+                              <button onClick={() => setVisualTool('move')} title="Déplacer" className={cn("p-2 sm:p-2 rounded-lg", visualTool === 'move' ? "bg-indigo-600 text-white" : "text-slate-400")}><GripVertical size={16} /></button>
+                              <button onClick={() => setVisualTool('pen')} title="Stylo / Dessin" className={cn("p-2 sm:p-2 rounded-lg", visualTool === 'pen' ? "bg-indigo-600 text-white" : "text-slate-400")}><Pencil size={16} /></button>
+                              <button onClick={() => setVisualTool('text')} title="Ajouter du texte" className={cn("p-2 sm:p-2 rounded-lg", visualTool === 'text' ? "bg-indigo-600 text-white" : "text-slate-400")}><Type size={16} /></button>
+                              <button onClick={() => setVisualTool('rect')} title="Rectangle" className={cn("p-2 sm:p-2 rounded-lg", visualTool === 'rect' ? "bg-indigo-600 text-white" : "text-slate-400")}><SquareIcon size={16} /></button>
+                              <button onClick={() => setVisualTool('circle')} title="Cercle" className={cn("p-2 sm:p-2 rounded-lg", visualTool === 'circle' ? "bg-indigo-600 text-white" : "text-slate-400")}><Circle size={16} /></button>
+                              <button onClick={() => setVisualTool('arrow')} title="Flèche" className={cn("p-2 sm:p-2 rounded-lg", visualTool === 'arrow' ? "bg-indigo-600 text-white" : "text-slate-400")}><ArrowRight size={16} /></button>
+                              <button onClick={() => setVisualTool('eraser')} title="Gomme" className={cn("p-2 sm:p-2 rounded-lg", visualTool === 'eraser' ? "bg-indigo-600 text-white" : "text-slate-400")}><Eraser size={16} /></button>
+                              <button onClick={() => setVisualTool('magic-eraser')} title="Gomme Magique (IA)" className={cn("p-2 sm:p-2 rounded-lg", visualTool === 'magic-eraser' ? "bg-cyan-500 text-white" : "text-slate-400")}><Zap size={16} /></button>
+                              <button onClick={() => askAI('detect_wm')} title="Détecter filigranes AI" disabled={isAIProcessing} className="p-2 bg-indigo-500 text-white rounded-lg"><Sparkles size={16} /></button>
+                              <button onClick={clearDrawings} title="Tout effacer" className="p-2 text-rose-500"><Trash2 size={16} /></button>
                             </div>
 
-                            <div className="flex items-center gap-4 px-4 border-l border-slate-200">
-                              <div className="flex flex-col gap-1 min-w-[100px]">
+                            <div className="flex flex-col sm:flex-row items-center gap-4 px-0 md:px-4 border-l-0 md:border-l border-slate-200">
+                              <div className="flex flex-col gap-1 w-full sm:min-w-[100px]">
                                 <div className="flex justify-between items-center text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                                   <span>Taille</span>
                                   <span>{brushSize}px</span>
@@ -1860,12 +1863,13 @@ export const PDFEditor: React.FC = () => {
                                   title="Ajuster la taille de l'outil"
                                 />
                               </div>
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-4 justify-center">
                                 <button onClick={undo} title="Annuler (Ctrl+Z)" className="p-2 text-slate-400 transition-colors hover:text-indigo-600"><Undo2 size={18} /></button>
                                 <button onClick={redo} title="Rétablir (Ctrl+Y)" className="p-2 text-slate-400 transition-colors hover:text-indigo-600"><RotateCcw size={18} className="rotate-180" /></button>
                               </div>
                             </div>
                           </div>
+
 
                           <div className="relative w-full bg-slate-100 rounded-2xl overflow-hidden shadow-inner border border-slate-200 flex items-center justify-center min-h-[600px]">
                             <canvas
@@ -1957,9 +1961,10 @@ export const PDFEditor: React.FC = () => {
                                           setTextInput(null);
                                         }
                                       }}
-                                      className="bg-transparent text-slate-900 outline-none min-w-[150px]"
-                                      placeholder="Écrivez ici..."
+                                      className="bg-transparent text-slate-900 outline-none w-full max-w-[200px] sm:max-w-none sm:min-w-[150px]"
+                                      placeholder="Écrivez..."
                                     />
+
                                     <div className="flex gap-1 border-l border-slate-200 pl-2">
                                       <button onClick={(e) => { e.stopPropagation(); setTextInput(null); }} className="p-1 hover:bg-rose-50 rounded text-rose-500"><X size={14} /></button>
                                       <button
