@@ -273,6 +273,10 @@ export default function App() {
   };
 
   useEffect(() => {
+    // Detect iOS devices
+    const isIos = /ipad|iphone|ipod/.test(navigator.userAgent.toLowerCase());
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (('standalone' in navigator) && (navigator as any).standalone);
+
     const handleBeforeInstallPrompt = (event: Event) => {
       event.preventDefault();
       setDeferredPrompt(event as BeforeInstallPromptEvent);
@@ -282,6 +286,15 @@ export default function App() {
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    
+    // Fallback for iOS (Safari doesn't fire beforeinstallprompt)
+    if (isIos && !isStandalone) {
+      setTimeout(() => {
+        setIsInstallable(true);
+        setShowInstallBanner(true);
+      }, 3000); 
+    }
+
     return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
   }, []);
 
@@ -310,16 +323,20 @@ export default function App() {
   }, []);
 
   const handleInstallClick = async () => {
-    if (!deferredPrompt) return;
-    await deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
+    if (deferredPrompt) {
+      await deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
 
-    if (outcome === 'accepted') {
-      setIsInstallable(false);
-      setShowInstallBanner(false);
+      if (outcome === 'accepted') {
+        setIsInstallable(false);
+        setShowInstallBanner(false);
+      }
+
+      setDeferredPrompt(null);
+    } else {
+      // Fallback manual instructions for iOS Safari
+      alert("Sur iOS, touchez l'icône Partager (au milieu en bas), puis sélectionnez 'Sur l'écran d'accueil' pour installer l'application.");
     }
-
-    setDeferredPrompt(null);
   };
 
   const renderActiveTool = () => {

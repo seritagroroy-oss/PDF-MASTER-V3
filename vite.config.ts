@@ -28,6 +28,9 @@ export default defineConfig(({ mode }) => {
           short_name: 'PDFMaster',
           description: 'Une plateforme moderne et professionnelle pour fusionner, modifier et gerer vos fichiers PDF.',
           theme_color: '#020617',
+          background_color: '#020617',
+          display: 'standalone',
+          start_url: '/',
           icons: [
             {
               src: '/icons/icon-192.png',
