@@ -92,6 +92,7 @@ export const PDFEditor: React.FC = () => {
   const [ocrLanguage, setOcrLanguage] = useState<'fra' | 'eng' | 'fra+eng'>('fra+eng');
   const [isSignaturePadOpen, setIsSignaturePadOpen] = useState(false);
   const [isEyeSaverMode, setIsEyeSaverMode] = useState(false);
+  const [isReorderingMode, setIsReorderingMode] = useState(false);
   const [signatureData, setSignatureData] = useState<string | null>(null);
   const [showHelp, setShowHelp] = useState(false);
   const [history, setHistory] = useState<DrawingStroke[][]>([]);
@@ -1431,9 +1432,10 @@ export const PDFEditor: React.FC = () => {
             <div className="space-y-6 mt-12">
               <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                 <h3 className="text-xl font-display font-bold flex items-center gap-2">
-                  <RefreshCw size={20} className="text-indigo-600" />
-                  Réorganiser les pages
+                  <FileText size={20} className="text-indigo-600" />
+                  Pages du document
                 </h3>
+
 
                 <div className="flex items-center gap-4 bg-white dark:bg-slate-800 p-2 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm">
                   <div className="flex items-center gap-2 px-3 py-1.5 border-r border-slate-100 dark:border-slate-700">
@@ -1453,6 +1455,15 @@ export const PDFEditor: React.FC = () => {
                   >
                     <PlusCircle size={14} />
                     Page Blanche
+                  </button>
+
+                  <button
+                    onClick={() => setIsReorderingMode(true)}
+                    className="flex items-center gap-2 px-3 py-1.5 bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 text-xs font-bold rounded-xl hover:bg-amber-100 dark:hover:bg-amber-900/40 transition-all"
+                    title="Ouvrir l'outil de réorganisation"
+                  >
+                    <RefreshCw size={14} />
+                    Réorganiser
                   </button>
 
                   <button
@@ -1507,28 +1518,19 @@ export const PDFEditor: React.FC = () => {
               </div>
             </div>
 
-            <Reorder.Group
-              axis="y"
-              values={thumbnails}
-              onReorder={setThumbnails}
+            <div
               className={cn("grid gap-6", getGridCols())}
             >
               {thumbnails.filter(t => !searchQuery || t.modifiedText?.toLowerCase().includes(searchQuery.toLowerCase())).map((thumbnail, idx) => (
-                <Reorder.Item
+                <div
                   key={thumbnail.id}
-                  value={thumbnail}
                   onDoubleClick={() => handleDoubleClick(thumbnail)}
                   onClick={(e) => {
                     if (e.ctrlKey || e.metaKey) {
                       toggleSelection(thumbnail.id, true);
                     }
                   }}
-                  whileDrag={{
-                    scale: 1.05,
-                    zIndex: 50,
-                    boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)"
-                  }}
-                  className="relative group cursor-grab active:cursor-grabbing"
+                  className="relative group transition-transform"
                 >
                   <div className={cn(
                     "relative aspect-[3/4] bg-white dark:bg-slate-900 rounded-xl border-2 overflow-hidden shadow-sm transition-all",
@@ -1542,7 +1544,7 @@ export const PDFEditor: React.FC = () => {
                       <img
                         src={thumbnail.url}
                         alt={`Page ${idx + 1}`}
-                        className={cn("w-full h-full object-contain", getThumbnailPadding())}
+                        className={cn("w-full h-full object-contain pointer-events-none", getThumbnailPadding())}
                       />
                     </div>
 
@@ -1561,11 +1563,6 @@ export const PDFEditor: React.FC = () => {
                     >
                       {selectedIds.has(thumbnail.id) ? <Check size={14} /> : <div className="w-3 h-3 border-2 border-slate-300 dark:border-slate-500 rounded-sm" />}
                     </button>
-
-                    {/* Drag Handle Indicator */}
-                    <div className="absolute top-2 left-2 p-1.5 bg-white/90 dark:bg-slate-800/90 text-slate-400 rounded-md shadow-sm border border-slate-100 dark:border-slate-700 z-20 transition-colors group-hover:text-indigo-500">
-                      <GripVertical size={14} />
-                    </div>
 
                     {thumbnail.modifiedText && (
                       <div className="absolute inset-0 bg-amber-500/10 flex items-center justify-center pointer-events-none">
@@ -1623,12 +1620,68 @@ export const PDFEditor: React.FC = () => {
                     </div>
                   </div>
                   <p className="mt-2 text-center text-xs font-bold text-slate-400">Page {thumbnail.index + 1}</p>
-                </Reorder.Item>
+                </div>
               ))}
-            </Reorder.Group>
+            </div>
           </>
         )}
         <AnimatePresence>
+          {isReorderingMode && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[150] flex flex-col bg-slate-100 dark:bg-slate-900"
+            >
+              <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 shadow-sm shrink-0">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
+                  <div className="hidden sm:flex p-2 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-xl">
+                    <RefreshCw size={20} />
+                  </div>
+                  <div>
+                    <h2 className="font-bold text-slate-900 dark:text-white text-base sm:text-lg">Réorganiser les pages</h2>
+                    <p className="text-[10px] sm:text-xs text-slate-500">Glissez-déposez les pages pour changer leur ordre</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setIsReorderingMode(false)}
+                  className="px-4 sm:px-6 py-2 bg-indigo-600 text-white text-sm sm:text-base font-bold rounded-xl hover:bg-indigo-700 transition-all shadow-md shrink-0"
+                >
+                  Terminer
+                </button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-4 sm:p-8">
+                <div className="max-w-5xl mx-auto">
+                  <Reorder.Group
+                    axis="y"
+                    values={thumbnails}
+                    onReorder={setThumbnails}
+                    className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-4"
+                  >
+                    {thumbnails.map((t, idx) => (
+                      <Reorder.Item
+                        key={t.id}
+                        value={t}
+                        className="relative cursor-grab active:cursor-grabbing hover:scale-[1.02] transition-transform"
+                      >
+                        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden aspect-[3/4]">
+                          <img src={t.url} className="w-full h-full object-contain p-2 pointer-events-none" />
+                          <div className="absolute top-2 left-2 p-1 bg-white/90 shadow-sm rounded border border-slate-100 text-slate-500">
+                            <GripVertical size={12} />
+                          </div>
+                          <div className="absolute bottom-2 right-2 bg-slate-900/80 text-white text-[10px] font-bold px-2 py-1 rounded">
+                            {idx + 1}
+                          </div>
+                        </div>
+                      </Reorder.Item>
+                    ))}
+                  </Reorder.Group>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
           {previewPage && (
             <motion.div
               initial={{ opacity: 0 }}
