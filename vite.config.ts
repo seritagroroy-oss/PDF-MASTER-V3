@@ -15,11 +15,21 @@ export default defineConfig(({ mode }) => {
         workbox: {
           skipWaiting: true,
           clientsClaim: true,
-          // Do not cache the PDF worker - always fetch fresh from server
+          globPatterns: ['**/*.{js,mjs,tsx,ts,css,html,ico,png,svg,json,woff,woff2}'],
+          maximumFileSizeToCacheInBytes: 5000000, // 5MB limit to allow caching massive pdf workers
           runtimeCaching: [
             {
-              urlPattern: /pdf\.worker/,
-              handler: 'NetworkOnly',
+              // For external assets like CDNs or APIs, use NetworkFirst
+              urlPattern: /^https:\/\/cdn\.jsdelivr\.net\/.*$/i,
+              handler: 'NetworkFirst',
+              options: {
+                cacheName: 'cdn-cache',
+                expiration: {
+                  maxEntries: 10,
+                  maxAgeSeconds: 60 * 60 * 24 * 30, // 30 Days
+                },
+                networkTimeoutSeconds: 5, // Fallback to cache if network is slow
+              },
             },
           ],
         },
