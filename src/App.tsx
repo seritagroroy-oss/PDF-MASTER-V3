@@ -487,16 +487,6 @@ export default function App() {
             </div>
 
             <div className="hidden items-center shrink-0 gap-2 xl:gap-3 md:flex">
-              {isInstallable && (
-                <button
-                  type="button"
-                  onClick={handleInstallClick}
-                  className="inline-flex items-center gap-2 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-4 py-2 text-sm font-semibold text-cyan-200 transition hover:border-cyan-300/50 hover:bg-cyan-400/15"
-                >
-                  <DownloadCloud size={18} />
-                  Installer l'app
-                </button>
-              )}
 
               {currentUser ? (
                 <div className="relative">
