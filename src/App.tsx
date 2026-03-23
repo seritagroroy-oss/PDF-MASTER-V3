@@ -657,11 +657,11 @@ export default function App() {
                       </p>
                     </div>
 
-                    <div className="flex flex-col gap-4 sm:flex-row">
+                    <div className="flex flex-col gap-3 sm:gap-4 sm:flex-row">
                       <button
                         type="button"
                         onClick={() => setActiveTool('merge')}
-                        className="inline-flex items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-7 py-4 text-lg font-bold text-white shadow-xl shadow-indigo-500/20 transition hover:-translate-y-1 hover:bg-indigo-700"
+                        className="inline-flex items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-7 py-3.5 sm:py-4 text-base sm:text-lg font-bold text-white shadow-xl shadow-indigo-500/20 transition hover:-translate-y-1 hover:bg-indigo-700"
                       >
                         Lancer un essai
                         <ArrowRight size={20} />
@@ -669,13 +669,13 @@ export default function App() {
                       <button
                         type="button"
                         onClick={() => setActiveTool('convert')}
-                        className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-7 py-4 text-lg font-bold text-slate-900 transition hover:border-indigo-200 hover:bg-indigo-50/40"
+                        className="hidden sm:inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-7 py-4 text-lg font-bold text-slate-900 transition hover:border-indigo-200 hover:bg-indigo-50/40"
                       >
                         Tester la conversion
                       </button>
                     </div>
 
-                    <div className="grid gap-3 sm:grid-cols-3">
+                    <div className="hidden sm:grid gap-3 sm:grid-cols-3">
                       {trustPoints.map((item) => (
                         <div
                           key={item}
@@ -691,7 +691,7 @@ export default function App() {
                     </div>
                   </div>
 
-                  <div className="relative">
+                  <div className="relative hidden lg:block">
                     <div className="absolute inset-0 rounded-[2rem] bg-gradient-to-br from-indigo-500/20 via-cyan-400/10 to-emerald-400/20 blur-2xl" />
                     <div className="relative overflow-hidden rounded-[2rem] border border-white/70 bg-white/85 p-6 shadow-2xl shadow-slate-900/10">
                       <div className="mb-6 flex items-center justify-between">
@@ -938,7 +938,7 @@ export default function App() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 80, scale: 0.95 }}
             transition={{ type: 'spring', damping: 20, stiffness: 300 }}
-            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[200] w-[calc(100%-2rem)] max-w-md"
+            className="fixed bottom-3 left-3 right-3 sm:bottom-6 sm:left-1/2 sm:-translate-x-1/2 sm:right-auto z-[200] sm:w-[calc(100%-2rem)] sm:max-w-md"
           >
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 rounded-2xl bg-slate-900 p-3 sm:p-4 shadow-2xl shadow-slate-900/40 border border-slate-700/50 backdrop-blur-xl">
               <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0 w-full">
@@ -946,8 +946,8 @@ export default function App() {
                   <DownloadCloud size={20} className="text-slate-950" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-bold text-white text-sm">Installer PDF Master</p>
-                  <p className="text-xs text-slate-400 mt-0.5 truncate sm:whitespace-normal">Accès rapide à un clic</p>
+                  <p className="font-bold text-white text-sm line-clamp-1">Installer PDF Master</p>
+                  <p className="text-[11px] sm:text-xs text-slate-400 mt-0.5 line-clamp-1 sm:whitespace-normal">Accès rapide à un clic</p>
                 </div>
                 <button
                   onClick={() => setShowInstallBanner(false)}
@@ -967,9 +967,9 @@ export default function App() {
                 </button>
                 <button
                   onClick={handleInstallClick}
-                  className="w-full sm:w-auto px-4 py-2.5 sm:py-2 bg-cyan-400 hover:bg-cyan-300 text-slate-950 font-bold text-sm rounded-xl transition-all hover:scale-105 active:scale-95 shadow-md shadow-cyan-500/20"
+                  className="w-full sm:w-auto px-4 py-2.5 sm:py-2 bg-cyan-400 hover:bg-cyan-300 text-slate-950 font-extrabold text-[13px] sm:text-sm rounded-xl transition-all hover:scale-105 active:scale-95 shadow-md shadow-cyan-500/20"
                 >
-                  Installer
+                  Installer la PWA
                 </button>
               </div>
             </div>
