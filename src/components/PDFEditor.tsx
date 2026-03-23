@@ -1652,27 +1652,45 @@ export const PDFEditor: React.FC = () => {
               </div>
 
               <div className="flex-1 overflow-y-auto p-4 sm:p-8">
-                <div className="max-w-5xl mx-auto">
+                <div className="max-w-2xl mx-auto pb-20">
                   <Reorder.Group
                     axis="y"
                     values={thumbnails}
                     onReorder={setThumbnails}
-                    className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-4"
+                    className="flex flex-col gap-3"
                   >
                     {thumbnails.map((t, idx) => (
                       <Reorder.Item
                         key={t.id}
                         value={t}
-                        className="relative cursor-grab active:cursor-grabbing hover:scale-[1.02] transition-transform"
+                        className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-2 sm:p-3 flex items-center gap-4 cursor-grab active:cursor-grabbing hover:shadow-md transition-shadow select-none"
+                        whileDrag={{
+                          scale: 1.02,
+                          zIndex: 50,
+                          boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)"
+                        }}
                       >
-                        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden aspect-[3/4]">
-                          <img src={t.url} className="w-full h-full object-contain p-2 pointer-events-none" />
-                          <div className="absolute top-2 left-2 p-1 bg-white/90 shadow-sm rounded border border-slate-100 text-slate-500">
-                            <GripVertical size={12} />
-                          </div>
-                          <div className="absolute bottom-2 right-2 bg-slate-900/80 text-white text-[10px] font-bold px-2 py-1 rounded">
-                            {idx + 1}
-                          </div>
+                        <div className="text-slate-400 p-2 hover:text-indigo-500 transition-colors">
+                          <GripVertical size={20} />
+                        </div>
+                        
+                        <div className="w-12 h-16 sm:w-16 sm:h-20 bg-slate-100 dark:bg-slate-900 rounded-lg overflow-hidden shrink-0 border border-slate-200 dark:border-slate-700 flex items-center justify-center relative">
+                          <img src={t.url} className="max-w-full max-h-full object-contain pointer-events-none" />
+                        </div>
+                        
+                        <div className="flex-1 min-w-0">
+                          <p className="font-bold text-slate-800 dark:text-slate-200 text-sm sm:text-base">
+                            Page {idx + 1}
+                          </p>
+                          <p className="text-xs text-slate-500 mt-1 line-clamp-1">
+                            {t.modifiedText ? "Texte modifié" : "Fichier original"}
+                          </p>
+                        </div>
+                        
+                        <div className="flex gap-2 mr-2">
+                           <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-xs font-bold text-slate-600 dark:text-slate-400">
+                             #{idx + 1}
+                           </div>
                         </div>
                       </Reorder.Item>
                     ))}
