@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Camera, FileDown, Trash2, X, RefreshCw, Plus, CheckCircle2 } from 'lucide-react';
+import { Camera, FileDown, Trash2, X, RefreshCw, Plus, Settings2, RotateCw, Contrast, Image as ImageIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { PDFDocument } from 'pdf-lib';
 
@@ -10,6 +10,10 @@ export const PDFScanner: React.FC = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [facingMode, setFacingMode] = useState<'environment' | 'user'>('environment');
+  
+  // Edit mode states
+  const [editingImageIdx, setEditingImageIdx] = useState<number | null>(null);
+  const editCanvasRef = useRef<HTMLCanvasElement>(null);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -115,6 +119,60 @@ export const PDFScanner: React.FC = () => {
     } finally {
       setIsGenerating(false);
     }
+  };
+
+  // Image Editing Functions
+  const openEditor = (idx: number) => {
+    setEditingImageIdx(idx);
+    setTimeout(() => {
+      drawToEditCanvas(scannedImages[idx]);
+    }, 100);
+  };
+
+  const drawToEditCanvas = (srcUrl: string, filter?: string) => {
+    const canvas = editCanvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => {
+      canvas.width = img.width;
+      canvas.height = img.height;
+      if (filter) ctx.filter = filter;
+      ctx.drawImage(img, 0, 0);
+    };
+    img.src = srcUrl;
+  };
+
+  const applyRotate = () => {
+    const canvas = editCanvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const img = new Image();
+    img.onload = () => {
+      canvas.width = img.height;
+      canvas.height = img.width;
+      ctx.translate(canvas.width / 2, canvas.height / 2);
+      ctx.rotate(90 * Math.PI / 180);
+      ctx.drawImage(img, -img.width / 2, -img.height / 2);
+    };
+    img.src = canvas.toDataURL('image/jpeg', 1.0);
+  };
+
+  const saveEdit = () => {
+    const canvas = editCanvasRef.current;
+    if (!canvas || editingImageIdx === null) return;
+    const newUrl = canvas.toDataURL('image/jpeg', 0.9);
+    setScannedImages(prev => {
+      const copy = [...prev];
+      copy[editingImageIdx] = newUrl;
+      return copy;
+    });
+    setEditingImageIdx(null);
   };
 
   // Cleanup on unmount
@@ -234,12 +292,22 @@ export const PDFScanner: React.FC = () => {
                   <div className="absolute top-2 left-2 bg-slate-900/80 text-white text-[10px] font-bold px-2 py-1 rounded shadow-sm backdrop-blur-sm">
                     Page {idx + 1}
                   </div>
-                  <button
-                    onClick={() => removeImage(idx)}
-                    className="absolute top-2 right-2 p-1.5 bg-rose-500 text-white rounded shadow-sm opacity-0 group-hover:opacity-100 transition-opacity hover:bg-rose-600"
-                  >
-                    <Trash2 size={14} />
-                  </button>
+                  <div className="absolute inset-0 bg-slate-900/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                    <button
+                      onClick={() => openEditor(idx)}
+                      className="p-2 bg-indigo-500 text-white rounded-lg shadow-sm hover:bg-indigo-600 transition-colors"
+                      title="Ajuster"
+                    >
+                      <Settings2 size={18} />
+                    </button>
+                    <button
+                      onClick={() => removeImage(idx)}
+                      className="p-2 bg-rose-500 text-white rounded-lg shadow-sm hover:bg-rose-600 transition-colors"
+                      title="Supprimer"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
                 </motion.div>
               ))}
             </AnimatePresence>
@@ -269,6 +337,80 @@ export const PDFScanner: React.FC = () => {
 
       {/* Hidden canvas for capturing frames */}
       <canvas ref={canvasRef} className="hidden" />
+
+      {/* Editor Modal */}
+      <AnimatePresence>
+        {editingImageIdx !== null && (
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 50 }}
+            className="fixed inset-0 z-[200] bg-slate-950 flex flex-col"
+          >
+            <div className="flex items-center justify-between p-4 bg-slate-900 border-b border-slate-800">
+              <button
+                onClick={() => setEditingImageIdx(null)}
+                className="px-4 py-2 text-slate-400 font-bold hover:text-white transition-colors"
+              >
+                Annuler
+              </button>
+              <h3 className="text-white font-bold">Ajustements</h3>
+              <button
+                onClick={saveEdit}
+                className="px-4 py-2 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 transition-colors"
+              >
+                Valider
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-auto flex items-center justify-center p-4 bg-black">
+              <canvas ref={editCanvasRef} className="max-w-full max-h-full object-contain bg-white rounded-md shadow-2xl" />
+            </div>
+
+            <div className="p-6 bg-slate-900 border-t border-slate-800 flex justify-center gap-6 overflow-x-auto">
+              <button
+                onClick={applyRotate}
+                className="flex flex-col items-center gap-2 p-3 text-slate-400 hover:text-white transition-colors shrink-0"
+              >
+                <div className="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center">
+                  <RotateCw size={24} />
+                </div>
+                <span className="text-xs font-bold font-display uppercase tracking-wider">Pivoter</span>
+              </button>
+              
+              <button
+                onClick={() => drawToEditCanvas(scannedImages[editingImageIdx!], 'none')}
+                className="flex flex-col items-center gap-2 p-3 text-slate-400 hover:text-white transition-colors shrink-0"
+              >
+                <div className="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center">
+                  <ImageIcon size={24} />
+                </div>
+                <span className="text-xs font-bold font-display uppercase tracking-wider">Original</span>
+              </button>
+
+              <button
+                onClick={() => drawToEditCanvas(scannedImages[editingImageIdx!], 'grayscale(100%) contrast(150%)')}
+                className="flex flex-col items-center gap-2 p-3 text-slate-400 hover:text-white transition-colors shrink-0"
+              >
+                <div className="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center">
+                  <FileDown size={24} />
+                </div>
+                <span className="text-xs font-bold font-display uppercase tracking-wider">Noir & Blanc</span>
+              </button>
+
+              <button
+                onClick={() => drawToEditCanvas(scannedImages[editingImageIdx!], 'contrast(130%) brightness(110%) saturate(120%)')}
+                className="flex flex-col items-center gap-2 p-3 text-slate-400 hover:text-white transition-colors shrink-0"
+              >
+                <div className="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center">
+                  <Contrast size={24} />
+                </div>
+                <span className="text-xs font-bold font-display uppercase tracking-wider">Doc Magique</span>
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
