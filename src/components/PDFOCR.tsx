@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as pdfjs from 'pdfjs-dist';
-pdfjs.GlobalWorkerOptions.workerSrc = 'https://unpkg.com/pdfjs-dist@5.5.207/build/pdf.worker.min.mjs';
+pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
 import Tesseract from 'tesseract.js';
 import { ScanText, Upload, FileText, Copy, Loader2, CheckCircle2, Languages, X, Activity } from 'lucide-react';
 import { cn } from '../utils/cn';
@@ -24,7 +24,7 @@ export const PDFOCR = () => {
   const processOCR = async () => {
     if (!file) return;
     setIsProcessing(true); setProgress(0); setExtractedText('');
-    
+
     try {
       setStatus('Chargement du PDF...');
       const arrayBuffer = await file.arrayBuffer();
@@ -36,14 +36,14 @@ export const PDFOCR = () => {
         setStatus(`Extraction de la page ${i}/${totalPages}...`);
         const page = await pdf.getPage(i);
         const viewport = page.getViewport({ scale: 2.0 }); // High scale for better OCR
-        
+
         const canvas = document.createElement('canvas');
         const context = canvas.getContext('2d');
         if (!context) continue;
-        
+
         canvas.height = viewport.height;
         canvas.width = viewport.width;
-        
+
         await page.render({ canvasContext: context, viewport } as any).promise;
         const imgData = canvas.toDataURL('image/jpeg', 0.8);
 
@@ -53,7 +53,7 @@ export const PDFOCR = () => {
             if (m.status === 'recognizing text') setProgress(Math.round(m.progress * 100));
           }
         });
-        
+
         fullText += `\n\n--- PAGE ${i} ---\n\n` + result.data.text;
       }
 
@@ -108,7 +108,7 @@ export const PDFOCR = () => {
               <div className="space-y-2">
                 <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-1 flex items-center gap-1.5"><Languages size={14} />Langue du document</label>
                 <div className="flex gap-2 p-1 bg-slate-100 rounded-2xl">
-                  {[ { id: 'fra', l: 'Français' }, { id: 'eng', l: 'Anglais' }, { id: 'spa', l: 'Espagnol' } ].map(lang => (
+                  {[{ id: 'fra', l: 'Français' }, { id: 'eng', l: 'Anglais' }, { id: 'spa', l: 'Espagnol' }].map(lang => (
                     <button key={lang.id} onClick={() => setLanguage(lang.id)}
                       className={cn("flex-1 py-3 rounded-xl text-sm font-bold transition-all", language === lang.id ? "bg-white text-indigo-600 shadow-sm" : "text-slate-500 hover:bg-slate-200")}>
                       {lang.l}
