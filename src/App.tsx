@@ -273,26 +273,27 @@ export default function App() {
   };
 
   useEffect(() => {
-    // Detect iOS devices
-    const isIos = /ipad|iphone|ipod/.test(navigator.userAgent.toLowerCase());
+    // Check if app is running in standalone mode (already installed)
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (('standalone' in navigator) && (navigator as any).standalone);
 
     const handleBeforeInstallPrompt = (event: Event) => {
       event.preventDefault();
       setDeferredPrompt(event as BeforeInstallPromptEvent);
-      setIsInstallable(true);
-      // Show the banner after 3 seconds if not dismissed
-      setTimeout(() => setShowInstallBanner(true), 3000);
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     
-    // Fallback for iOS (Safari doesn't fire beforeinstallprompt)
-    if (isIos && !isStandalone) {
-      setTimeout(() => {
+    // Always trigger the banner if the user is not in the installed app
+    if (!isStandalone) {
+      const bannerTimer = setTimeout(() => {
         setIsInstallable(true);
         setShowInstallBanner(true);
-      }, 3000); 
+      }, 3500); 
+      
+      return () => {
+        clearTimeout(bannerTimer);
+        window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      }
     }
 
     return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
@@ -334,8 +335,12 @@ export default function App() {
 
       setDeferredPrompt(null);
     } else {
-      // Fallback manual instructions for iOS Safari
-      alert("Sur iOS, touchez l'icône Partager (au milieu en bas), puis sélectionnez 'Sur l'écran d'accueil' pour installer l'application.");
+      const isIos = /ipad|iphone|ipod/.test(navigator.userAgent.toLowerCase());
+      if (isIos) {
+        alert("Sur iPHONE / iPAD :\n\n1. Touchez l'icône Partager (carré avec flèche en bas)\n2. Sélectionnez 'Sur l'écran d'accueil'.");
+      } else {
+        alert("Pour installer :\n\n1. Ouvrez le menu de votre navigateur (les 3 points en haut à droite)\n2. Choisissez 'Ajouter à l'écran d'accueil' ou 'Installer'.");
+      }
     }
   };
 
