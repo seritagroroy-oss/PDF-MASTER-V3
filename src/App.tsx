@@ -228,17 +228,17 @@ const brandHighlights = [
 
 const preloadTool = (tool: Exclude<Tool, 'home' | 'dashboard'>) => {
   switch (tool) {
-    case 'merge':    void import('./components/PDFMerger'); break;
-    case 'edit':     void import('./components/PDFEditor'); break;
+    case 'merge': void import('./components/PDFMerger'); break;
+    case 'edit': void import('./components/PDFEditor'); break;
     case 'compress': void import('./components/PDFCompressor'); break;
-    case 'watermark':void import('./components/PDFWatermark'); break;
-    case 'convert':  void import('./components/PDFConverter'); break;
-    case 'split':    void import('./components/PDFSplitter'); break;
-    case 'protect':  void import('./components/PDFProtector'); break;
-    case 'chat':     void import('./components/PDFChat'); break;
-    case 'ocr':      void import('./components/PDFOCR'); break;
-    case 'numbering':void import('./components/PDFNumbering'); break;
-    case 'batch':    void import('./components/PDFBatch'); break;
+    case 'watermark': void import('./components/PDFWatermark'); break;
+    case 'convert': void import('./components/PDFConverter'); break;
+    case 'split': void import('./components/PDFSplitter'); break;
+    case 'protect': void import('./components/PDFProtector'); break;
+    case 'chat': void import('./components/PDFChat'); break;
+    case 'ocr': void import('./components/PDFOCR'); break;
+    case 'numbering': void import('./components/PDFNumbering'); break;
+    case 'batch': void import('./components/PDFBatch'); break;
   }
 };
 
@@ -252,6 +252,7 @@ export default function App() {
   const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem('pdfmaster_dark') === 'true');
   const [globalDragOver, setGlobalDragOver] = useState(false);
+  const [showInstallBanner, setShowInstallBanner] = useState(false);
   const [currentUser, setCurrentUser] = useState<AppUser | null>(() => {
     try {
       const stored = localStorage.getItem('pdfmaster_user');
@@ -278,6 +279,8 @@ export default function App() {
       event.preventDefault();
       setDeferredPrompt(event as BeforeInstallPromptEvent);
       setIsInstallable(true);
+      // Show the banner after 3 seconds if not dismissed
+      setTimeout(() => setShowInstallBanner(true), 3000);
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
@@ -323,6 +326,7 @@ export default function App() {
 
     if (outcome === 'accepted') {
       setIsInstallable(false);
+      setShowInstallBanner(false);
     }
 
     setDeferredPrompt(null);
@@ -333,18 +337,18 @@ export default function App() {
       return <UserDashboard user={currentUser} onNavigate={t => handleToolChange(t as Tool)} onLogout={handleLogout} />;
     }
     switch (activeTool) {
-      case 'merge':    return <PDFMerger />;
-      case 'edit':     return <PDFEditor />;
+      case 'merge': return <PDFMerger />;
+      case 'edit': return <PDFEditor />;
       case 'compress': return <PDFCompressor />;
-      case 'watermark':return <PDFWatermark />;
-      case 'convert':  return <PDFConverter />;
-      case 'split':    return <PDFSplitter />;
-      case 'protect':  return <PDFProtector />;
-      case 'chat':     return <PDFChat />;
-      case 'ocr':      return <PDFOCR />;
-      case 'numbering':return <PDFNumbering />;
-      case 'batch':    return <PDFBatch />;
-      default:         return null;
+      case 'watermark': return <PDFWatermark />;
+      case 'convert': return <PDFConverter />;
+      case 'split': return <PDFSplitter />;
+      case 'protect': return <PDFProtector />;
+      case 'chat': return <PDFChat />;
+      case 'ocr': return <PDFOCR />;
+      case 'numbering': return <PDFNumbering />;
+      case 'batch': return <PDFBatch />;
+      default: return null;
     }
   };
 
@@ -416,7 +420,7 @@ export default function App() {
                   <p className="text-sm font-semibold uppercase tracking-[0.35em] text-cyan-300/80">
                     Chargement de l’espace PDF
                   </p>
-                    <div className="brand-sheen mx-auto h-1.5 w-56 overflow-hidden rounded-full bg-white/10">
+                  <div className="brand-sheen mx-auto h-1.5 w-56 overflow-hidden rounded-full bg-white/10">
                     <motion.div
                       className="h-full rounded-full bg-cyan-300"
                       initial={{ x: '-100%' }}
@@ -471,15 +475,15 @@ export default function App() {
                       {tools.slice(6).map(tool => {
                         const Icon = tool.icon;
                         return (
-                          <button 
-                            key={tool.id} 
+                          <button
+                            key={tool.id}
                             onClick={() => handleToolChange(tool.id)}
                             onMouseEnter={() => preloadTool(tool.id)}
-                            className={cn("w-full text-left px-4 py-2.5 text-sm font-semibold hover:bg-slate-50 transition-colors flex items-center gap-2.5", 
+                            className={cn("w-full text-left px-4 py-2.5 text-sm font-semibold hover:bg-slate-50 transition-colors flex items-center gap-2.5",
                               activeTool === tool.id ? "text-indigo-600 bg-indigo-50/50" : "text-slate-700")}
                           >
                             <span className={cn("p-1.5 rounded-lg", tool.bg || tool.color.replace('text-', 'bg-').replace('600', '100'))}>
-                               <Icon size={14} className={tool.color.replace('bg-', 'text-')} />
+                              <Icon size={14} className={tool.color.replace('bg-', 'text-')} />
                             </span>
                             {tool.shortName}
                           </button>
@@ -1007,6 +1011,44 @@ export default function App() {
         isOpen={isShortcutsOpen}
         onClose={() => setIsShortcutsOpen(false)}
       />
+
+      {/* Floating install banner */}
+      <AnimatePresence>
+        {isInstallable && showInstallBanner && (
+          <motion.div
+            initial={{ opacity: 0, y: 80, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 80, scale: 0.95 }}
+            transition={{ type: 'spring', damping: 20, stiffness: 300 }}
+            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[200] w-[calc(100%-2rem)] max-w-md"
+          >
+            <div className="flex items-center gap-4 rounded-2xl bg-slate-900 p-4 pr-3 shadow-2xl shadow-slate-900/40 border border-slate-700/50 backdrop-blur-xl">
+              <div className="shrink-0 h-12 w-12 rounded-xl bg-cyan-400 flex items-center justify-center shadow-lg shadow-cyan-500/30">
+                <DownloadCloud size={22} className="text-slate-950" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-bold text-white text-sm">Installer PDF Master</p>
+                <p className="text-xs text-slate-400 mt-0.5">Accès rapide depuis votre écran d'accueil</p>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  onClick={() => setShowInstallBanner(false)}
+                  className="p-2 rounded-xl text-slate-500 hover:text-slate-300 hover:bg-slate-800 transition-colors"
+                  title="Fermer"
+                >
+                  <X size={16} />
+                </button>
+                <button
+                  onClick={handleInstallClick}
+                  className="px-4 py-2 bg-cyan-400 hover:bg-cyan-300 text-slate-950 font-bold text-sm rounded-xl transition-all hover:scale-105 active:scale-95 shadow-md shadow-cyan-500/20"
+                >
+                  Installer
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Floating shortcuts hint */}
       <button
