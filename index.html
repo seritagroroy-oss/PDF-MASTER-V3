@@ -34,16 +34,6 @@
     <script type="module" src="/src/main.tsx"></script>
   </head>
   <body>
-    <!-- Clean aggressive PWA cache automatically -->
-    <script>
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.getRegistrations().then(function(registrations) {
-          for(let registration of registrations) {
-            registration.unregister();
-          }
-        });
-      }
-    </script>
     <div id="root"></div>
   </body>
 </html>
