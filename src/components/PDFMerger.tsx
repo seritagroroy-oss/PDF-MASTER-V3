@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { PDFDocument } from 'pdf-lib';
-import * as pdfjs from 'pdfjs-dist/legacy/build/pdf.mjs';
-import pdfWorker from 'pdfjs-dist/legacy/build/pdf.worker.min.mjs?url';
+import * as pdfjs from 'pdfjs-dist';
+pdfjs.GlobalWorkerOptions.workerSrc = 'https://unpkg.com/pdfjs-dist@5.5.207/build/pdf.worker.min.mjs';
 import { FileUpload } from './FileUpload';
 import { Combine, Download, Loader2, CheckCircle2, AlertCircle, FileText, Edit3, Eye, X, ZoomIn, ZoomOut, Maximize2, Minimize2, Filter, Search, Calendar, HardDrive, ChevronDown, ChevronUp } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../utils/cn';
 
-// Set up the worker for pdf.js
-pdfjs.GlobalWorkerOptions.workerSrc = pdfWorker;
 
 export const PDFMerger: React.FC = () => {
   const [files, setFiles] = useState<any[]>([]);
@@ -23,7 +21,7 @@ export const PDFMerger: React.FC = () => {
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [previewZoom, setPreviewZoom] = useState(100);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  
+
   // Filter states
   const [showFilters, setShowFilters] = useState(false);
   const [nameFilter, setNameFilter] = useState("");
@@ -36,12 +34,12 @@ export const PDFMerger: React.FC = () => {
 
   const filteredFiles = files.filter(item => {
     const nameMatch = item.name.toLowerCase().includes(nameFilter.toLowerCase());
-    const sizeMatch = (minSize === "" || item.file.size >= minSize * 1024) && 
-                     (maxSize === "" || item.file.size <= maxSize * 1024);
-    
+    const sizeMatch = (minSize === "" || item.file.size >= minSize * 1024) &&
+      (maxSize === "" || item.file.size <= maxSize * 1024);
+
     const fileDate = new Date(item.file.lastModified);
     const startMatch = !startDate || fileDate >= new Date(startDate);
-    
+
     // Set endDate to the end of the day (23:59:59.999)
     let endMatch = true;
     if (endDate) {
@@ -49,7 +47,7 @@ export const PDFMerger: React.FC = () => {
       endDateTime.setHours(23, 59, 59, 999);
       endMatch = fileDate <= endDateTime;
     }
-    
+
     return nameMatch && sizeMatch && startMatch && endMatch;
   });
 
@@ -64,7 +62,7 @@ export const PDFMerger: React.FC = () => {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!showPreview) return;
-      
+
       if (e.key === 'Escape') {
         if (isFullscreen) {
           setIsFullscreen(false);
@@ -72,7 +70,7 @@ export const PDFMerger: React.FC = () => {
           setShowPreview(false);
         }
       }
-      
+
       if (e.key.toLowerCase() === 'f') {
         setIsFullscreen(prev => !prev);
       }
@@ -84,7 +82,7 @@ export const PDFMerger: React.FC = () => {
 
   const renderPreview = async () => {
     if (!resultUrl) return;
-    
+
     setIsRenderingPreview(true);
     setLoadingProgress(0);
     try {
@@ -101,9 +99,9 @@ export const PDFMerger: React.FC = () => {
         const viewport = page.getViewport({ scale: 2.0 });
         const canvas = document.createElement('canvas');
         const context = canvas.getContext('2d');
-        
+
         if (!context) continue;
-        
+
         canvas.height = viewport.height;
         canvas.width = viewport.width;
 
@@ -196,13 +194,13 @@ export const PDFMerger: React.FC = () => {
                   {isProcessing ? "Fusion des fichiers" : "Préparation de l'aperçu"}
                 </h3>
                 <p className="text-sm text-slate-500">
-                  {isProcessing 
-                    ? "Nous combinons vos documents PDF..." 
+                  {isProcessing
+                    ? "Nous combinons vos documents PDF..."
                     : "Nous générons les images pour l'aperçu haute résolution..."}
                 </p>
               </div>
               <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-                <motion.div 
+                <motion.div
                   className="h-full bg-indigo-600"
                   initial={{ width: 0 }}
                   animate={{ width: `${loadingProgress}%` }}
@@ -227,12 +225,12 @@ export const PDFMerger: React.FC = () => {
       />
 
       {files.length > 0 && (
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden"
         >
-          <button 
+          <button
             onClick={() => setShowFilters(!showFilters)}
             className="w-full flex items-center justify-between p-4 hover:bg-slate-50 transition-colors"
           >
@@ -264,7 +262,7 @@ export const PDFMerger: React.FC = () => {
                     <label className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
                       <Search size={14} /> Nom du fichier
                     </label>
-                    <input 
+                    <input
                       type="text"
                       value={nameFilter}
                       onChange={(e) => setNameFilter(e.target.value)}
@@ -279,7 +277,7 @@ export const PDFMerger: React.FC = () => {
                       <HardDrive size={14} /> Taille (KB)
                     </label>
                     <div className="flex items-center gap-2">
-                      <input 
+                      <input
                         type="number"
                         value={minSize}
                         onChange={(e) => setMinSize(e.target.value === "" ? "" : Number(e.target.value))}
@@ -287,7 +285,7 @@ export const PDFMerger: React.FC = () => {
                         className="w-full px-4 py-2 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all text-sm"
                       />
                       <span className="text-slate-400">-</span>
-                      <input 
+                      <input
                         type="number"
                         value={maxSize}
                         onChange={(e) => setMaxSize(e.target.value === "" ? "" : Number(e.target.value))}
@@ -305,7 +303,7 @@ export const PDFMerger: React.FC = () => {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="flex items-center gap-3">
                         <span className="text-xs text-slate-400 min-w-[30px]">Du</span>
-                        <input 
+                        <input
                           type="date"
                           value={startDate}
                           onChange={(e) => setStartDate(e.target.value)}
@@ -314,7 +312,7 @@ export const PDFMerger: React.FC = () => {
                       </div>
                       <div className="flex items-center gap-3">
                         <span className="text-xs text-slate-400 min-w-[30px]">Au</span>
-                        <input 
+                        <input
                           type="date"
                           value={endDate}
                           onChange={(e) => setEndDate(e.target.value)}
@@ -324,9 +322,9 @@ export const PDFMerger: React.FC = () => {
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="px-6 pb-6 flex justify-end">
-                  <button 
+                  <button
                     onClick={() => {
                       setNameFilter("");
                       setMinSize("");
@@ -346,7 +344,7 @@ export const PDFMerger: React.FC = () => {
       )}
 
       {mergeCandidates.length >= 2 && !resultUrl && (
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm space-y-5"
@@ -425,7 +423,7 @@ export const PDFMerger: React.FC = () => {
                 <CheckCircle2 size={24} />
                 Fusion réussie !
               </div>
-              
+
               <div className="w-full max-w-md space-y-2">
                 <label className="text-xs font-bold text-emerald-700 uppercase tracking-wider ml-1">Nom du fichier final</label>
                 <div className="relative">
@@ -480,9 +478,8 @@ export const PDFMerger: React.FC = () => {
                 initial={{ scale: 0.95, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.95, opacity: 0 }}
-                className={`bg-white shadow-2xl overflow-hidden flex flex-col transition-all duration-300 ${
-                  isFullscreen ? 'w-screen h-screen rounded-none' : 'w-[95vw] h-[95vh] rounded-3xl'
-                }`}
+                className={`bg-white shadow-2xl overflow-hidden flex flex-col transition-all duration-300 ${isFullscreen ? 'w-screen h-screen rounded-none' : 'w-[95vw] h-[95vh] rounded-3xl'
+                  }`}
                 onClick={(e) => e.stopPropagation()}
               >
                 <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-white">
@@ -497,7 +494,7 @@ export const PDFMerger: React.FC = () => {
                   </div>
 
                   <div className="hidden md:flex items-center bg-slate-100 rounded-xl p-1 gap-1">
-                    <button 
+                    <button
                       onClick={() => setPreviewZoom(prev => Math.max(25, prev - 25))}
                       className="p-2 hover:bg-white hover:shadow-sm rounded-lg transition-all text-slate-600"
                       title="Zoom arrière"
@@ -507,7 +504,7 @@ export const PDFMerger: React.FC = () => {
                     <span className="px-3 text-sm font-bold text-slate-600 min-w-[60px] text-center">
                       {previewZoom}%
                     </span>
-                    <button 
+                    <button
                       onClick={() => setPreviewZoom(prev => Math.min(200, prev + 25))}
                       className="p-2 hover:bg-white hover:shadow-sm rounded-lg transition-all text-slate-600"
                       title="Zoom avant"
@@ -517,12 +514,12 @@ export const PDFMerger: React.FC = () => {
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <button 
+                    <button
                       onClick={() => setIsFullscreen(!isFullscreen)}
                       className={cn(
                         "flex items-center gap-2 px-3 py-2 rounded-xl transition-all",
-                        isFullscreen 
-                          ? "bg-indigo-100 text-indigo-600" 
+                        isFullscreen
+                          ? "bg-indigo-100 text-indigo-600"
                           : "hover:bg-slate-100 text-slate-500"
                       )}
                       title={isFullscreen ? "Quitter le plein écran (F)" : "Plein écran (F)"}
@@ -533,7 +530,7 @@ export const PDFMerger: React.FC = () => {
                       </span>
                     </button>
                     <div className="w-px h-6 bg-slate-200 mx-1" />
-                    <button 
+                    <button
                       onClick={() => {
                         setShowPreview(false);
                         setIsFullscreen(false);
@@ -544,7 +541,7 @@ export const PDFMerger: React.FC = () => {
                     </button>
                   </div>
                 </div>
-                
+
                 <div className="flex-1 bg-slate-200 overflow-auto p-4 sm:p-12 flex flex-col items-center gap-12 scrollbar-thin scrollbar-thumb-slate-400 scrollbar-track-transparent">
                   {isRenderingPreview ? (
                     <div className="flex flex-col items-center justify-center h-full gap-6 text-slate-600">
@@ -561,8 +558,8 @@ export const PDFMerger: React.FC = () => {
                     </div>
                   ) : (
                     previewImages.map((src, index) => (
-                      <div 
-                        key={index} 
+                      <div
+                        key={index}
                         className="relative group transition-transform duration-300 ease-out"
                         style={{ width: `${previewZoom}%`, maxWidth: '100%' }}
                       >
@@ -571,9 +568,9 @@ export const PDFMerger: React.FC = () => {
                             {String(index + 1).padStart(2, '0')}
                           </span>
                         </div>
-                        <img 
-                          src={src} 
-                          alt={`Page ${index + 1}`} 
+                        <img
+                          src={src}
+                          alt={`Page ${index + 1}`}
                           className="w-full h-auto shadow-[0_20px_50px_rgba(0,0,0,0.2)] rounded-sm bg-white ring-1 ring-black/5"
                           referrerPolicy="no-referrer"
                         />

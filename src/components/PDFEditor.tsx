@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { PDFDocument, rgb, StandardFonts, degrees } from 'pdf-lib';
-import * as pdfjs from 'pdfjs-dist/legacy/build/pdf.mjs';
-import pdfWorker from 'pdfjs-dist/legacy/build/pdf.worker.min.mjs?url';
+import * as pdfjs from 'pdfjs-dist';
+pdfjs.GlobalWorkerOptions.workerSrc = 'https://unpkg.com/pdfjs-dist@5.5.207/build/pdf.worker.min.mjs';
 import { FileUpload } from './FileUpload';
 import { Scissors, Download, Loader2, CheckCircle2, AlertCircle, Trash2, GripVertical, RefreshCw, X, Eye, Search, CheckSquare, Square, Check, Minus, Plus, Type, Bold, Italic, Palette, Eraser, Pencil, Undo2, RotateCcw, FileText, Pipette, RotateCw, Sun, Moon, Square as SquareIcon, Circle, ArrowRight, Highlighter, Stamp, PlusCircle, Lock, Zap, Sparkles, Menu, Languages, ScanLine, Volume2 } from 'lucide-react';
 import { motion, AnimatePresence, Reorder } from 'motion/react';
@@ -11,8 +11,6 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
 
-// Set up the worker for pdf.js using Vite's worker loader
-pdfjs.GlobalWorkerOptions.workerSrc = pdfWorker;
 
 interface DrawingStroke {
   points: { x: number; y: number }[];
@@ -102,11 +100,11 @@ export const PDFEditor: React.FC = () => {
 
   // Keyboard shortcuts implementation
   const shortcutsRef = useRef({
-    selectAll: () => {},
-    removeSelectedThumbnails: () => {},
-    editPDF: async () => {},
-    downloadResult: () => {},
-    handleDoubleClick: async (t: PageThumbnail) => {},
+    selectAll: () => { },
+    removeSelectedThumbnails: () => { },
+    editPDF: async () => { },
+    downloadResult: () => { },
+    handleDoubleClick: async (t: PageThumbnail) => { },
     thumbnails,
     selectedIds,
     resultUrl,
@@ -141,14 +139,14 @@ export const PDFEditor: React.FC = () => {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      const { 
-        selectAll, 
-        removeSelectedThumbnails, 
-        editPDF, 
-        downloadResult, 
-        handleDoubleClick, 
-        thumbnails, 
-        selectedIds, 
+      const {
+        selectAll,
+        removeSelectedThumbnails,
+        editPDF,
+        downloadResult,
+        handleDoubleClick,
+        thumbnails,
+        selectedIds,
         resultUrl,
         setEditingPage,
         setPreviewPage,
@@ -158,7 +156,7 @@ export const PDFEditor: React.FC = () => {
       // Don't trigger shortcuts if user is typing in a textarea or input
       // UNLESS it's Escape to close the modal
       const isInput = e.target instanceof HTMLTextAreaElement || e.target instanceof HTMLInputElement;
-      
+
       if (isInput) {
         if (e.key === 'Escape') {
           setEditingPage(null);
@@ -247,7 +245,7 @@ export const PDFEditor: React.FC = () => {
     try {
       const allThumbnails: PageThumbnail[] = [];
       let totalPagesProcessed = 0;
-      
+
       // Calculate total pages first for progress bar
       let totalPagesCount = 0;
       for (const file of files) {
@@ -268,9 +266,9 @@ export const PDFEditor: React.FC = () => {
           const viewport = page.getViewport({ scale: 0.3 });
           const canvas = document.createElement('canvas');
           const context = canvas.getContext('2d');
-          
+
           if (!context) continue;
-          
+
           canvas.height = viewport.height;
           canvas.width = viewport.width;
 
@@ -286,7 +284,7 @@ export const PDFEditor: React.FC = () => {
             index: i - 1,
             url: canvas.toDataURL()
           });
-          
+
           totalPagesProcessed++;
           setLoadingProgress(Math.round((totalPagesProcessed / totalPagesCount) * 100));
         }
@@ -382,7 +380,7 @@ export const PDFEditor: React.FC = () => {
 
   const handleDoubleClick = async (thumbnail: PageThumbnail) => {
     if (!rawFiles[thumbnail.sourceFileIndex]) return;
-    
+
     setIsExtracting(true);
     try {
       const arrayBuffer = await rawFiles[thumbnail.sourceFileIndex].arrayBuffer();
@@ -392,7 +390,7 @@ export const PDFEditor: React.FC = () => {
 
       const textContent = await page.getTextContent();
       const extractedText = textContent.items.map((item: any) => item.str).join(" ");
-      
+
       setTempText(thumbnail.modifiedText || extractedText);
       setInitialText(thumbnail.modifiedText || extractedText); // Store initial text for comparison
     } catch (err) {
@@ -416,7 +414,7 @@ export const PDFEditor: React.FC = () => {
       const loadingTask = pdfjs.getDocument({ data: arrayBuffer });
       const pdf = await loadingTask.promise;
       const page = await pdf.getPage(thumbnail.index + 1);
-      
+
       // Render high res for editor
       const viewport = page.getViewport({ scale: 1.5 });
       const canvas = document.createElement('canvas');
@@ -429,7 +427,7 @@ export const PDFEditor: React.FC = () => {
       }
 
       const textContent = await page.getTextContent();
-      
+
       // Group text items by their Y coordinate (transform[5]) to preserve lines
       const lines: { [key: number]: any[] } = {};
       textContent.items.forEach((item: any) => {
@@ -440,14 +438,14 @@ export const PDFEditor: React.FC = () => {
 
       // Sort Y coordinates descending (top to bottom)
       const sortedY = Object.keys(lines).map(Number).sort((a, b) => b - a);
-      
+
       const extractedText = sortedY.map(y => {
         return lines[y]
           .sort((a, b) => a.transform[4] - b.transform[4])
           .map(item => item.str)
           .join(' ');
       }).join('\n');
-      
+
       if (!thumbnail.modifiedText) {
         setTempText(extractedText);
       }
@@ -469,11 +467,11 @@ export const PDFEditor: React.FC = () => {
       const loadingTask = pdfjs.getDocument({ data: arrayBuffer });
       const pdf = await loadingTask.promise;
       const page = await pdf.getPage(thumbnail.index + 1);
-      
+
       const viewport = page.getViewport({ scale: 1.5 }); // High res
       const canvas = document.createElement('canvas');
       const context = canvas.getContext('2d');
-      
+
       if (context) {
         canvas.height = viewport.height;
         canvas.width = viewport.width;
@@ -500,7 +498,7 @@ export const PDFEditor: React.FC = () => {
       const pdf = await loadingTask.promise;
       const page = await pdf.getPage(editingPage.index + 1);
       const textContent = await page.getTextContent();
-      
+
       const lines: { [key: number]: any[] } = {};
       textContent.items.forEach((item: any) => {
         const y = Math.round(item.transform[5]);
@@ -515,7 +513,7 @@ export const PDFEditor: React.FC = () => {
           .map(item => item.str)
           .join(' ');
       }).join('\n');
-      
+
       setTempText(extractedText);
     } catch (err) {
       console.error("Erreur de réinitialisation:", err);
@@ -530,9 +528,9 @@ export const PDFEditor: React.FC = () => {
 
   const savePageEdits = () => {
     if (editingPage) {
-      setThumbnails(prev => prev.map(t => 
-        t.id === editingPage.id ? { 
-          ...t, 
+      setThumbnails(prev => prev.map(t =>
+        t.id === editingPage.id ? {
+          ...t,
           modifiedText: tempText,
           hasManualTextEdit: t.hasManualTextEdit || (tempText !== initialText && activeEditMode === 'text'),
           fontSize: tempFontSize,
@@ -560,11 +558,11 @@ export const PDFEditor: React.FC = () => {
 
     try {
       const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-      
+
       let prompt = "";
       const pageText = tempText || "Pas de texte extrait";
-      
-      switch(promptType) {
+
+      switch (promptType) {
         case 'summary':
           prompt = `Fais un résumé synthétique et structuré de ce texte de page PDF :\n\n${pageText}`;
           break;
@@ -594,14 +592,14 @@ export const PDFEditor: React.FC = () => {
           // Extract JSON even if there's markdown or extra text
           const jsonMatch = rawText.match(/\[\s*\{.*\}\s*\]/s);
           if (!jsonMatch) {
-             setAiResponse("Aucun filigrane détecté ou réponse AI invalide.");
-             return;
+            setAiResponse("Aucun filigrane détecté ou réponse AI invalide.");
+            return;
           }
           const masks = JSON.parse(jsonMatch[0]);
           if (Array.isArray(masks)) {
             masks.forEach(m => {
               setCurrentDrawings(prev => [...prev, {
-                points: [{x: (m.x/100) * canvas.width, y: (m.y/100) * canvas.height}, {x: ((m.x + m.w)/100) * canvas.width, y: ((m.y + m.h)/100) * canvas.height}],
+                points: [{ x: (m.x / 100) * canvas.width, y: (m.y / 100) * canvas.height }, { x: ((m.x + m.w) / 100) * canvas.width, y: ((m.y + m.h) / 100) * canvas.height }],
                 color: "#ffffff",
                 width: 0,
                 mode: 'rect',
@@ -652,20 +650,20 @@ export const PDFEditor: React.FC = () => {
 
     // Sample color at click
     const pixel = ctx.getImageData(pos.x, pos.y, 1, 1).data;
-    
+
     // Simple bounding box detection based on color similarity (Magic Eraser-ish)
     // For now, let's create a "Smart Rect" that covers an area of similar color
     // Or simpler: just create a rect eraser at this point but with background color
-    
+
     // To make it "Magical", let's find the "object" at this point
     // This is hard on a flat canvas without segmentation.
     // Instead, I'll provide a "Quick Object Eraser" (Auto-rectangle)
-    
+
     const size = 50; // Dynamic or fixed
     setCurrentDrawings(prev => [...prev, {
       points: [
-        { x: pos.x - size/2, y: pos.y - size/2 },
-        { x: pos.x + size/2, y: pos.y + size/2 }
+        { x: pos.x - size / 2, y: pos.y - size / 2 },
+        { x: pos.x + size / 2, y: pos.y + size / 2 }
       ],
       color: "#ffffff", // Use white as default "magic" eraser
       width: 0,
@@ -682,7 +680,7 @@ export const PDFEditor: React.FC = () => {
       if (!canvas) return;
       const ctx = canvas.getContext('2d');
       if (!ctx) return;
-      
+
       const pixel = ctx.getImageData(pos.x, pos.y, 1, 1).data;
       const hex = "#" + ("000000" + ((pixel[0] << 16) | (pixel[1] << 8) | pixel[2]).toString(16)).slice(-6);
       setTempColor(hex);
@@ -702,7 +700,7 @@ export const PDFEditor: React.FC = () => {
 
     if (visualTool === 'move') {
       // Find the stroke under the cursor (simpler hit-detection: check points distance)
-      const foundIdx = currentDrawings.findLastIndex(stroke => 
+      const foundIdx = currentDrawings.findLastIndex(stroke =>
         stroke.points.some(p => Math.abs(p.x - pos.x) < 20 && Math.abs(p.y - pos.y) < 20)
       );
       if (foundIdx !== -1) {
@@ -733,11 +731,11 @@ export const PDFEditor: React.FC = () => {
   const draw = (e: React.MouseEvent | React.TouchEvent) => {
     if (!isDrawing || isPickingColor) return;
     const pos = getCoordinates(e);
-    
+
     if (visualTool === 'move' && draggingStrokeIdx !== null && dragOffset) {
       const dx = pos.x - dragOffset.x;
       const dy = pos.y - dragOffset.y;
-      
+
       setCurrentDrawings(prev => {
         const next = [...prev];
         const stroke = { ...next[draggingStrokeIdx] };
@@ -752,7 +750,7 @@ export const PDFEditor: React.FC = () => {
     setCurrentDrawings(prev => {
       const last = prev[prev.length - 1];
       if (!last) return prev;
-      
+
       const newPoints = [...last.points];
       if (['rect', 'circle', 'arrow', 'stamp'].includes(last.mode)) {
         // For shapes, we only keep start and end point
@@ -760,7 +758,7 @@ export const PDFEditor: React.FC = () => {
       } else {
         newPoints.push(pos);
       }
-      
+
       return [...prev.slice(0, -1), { ...last, points: newPoints }];
     });
   };
@@ -777,7 +775,7 @@ export const PDFEditor: React.FC = () => {
     const rect = canvas.getBoundingClientRect();
     const clientX = 'touches' in e ? e.touches[0].clientX : (e as React.MouseEvent).clientX;
     const clientY = 'touches' in e ? e.touches[0].clientY : (e as React.MouseEvent).clientY;
-    
+
     return {
       x: (clientX - rect.left) * (canvas.width / rect.width),
       y: (clientY - rect.top) * (canvas.height / rect.height)
@@ -809,13 +807,13 @@ export const PDFEditor: React.FC = () => {
         canvas.width = img.width;
         canvas.height = img.height;
         setCanvasDimensions({ width: img.width, height: img.height });
-        
+
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(img, 0, 0);
-        
+
         currentDrawings.forEach(stroke => {
           if (stroke.points.length < 1) return;
-          
+
           if (stroke.mode === 'eraser') {
             ctx.globalCompositeOperation = 'destination-out';
             ctx.strokeStyle = 'white'; // Fallback
@@ -833,7 +831,7 @@ export const PDFEditor: React.FC = () => {
           ctx.lineWidth = stroke.width;
           ctx.lineCap = 'round';
           ctx.lineJoin = 'round';
-          
+
           if (stroke.mode === 'rect' && stroke.points.length >= 2) {
             const start = stroke.points[0];
             const end = stroke.points[1];
@@ -850,17 +848,17 @@ export const PDFEditor: React.FC = () => {
             ctx.font = `${fontStyle}${fSize}px sans-serif`;
             ctx.textBaseline = 'middle';
             ctx.textAlign = 'center';
-            
+
             if (stroke.isHighlighted) {
               const metrics = ctx.measureText(stroke.text);
               const padding = 4;
               const h = fSize * 1.2;
               const w = metrics.width + padding * 2;
               ctx.fillStyle = 'rgba(255, 255, 0, 0.4)'; // Highlight yellow
-              ctx.fillRect(stroke.points[0].x - w/2, stroke.points[0].y - h/2, w, h);
+              ctx.fillRect(stroke.points[0].x - w / 2, stroke.points[0].y - h / 2, w, h);
               ctx.fillStyle = stroke.color; // Reset to text color
             }
-            
+
             ctx.fillText(stroke.text, stroke.points[0].x, stroke.points[0].y);
           } else if (stroke.mode === 'stamp' && stroke.points.length >= 2) {
             const start = stroke.points[0];
@@ -878,7 +876,7 @@ export const PDFEditor: React.FC = () => {
               ctx.font = `bold ${Math.abs(h) * 0.5}px Outfit, Inter`;
               ctx.textAlign = 'center';
               ctx.textBaseline = 'middle';
-              ctx.fillText((stroke.text || 'CHECK').toUpperCase(), start.x + w/2, start.y + h/2);
+              ctx.fillText((stroke.text || 'CHECK').toUpperCase(), start.x + w / 2, start.y + h / 2);
             }
           } else if (stroke.mode === 'circle' && stroke.points.length >= 2) {
             const start = stroke.points[0];
@@ -904,7 +902,7 @@ export const PDFEditor: React.FC = () => {
             }
             ctx.stroke();
           }
-          
+
           ctx.globalAlpha = 1.0;
         });
       };
@@ -913,7 +911,7 @@ export const PDFEditor: React.FC = () => {
 
   const editPDF = async (thumbnailsToProcess: PageThumbnail[] | any = thumbnails) => {
     const pages = Array.isArray(thumbnailsToProcess) ? thumbnailsToProcess : thumbnails;
-    
+
     if (rawFiles.length === 0 && pages.every(t => !t.isBlank)) {
       setError("Veuillez sélectionner un fichier PDF.");
       return;
@@ -954,7 +952,7 @@ export const PDFEditor: React.FC = () => {
       for (let i = 0; i < pages.length; i++) {
         setLoadingProgress(Math.round((i / pages.length) * 100));
         const thumb = pages[i];
-        
+
         let copiedPage: PDFPage;
         if (thumb.isBlank) {
           copiedPage = newPdf.addPage([595.28, 841.89]);
@@ -974,7 +972,7 @@ export const PDFEditor: React.FC = () => {
         if (thumb.rotation) {
           copiedPage.setRotation({ type: 'degrees', angle: thumb.rotation });
         }
-          
+
         // OCR / Manual Text Edits
         if (thumb.modifiedText && thumb.hasManualTextEdit) {
           copiedPage.drawRectangle({
@@ -1019,14 +1017,14 @@ export const PDFEditor: React.FC = () => {
         if (thumb.drawings && thumb.drawings.length > 0) {
           for (const stroke of thumb.drawings) {
             if (stroke.points.length < 1) continue;
-            
+
             const strokeColor = stroke.mode === 'eraser' ? rgb(1, 1, 1) : hexToRgb(stroke.color);
             const cw = stroke.canvasWidth || canvasDimensions.width || 600;
             const ch = stroke.canvasHeight || canvasDimensions.height || 800;
             const scaleX = width / cw;
             const scaleY = height / ch;
             const thickness = (stroke.width || 2) * scaleX * (stroke.mode === 'eraser' ? 1.2 : 1);
-            
+
             if (stroke.mode === 'rect' && stroke.points.length >= 2) {
               const start = stroke.points[0];
               const end = stroke.points[1];
@@ -1044,7 +1042,7 @@ export const PDFEditor: React.FC = () => {
               const end = stroke.points[1];
               const w = Math.abs(end.x - start.x) * scaleX;
               const h = Math.abs(end.y - start.y) * scaleY;
-              
+
               if (stroke.text === 'SIGNATURE' && signatureData) {
                 const binaryStr = atob(signatureData.split(',')[1]);
                 const bytes = new Uint8Array(binaryStr.length);
@@ -1069,7 +1067,7 @@ export const PDFEditor: React.FC = () => {
               }
             } else if (stroke.mode === 'text' && stroke.text) {
               const start = stroke.points[0];
-              const fSize = (stroke.fontSize || 20) * scaleX; 
+              const fSize = (stroke.fontSize || 20) * scaleX;
               let font = helvetica;
               if (stroke.isBold && stroke.isItalic) font = helveticaBoldOblique;
               else if (stroke.isBold) font = helveticaBold;
@@ -1106,19 +1104,19 @@ export const PDFEditor: React.FC = () => {
               copiedPage.drawLine({ start: p1, end: p2, thickness: thickness || 2, color: strokeColor });
               copiedPage.drawLine({
                 start: p2,
-                end: { x: p2.x - headLen * Math.cos(angle - Math.PI/6), y: p2.y + headLen * Math.sin(angle - Math.PI/6) },
+                end: { x: p2.x - headLen * Math.cos(angle - Math.PI / 6), y: p2.y + headLen * Math.sin(angle - Math.PI / 6) },
                 thickness: thickness || 2, color: strokeColor
               });
               copiedPage.drawLine({
                 start: p2,
-                end: { x: p2.x - headLen * Math.cos(angle + Math.PI/6), y: p2.y + headLen * Math.sin(angle + Math.PI/6) },
+                end: { x: p2.x - headLen * Math.cos(angle + Math.PI / 6), y: p2.y + headLen * Math.sin(angle + Math.PI / 6) },
                 thickness: thickness || 2, color: strokeColor
               });
             } else {
               // Pen / Highlighter / Eraser
               for (let j = 0; j < stroke.points.length - 1; j++) {
                 const p1 = stroke.points[j];
-                const p2 = stroke.points[j+1];
+                const p2 = stroke.points[j + 1];
                 copiedPage.drawLine({
                   start: { x: p1.x * scaleX, y: height - (p1.y * scaleY) },
                   end: { x: p2.x * scaleX, y: height - (p2.y * scaleY) },
@@ -1197,7 +1195,7 @@ export const PDFEditor: React.FC = () => {
   };
 
   const getGridCols = () => {
-    switch(zoomLevel) {
+    switch (zoomLevel) {
       case 0: return "grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8";
       case 1: return "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5";
       case 2: return "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4";
@@ -1206,7 +1204,7 @@ export const PDFEditor: React.FC = () => {
   };
 
   const getThumbnailPadding = () => {
-    switch(zoomLevel) {
+    switch (zoomLevel) {
       case 0: return "p-1";
       case 1: return "p-2";
       case 2: return "p-4";
@@ -1227,62 +1225,62 @@ export const PDFEditor: React.FC = () => {
               <p className={cn("text-sm font-medium", isDarkMode ? "text-slate-400" : "text-slate-500")}>Édition, Fusion, OCR & Plus</p>
             </div>
           </div>
-          
-            <div className="flex items-center gap-4">
-              {rawFiles.length > 1 && (
-                <button
-                  onClick={() => editPDF()}
-                  disabled={isProcessing}
-                  className="hidden md:flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-xl shadow-md hover:bg-emerald-700 transition-all text-sm font-bold"
-                >
-                  <RefreshCw size={16} className={isProcessing ? "animate-spin" : ""} />
-                  Fusionner tout
-                </button>
-              )}
-              {selectedIds.size > 0 && (
-                <button
-                  onClick={exportSelected}
-                  disabled={isProcessing}
-                  className="flex items-center gap-2 px-4 py-2 bg-amber-500 text-white rounded-xl shadow-md hover:bg-amber-600 transition-all text-sm font-bold"
-                >
-                  <Scissors size={16} />
-                  Exporter sélection ({selectedIds.size})
-                </button>
-              )}
-              {thumbnails.length > 1 && (
-                <button
-                  onClick={sortThumbnails}
-                  className="hidden md:flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl shadow-sm hover:bg-slate-200 transition-all text-sm font-bold"
-                  title="Trier les pages par ordre original"
-                >
-                  <RefreshCw size={16} />
-                  Trier
-                </button>
-              )}
+
+          <div className="flex items-center gap-4">
+            {rawFiles.length > 1 && (
               <button
-                onClick={compressPDF}
-                disabled={thumbnails.length === 0 || isProcessing}
-                className="hidden lg:flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl shadow-sm hover:bg-slate-200 transition-all text-sm font-bold"
-                title="Compresser le PDF (Optimisation)"
+                onClick={() => editPDF()}
+                disabled={isProcessing}
+                className="hidden md:flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-xl shadow-md hover:bg-emerald-700 transition-all text-sm font-bold"
               >
-                <Zap size={16} />
-                Compresser
+                <RefreshCw size={16} className={isProcessing ? "animate-spin" : ""} />
+                Fusionner tout
               </button>
+            )}
+            {selectedIds.size > 0 && (
               <button
-                onClick={() => setIsDarkMode(!isDarkMode)}
-                className={cn("p-3 rounded-2xl transition-all", isDarkMode ? "bg-slate-800 text-amber-400" : "bg-white text-slate-400 shadow-md")}
+                onClick={exportSelected}
+                disabled={isProcessing}
+                className="flex items-center gap-2 px-4 py-2 bg-amber-500 text-white rounded-xl shadow-md hover:bg-amber-600 transition-all text-sm font-bold"
               >
-                {isDarkMode ? <Sun size={24} /> : <Moon size={24} />}
+                <Scissors size={16} />
+                Exporter sélection ({selectedIds.size})
               </button>
+            )}
+            {thumbnails.length > 1 && (
               <button
-                onClick={() => setShowHelp(true)}
-                className={cn("p-3 rounded-2xl transition-all", isDarkMode ? "bg-slate-800 text-slate-400" : "bg-white text-slate-400 shadow-md")}
-                title="Aide et raccourcis"
+                onClick={sortThumbnails}
+                className="hidden md:flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl shadow-sm hover:bg-slate-200 transition-all text-sm font-bold"
+                title="Trier les pages par ordre original"
               >
-                <AlertCircle size={24} />
+                <RefreshCw size={16} />
+                Trier
               </button>
+            )}
+            <button
+              onClick={compressPDF}
+              disabled={thumbnails.length === 0 || isProcessing}
+              className="hidden lg:flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl shadow-sm hover:bg-slate-200 transition-all text-sm font-bold"
+              title="Compresser le PDF (Optimisation)"
+            >
+              <Zap size={16} />
+              Compresser
+            </button>
+            <button
+              onClick={() => setIsDarkMode(!isDarkMode)}
+              className={cn("p-3 rounded-2xl transition-all", isDarkMode ? "bg-slate-800 text-amber-400" : "bg-white text-slate-400 shadow-md")}
+            >
+              {isDarkMode ? <Sun size={24} /> : <Moon size={24} />}
+            </button>
+            <button
+              onClick={() => setShowHelp(true)}
+              className={cn("p-3 rounded-2xl transition-all", isDarkMode ? "bg-slate-800 text-slate-400" : "bg-white text-slate-400 shadow-md")}
+              title="Aide et raccourcis"
+            >
+              <AlertCircle size={24} />
+            </button>
             <div className="flex items-center gap-2 p-1 bg-white dark:bg-slate-800 rounded-2xl shadow-md relative group/wm">
-              <input 
+              <input
                 type="text"
                 placeholder="Filigrane..."
                 value={watermark}
@@ -1290,7 +1288,7 @@ export const PDFEditor: React.FC = () => {
                 className="bg-transparent px-4 py-2 text-sm outline-none w-24 dark:text-white"
               />
               {watermark && (
-                <button 
+                <button
                   onClick={() => setWatermark("")}
                   className="absolute right-12 p-1 opacity-0 group-hover/wm:opacity-100 bg-slate-100 dark:bg-slate-700 rounded-lg hover:bg-rose-100 hover:text-rose-600 transition-all"
                 >
@@ -1302,7 +1300,7 @@ export const PDFEditor: React.FC = () => {
               </div>
             </div>
             <div className="flex items-center gap-2 p-1 bg-white dark:bg-slate-800 rounded-2xl shadow-md">
-              <input 
+              <input
                 type="password"
                 placeholder="Mot de passe..."
                 value={exportPassword}
@@ -1352,7 +1350,7 @@ export const PDFEditor: React.FC = () => {
                     <X size={24} />
                   </button>
                 </div>
-                
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-3">
                     <h4 className="text-sm font-bold text-indigo-600 uppercase tracking-widest">Général</h4>
@@ -1406,7 +1404,7 @@ export const PDFEditor: React.FC = () => {
                   <p className="text-sm text-slate-500">Nous préparons les pages pour l'édition...</p>
                 </div>
                 <div className="h-2 w-full bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
-                  <motion.div 
+                  <motion.div
                     className="h-full bg-indigo-600"
                     initial={{ width: 0 }}
                     animate={{ width: `${loadingProgress}%` }}
@@ -1420,203 +1418,203 @@ export const PDFEditor: React.FC = () => {
 
         {!isLoadingPages && thumbnails.length > 0 && (
           <>
-          <div className="space-y-6 mt-12">
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-              <h3 className="text-xl font-display font-bold flex items-center gap-2">
-                <RefreshCw size={20} className="text-indigo-600" />
-                Réorganiser les pages
-              </h3>
-              
-              <div className="flex items-center gap-4 bg-white dark:bg-slate-800 p-2 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm">
-                <div className="flex items-center gap-2 px-3 py-1.5 border-r border-slate-100 dark:border-slate-700">
-                  <Search size={14} className="text-slate-400" />
-                  <input 
-                    type="text"
-                    placeholder="Rechercher..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="bg-transparent text-[10px] font-bold text-slate-600 dark:text-slate-300 outline-none w-24 sm:w-32"
-                  />
-                </div>
-                <button
-                  onClick={addBlankPage}
-                  className="flex items-center gap-2 px-3 py-1.5 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 text-xs font-bold rounded-xl hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-all"
-                  title="Ajouter une page blanche"
-                >
-                  <PlusCircle size={14} />
-                  Page Blanche
-                </button>
-                
-                <button
-                  onClick={selectAll}
-                  className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 text-xs font-bold rounded-xl hover:bg-slate-200 dark:hover:bg-slate-600 transition-all"
-                  title="Tout sélectionner (Ctrl+A)"
-                >
-                  {selectedIds.size === thumbnails.length ? <CheckSquare size={14} /> : <Square size={14} />}
-                  {selectedIds.size === thumbnails.length ? 'Tout désélectionner' : 'Tout sélectionner'}
-                </button>
+            <div className="space-y-6 mt-12">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                <h3 className="text-xl font-display font-bold flex items-center gap-2">
+                  <RefreshCw size={20} className="text-indigo-600" />
+                  Réorganiser les pages
+                </h3>
 
-                <div className="h-4 w-px bg-slate-100 dark:bg-slate-700 mx-1" />
-                
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-2">Zoom</span>
-                <div className="flex items-center gap-1">
-                  <button
-                    onClick={() => setZoomLevel(prev => Math.max(0, prev - 1))}
-                    disabled={zoomLevel === 0}
-                    className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-30 disabled:hover:bg-transparent transition-all"
-                    title="Zoom arrière (Ctrl+-)"
-                  >
-                    <Minus size={14} />
-                  </button>
-                  
-                  <div className="flex items-center bg-slate-50 dark:bg-slate-900 rounded-lg p-0.5 mx-1">
-                    {[0, 1, 2].map((level) => (
-                      <button
-                        key={level}
-                        onClick={() => setZoomLevel(level)}
-                        className={cn(
-                          "w-7 h-7 rounded-md font-bold text-[10px] transition-all",
-                          zoomLevel === level 
-                            ? "bg-white dark:bg-slate-700 text-indigo-600 shadow-sm border border-slate-100 dark:border-slate-600" 
-                            : "text-slate-400 hover:text-slate-600"
-                        )}
-                      >
-                        {level === 0 ? 'S' : level === 1 ? 'M' : 'L'}
-                      </button>
-                    ))}
+                <div className="flex items-center gap-4 bg-white dark:bg-slate-800 p-2 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm">
+                  <div className="flex items-center gap-2 px-3 py-1.5 border-r border-slate-100 dark:border-slate-700">
+                    <Search size={14} className="text-slate-400" />
+                    <input
+                      type="text"
+                      placeholder="Rechercher..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="bg-transparent text-[10px] font-bold text-slate-600 dark:text-slate-300 outline-none w-24 sm:w-32"
+                    />
                   </div>
+                  <button
+                    onClick={addBlankPage}
+                    className="flex items-center gap-2 px-3 py-1.5 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 text-xs font-bold rounded-xl hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-all"
+                    title="Ajouter une page blanche"
+                  >
+                    <PlusCircle size={14} />
+                    Page Blanche
+                  </button>
 
                   <button
-                    onClick={() => setZoomLevel(prev => Math.min(2, prev + 1))}
-                    disabled={zoomLevel === 2}
-                    className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-30 disabled:hover:bg-transparent transition-all"
-                    title="Zoom avant (Ctrl++)"
+                    onClick={selectAll}
+                    className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 text-xs font-bold rounded-xl hover:bg-slate-200 dark:hover:bg-slate-600 transition-all"
+                    title="Tout sélectionner (Ctrl+A)"
                   >
-                    <Plus size={14} />
+                    {selectedIds.size === thumbnails.length ? <CheckSquare size={14} /> : <Square size={14} />}
+                    {selectedIds.size === thumbnails.length ? 'Tout désélectionner' : 'Tout sélectionner'}
                   </button>
+
+                  <div className="h-4 w-px bg-slate-100 dark:bg-slate-700 mx-1" />
+
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-2">Zoom</span>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => setZoomLevel(prev => Math.max(0, prev - 1))}
+                      disabled={zoomLevel === 0}
+                      className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-30 disabled:hover:bg-transparent transition-all"
+                      title="Zoom arrière (Ctrl+-)"
+                    >
+                      <Minus size={14} />
+                    </button>
+
+                    <div className="flex items-center bg-slate-50 dark:bg-slate-900 rounded-lg p-0.5 mx-1">
+                      {[0, 1, 2].map((level) => (
+                        <button
+                          key={level}
+                          onClick={() => setZoomLevel(level)}
+                          className={cn(
+                            "w-7 h-7 rounded-md font-bold text-[10px] transition-all",
+                            zoomLevel === level
+                              ? "bg-white dark:bg-slate-700 text-indigo-600 shadow-sm border border-slate-100 dark:border-slate-600"
+                              : "text-slate-400 hover:text-slate-600"
+                          )}
+                        >
+                          {level === 0 ? 'S' : level === 1 ? 'M' : 'L'}
+                        </button>
+                      ))}
+                    </div>
+
+                    <button
+                      onClick={() => setZoomLevel(prev => Math.min(2, prev + 1))}
+                      disabled={zoomLevel === 2}
+                      className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-30 disabled:hover:bg-transparent transition-all"
+                      title="Zoom avant (Ctrl++)"
+                    >
+                      <Plus size={14} />
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          <Reorder.Group
-            axis="y"
-            values={thumbnails}
-            onReorder={setThumbnails}
-            className={cn("grid gap-6", getGridCols())}
-          >
-            {thumbnails.filter(t => !searchQuery || t.modifiedText?.toLowerCase().includes(searchQuery.toLowerCase())).map((thumbnail, idx) => (
-              <Reorder.Item
-                key={thumbnail.id}
-                value={thumbnail}
-                onDoubleClick={() => handleDoubleClick(thumbnail)}
-                onClick={(e) => {
-                  if (e.ctrlKey || e.metaKey) {
-                    toggleSelection(thumbnail.id, true);
-                  }
-                }}
-                whileDrag={{ 
-                  scale: 1.05, 
-                  zIndex: 50,
-                  boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)" 
-                }}
-                className="relative group cursor-grab active:cursor-grabbing"
-              >
-                <div className={cn(
-                  "relative aspect-[3/4] bg-white dark:bg-slate-900 rounded-xl border-2 overflow-hidden shadow-sm transition-all",
-                  selectedIds.has(thumbnail.id) ? "border-indigo-500 ring-2 ring-indigo-100 dark:ring-indigo-900/20" : 
-                  thumbnail.modifiedText ? "border-amber-400 ring-2 ring-amber-100 dark:ring-amber-900/20" : "border-slate-200 dark:border-slate-700 group-hover:border-indigo-400"
-                )}>
-                  <div 
-                    className="w-full h-full transition-transform duration-300"
-                    style={{ transform: `rotate(${thumbnail.rotation || 0}deg)` }}
-                  >
-                    <img
-                      src={thumbnail.url}
-                      alt={`Page ${idx + 1}`}
-                      className={cn("w-full h-full object-contain", getThumbnailPadding())}
-                    />
-                  </div>
-                  
-                  {/* Selection Checkbox */}
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toggleSelection(thumbnail.id);
-                    }}
-                    className={cn(
-                      "absolute top-2 right-2 w-6 h-6 rounded-md flex items-center justify-center transition-all z-30",
-                      selectedIds.has(thumbnail.id) 
-                        ? "bg-indigo-600 text-white shadow-lg" 
-                        : "bg-white/80 dark:bg-slate-800/80 text-slate-400 opacity-0 group-hover:opacity-100 hover:bg-white dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-600"
-                    )}
-                  >
-                    {selectedIds.has(thumbnail.id) ? <Check size={14} /> : <div className="w-3 h-3 border-2 border-slate-300 dark:border-slate-500 rounded-sm" />}
-                  </button>
-
-                  {/* Drag Handle Indicator */}
-                  <div className="absolute top-2 left-2 p-1.5 bg-white/90 dark:bg-slate-800/90 text-slate-400 rounded-md shadow-sm border border-slate-100 dark:border-slate-700 z-20 transition-colors group-hover:text-indigo-500">
-                    <GripVertical size={14} />
-                  </div>
-
-                  {thumbnail.modifiedText && (
-                    <div className="absolute inset-0 bg-amber-500/10 flex items-center justify-center pointer-events-none">
-                      <div className="bg-amber-500 text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-lg">
-                        Texte modifié
-                      </div>
+            <Reorder.Group
+              axis="y"
+              values={thumbnails}
+              onReorder={setThumbnails}
+              className={cn("grid gap-6", getGridCols())}
+            >
+              {thumbnails.filter(t => !searchQuery || t.modifiedText?.toLowerCase().includes(searchQuery.toLowerCase())).map((thumbnail, idx) => (
+                <Reorder.Item
+                  key={thumbnail.id}
+                  value={thumbnail}
+                  onDoubleClick={() => handleDoubleClick(thumbnail)}
+                  onClick={(e) => {
+                    if (e.ctrlKey || e.metaKey) {
+                      toggleSelection(thumbnail.id, true);
+                    }
+                  }}
+                  whileDrag={{
+                    scale: 1.05,
+                    zIndex: 50,
+                    boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)"
+                  }}
+                  className="relative group cursor-grab active:cursor-grabbing"
+                >
+                  <div className={cn(
+                    "relative aspect-[3/4] bg-white dark:bg-slate-900 rounded-xl border-2 overflow-hidden shadow-sm transition-all",
+                    selectedIds.has(thumbnail.id) ? "border-indigo-500 ring-2 ring-indigo-100 dark:ring-indigo-900/20" :
+                      thumbnail.modifiedText ? "border-amber-400 ring-2 ring-amber-100 dark:ring-amber-900/20" : "border-slate-200 dark:border-slate-700 group-hover:border-indigo-400"
+                  )}>
+                    <div
+                      className="w-full h-full transition-transform duration-300"
+                      style={{ transform: `rotate(${thumbnail.rotation || 0}deg)` }}
+                    >
+                      <img
+                        src={thumbnail.url}
+                        alt={`Page ${idx + 1}`}
+                        className={cn("w-full h-full object-contain", getThumbnailPadding())}
+                      />
                     </div>
-                  )}
-                  
-                  <div className="absolute bottom-2 left-2 w-6 h-6 bg-slate-900/80 text-white text-[10px] font-bold flex items-center justify-center rounded-md backdrop-blur-sm">
-                    {idx + 1}
+
+                    {/* Selection Checkbox */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleSelection(thumbnail.id);
+                      }}
+                      className={cn(
+                        "absolute top-2 right-2 w-6 h-6 rounded-md flex items-center justify-center transition-all z-30",
+                        selectedIds.has(thumbnail.id)
+                          ? "bg-indigo-600 text-white shadow-lg"
+                          : "bg-white/80 dark:bg-slate-800/80 text-slate-400 opacity-0 group-hover:opacity-100 hover:bg-white dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-600"
+                      )}
+                    >
+                      {selectedIds.has(thumbnail.id) ? <Check size={14} /> : <div className="w-3 h-3 border-2 border-slate-300 dark:border-slate-500 rounded-sm" />}
+                    </button>
+
+                    {/* Drag Handle Indicator */}
+                    <div className="absolute top-2 left-2 p-1.5 bg-white/90 dark:bg-slate-800/90 text-slate-400 rounded-md shadow-sm border border-slate-100 dark:border-slate-700 z-20 transition-colors group-hover:text-indigo-500">
+                      <GripVertical size={14} />
+                    </div>
+
+                    {thumbnail.modifiedText && (
+                      <div className="absolute inset-0 bg-amber-500/10 flex items-center justify-center pointer-events-none">
+                        <div className="bg-amber-500 text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-lg">
+                          Texte modifié
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="absolute bottom-2 left-2 w-6 h-6 bg-slate-900/80 text-white text-[10px] font-bold flex items-center justify-center rounded-md backdrop-blur-sm">
+                      {idx + 1}
+                    </div>
+
+                    <div className="absolute bottom-2 right-2 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-20">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          rotatePage(thumbnail.id);
+                        }}
+                        className="p-1.5 bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 rounded-md shadow-lg hover:bg-indigo-50 dark:hover:bg-slate-600"
+                        title="Rotation"
+                      >
+                        <RotateCw size={14} />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeThumbnail(thumbnail.id);
+                        }}
+                        className="p-1.5 bg-rose-500 text-white rounded-md hover:bg-rose-600 shadow-lg"
+                        title="Supprimer la page (Suppr)"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDoubleClick(thumbnail);
+                        }}
+                        className="p-1.5 bg-amber-500 text-white rounded-md hover:bg-amber-600 shadow-lg"
+                        title="Éditer le texte (Ctrl+E / Double-clic)"
+                      >
+                        <Type size={14} />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openPreview(thumbnail);
+                        }}
+                        className="p-1.5 bg-indigo-500 text-white rounded-md hover:bg-indigo-600 shadow-lg"
+                        title="Aperçu détaillé"
+                      >
+                        <Eye size={14} />
+                      </button>
+                    </div>
                   </div>
-                  
-                  <div className="absolute bottom-2 right-2 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-20">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        rotatePage(thumbnail.id);
-                      }}
-                      className="p-1.5 bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 rounded-md shadow-lg hover:bg-indigo-50 dark:hover:bg-slate-600"
-                      title="Rotation"
-                    >
-                      <RotateCw size={14} />
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        removeThumbnail(thumbnail.id);
-                      }}
-                      className="p-1.5 bg-rose-500 text-white rounded-md hover:bg-rose-600 shadow-lg"
-                      title="Supprimer la page (Suppr)"
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDoubleClick(thumbnail);
-                      }}
-                      className="p-1.5 bg-amber-500 text-white rounded-md hover:bg-amber-600 shadow-lg"
-                      title="Éditer le texte (Ctrl+E / Double-clic)"
-                    >
-                      <Type size={14} />
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        openPreview(thumbnail);
-                      }}
-                      className="p-1.5 bg-indigo-500 text-white rounded-md hover:bg-indigo-600 shadow-lg"
-                      title="Aperçu détaillé"
-                    >
-                      <Eye size={14} />
-                    </button>
-                  </div>
-                </div>
-                <p className="mt-2 text-center text-xs font-bold text-slate-400">Page {thumbnail.index + 1}</p>
-              </Reorder.Item>
-            ))}
+                  <p className="mt-2 text-center text-xs font-bold text-slate-400">Page {thumbnail.index + 1}</p>
+                </Reorder.Item>
+              ))}
             </Reorder.Group>
           </>
         )}
@@ -1638,14 +1636,14 @@ export const PDFEditor: React.FC = () => {
                     <h3 className="text-xl font-display font-bold text-slate-900">Aperçu détaillé - Page {previewPage.index + 1}</h3>
                     <p className="text-sm text-slate-500">Visualisation haute résolution de la page.</p>
                   </div>
-                  <button 
+                  <button
                     onClick={() => setPreviewPage(null)}
                     className="p-2 hover:bg-slate-200 rounded-full transition-colors"
                   >
                     <X size={20} />
                   </button>
                 </div>
-                
+
                 <div className="flex-1 overflow-auto p-8 bg-slate-200 flex items-center justify-center">
                   {isRenderingHighRes ? (
                     <div className="flex flex-col items-center gap-4 text-slate-500">
@@ -1653,9 +1651,9 @@ export const PDFEditor: React.FC = () => {
                       <p className="font-bold">Rendu haute résolution...</p>
                     </div>
                   ) : highResUrl ? (
-                    <img 
-                      src={highResUrl} 
-                      alt="High resolution preview" 
+                    <img
+                      src={highResUrl}
+                      alt="High resolution preview"
                       className="max-w-full h-auto shadow-2xl rounded-sm bg-white"
                     />
                   ) : (
@@ -1750,63 +1748,63 @@ export const PDFEditor: React.FC = () => {
                     <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-10 border border-white/40">
                       {activeEditMode === 'text' ? (
                         <div className="space-y-6">
-                            <div className="flex justify-between items-center px-2">
-                              <div className="flex gap-2">
-                                <button
-                                  onClick={runOCR}
-                                  disabled={isOCRing}
-                                  className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 text-indigo-600 text-xs font-bold rounded-lg hover:bg-indigo-100 transition-all disabled:opacity-50"
-                                >
-                                  {isOCRing ? <Loader2 size={14} className="animate-spin" /> : <Search size={14} />}
-                                  OCR
-                                </button>
-                                <button
-                                  onClick={copyToClipboard}
-                                  className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 text-slate-600 text-xs font-bold rounded-lg hover:bg-slate-200 transition-all"
-                                >
-                                  <Check size={14} />
-                                  Copier
-                                </button>
-                                <button
-                                  onClick={resetPageText}
-                                  className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 text-slate-600 text-xs font-bold rounded-lg hover:bg-slate-200 transition-all"
-                                >
-                                  <RotateCcw size={14} />
-                                  Reset
-                                </button>
-                              </div>
-                              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                                {tempText.length} caractères
-                              </span>
+                          <div className="flex justify-between items-center px-2">
+                            <div className="flex gap-2">
+                              <button
+                                onClick={runOCR}
+                                disabled={isOCRing}
+                                className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 text-indigo-600 text-xs font-bold rounded-lg hover:bg-indigo-100 transition-all disabled:opacity-50"
+                              >
+                                {isOCRing ? <Loader2 size={14} className="animate-spin" /> : <Search size={14} />}
+                                OCR
+                              </button>
+                              <button
+                                onClick={copyToClipboard}
+                                className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 text-slate-600 text-xs font-bold rounded-lg hover:bg-slate-200 transition-all"
+                              >
+                                <Check size={14} />
+                                Copier
+                              </button>
+                              <button
+                                onClick={resetPageText}
+                                className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 text-slate-600 text-xs font-bold rounded-lg hover:bg-slate-200 transition-all"
+                              >
+                                <RotateCcw size={14} />
+                                Reset
+                              </button>
                             </div>
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                              {tempText.length} caractères
+                            </span>
+                          </div>
 
-                            <div className="flex flex-wrap items-center gap-4 px-4 py-3 bg-slate-50 rounded-xl border border-slate-100">
-                              <div className="flex items-center gap-1.5 border-r border-slate-200 pr-4">
-                                <Type size={14} className="text-slate-400" />
-                                <select 
-                                  value={tempFontSize}
-                                  onChange={(e) => setTempFontSize(Number(e.target.value))}
-                                  className="bg-transparent text-xs font-bold text-slate-600 outline-none"
-                                >
-                                  {[8, 10, 12, 14, 16, 20, 24].map(size => (
-                                    <option key={size} value={size}>{size}px</option>
-                                  ))}
-                                </select>
-                              </div>
-                              <input type="color" value={tempColor} onChange={(e) => setTempColor(e.target.value)} className="w-6 h-6 rounded cursor-pointer" />
+                          <div className="flex flex-wrap items-center gap-4 px-4 py-3 bg-slate-50 rounded-xl border border-slate-100">
+                            <div className="flex items-center gap-1.5 border-r border-slate-200 pr-4">
+                              <Type size={14} className="text-slate-400" />
+                              <select
+                                value={tempFontSize}
+                                onChange={(e) => setTempFontSize(Number(e.target.value))}
+                                className="bg-transparent text-xs font-bold text-slate-600 outline-none"
+                              >
+                                {[8, 10, 12, 14, 16, 20, 24].map(size => (
+                                  <option key={size} value={size}>{size}px</option>
+                                ))}
+                              </select>
                             </div>
+                            <input type="color" value={tempColor} onChange={(e) => setTempColor(e.target.value)} className="w-6 h-6 rounded cursor-pointer" />
+                          </div>
 
-                            <textarea
-                              value={tempText}
-                              onChange={(e) => setTempText(e.target.value)}
-                              style={{ fontSize: `${tempFontSize}px`, color: tempColor }}
-                              className="w-full h-96 p-8 rounded-2xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none leading-relaxed resize-none bg-white shadow-inner"
-                              placeholder="Éditez le texte ici..."
-                            />
+                          <textarea
+                            value={tempText}
+                            onChange={(e) => setTempText(e.target.value)}
+                            style={{ fontSize: `${tempFontSize}px`, color: tempColor }}
+                            className="w-full h-96 p-8 rounded-2xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none leading-relaxed resize-none bg-white shadow-inner"
+                            placeholder="Éditez le texte ici..."
+                          />
                         </div>
                       ) : (
                         <div className="space-y-6">
-                           <div className="flex flex-wrap items-center justify-between gap-4 px-4 py-3 bg-slate-50 rounded-xl border border-slate-100">
+                          <div className="flex flex-wrap items-center justify-between gap-4 px-4 py-3 bg-slate-50 rounded-xl border border-slate-100">
                             <div className="flex items-center gap-2 border-r border-slate-200 pr-4">
                               <button onClick={() => setVisualTool('move')} title="Déplacer" className={cn("p-2 rounded-lg", visualTool === 'move' ? "bg-indigo-600 text-white" : "text-slate-400")}><GripVertical size={18} /></button>
                               <button onClick={() => setVisualTool('pen')} title="Stylo / Dessin" className={cn("p-2 rounded-lg", visualTool === 'pen' ? "bg-indigo-600 text-white" : "text-slate-400")}><Pencil size={18} /></button>
@@ -1820,27 +1818,27 @@ export const PDFEditor: React.FC = () => {
                               <button onClick={clearDrawings} title="Tout effacer" className="p-2 text-rose-500"><Trash2 size={18} /></button>
                             </div>
                             <div className="flex items-center gap-4 px-4 border-l border-slate-200">
-                               <div className="flex flex-col gap-1 min-w-[100px]">
-                                 <div className="flex justify-between items-center text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                                   <span>Taille</span>
-                                   <span>{brushSize}px</span>
-                                 </div>
-                                 <input 
-                                   type="range" 
-                                   min="1" 
-                                   max="50" 
-                                   value={brushSize} 
-                                   onChange={(e) => setBrushSize(Number(e.target.value))}
-                                   className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
-                                   title="Ajuster la taille de l'outil"
-                                 />
-                               </div>
-                               <div className="flex items-center gap-2">
-                                 <button onClick={undo} title="Annuler (Ctrl+Z)" className="p-2 text-slate-400 transition-colors hover:text-indigo-600"><Undo2 size={18} /></button>
-                                 <button onClick={redo} title="Rétablir (Ctrl+Y)" className="p-2 text-slate-400 transition-colors hover:text-indigo-600"><RotateCcw size={18} className="rotate-180" /></button>
-                               </div>
-                             </div>
-                           </div>
+                              <div className="flex flex-col gap-1 min-w-[100px]">
+                                <div className="flex justify-between items-center text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                  <span>Taille</span>
+                                  <span>{brushSize}px</span>
+                                </div>
+                                <input
+                                  type="range"
+                                  min="1"
+                                  max="50"
+                                  value={brushSize}
+                                  onChange={(e) => setBrushSize(Number(e.target.value))}
+                                  className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
+                                  title="Ajuster la taille de l'outil"
+                                />
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <button onClick={undo} title="Annuler (Ctrl+Z)" className="p-2 text-slate-400 transition-colors hover:text-indigo-600"><Undo2 size={18} /></button>
+                                <button onClick={redo} title="Rétablir (Ctrl+Y)" className="p-2 text-slate-400 transition-colors hover:text-indigo-600"><RotateCcw size={18} className="rotate-180" /></button>
+                              </div>
+                            </div>
+                          </div>
 
                           <div className="relative w-full bg-slate-100 rounded-2xl overflow-hidden shadow-inner border border-slate-200 flex items-center justify-center min-h-[600px]">
                             <canvas
@@ -1848,18 +1846,18 @@ export const PDFEditor: React.FC = () => {
                               onMouseDown={startDrawing}
                               onMouseMove={draw}
                               onMouseUp={stopDrawing}
-                              style={{ 
+                              style={{
                                 filter: isEyeSaverMode ? "invert(1) hue-rotate(180deg)" : "none",
                                 width: '100%',
                                 height: 'auto'
                               }}
                               className="bg-white shadow-2xl cursor-crosshair touch-none"
                             />
-                            
+
                             {textInput && (
-                              <div 
+                              <div
                                 className="absolute bg-white/95 backdrop-blur-md p-3 rounded-2xl shadow-2xl border-2 border-indigo-500 z-50 flex items-center gap-3 animate-in fade-in zoom-in-95 duration-200"
-                                style={{ 
+                                style={{
                                   left: `${(textInput.x / canvasDimensions.width) * 100}%`,
                                   top: `${(textInput.y / canvasDimensions.height) * 100}%`,
                                   transform: 'translate(-50%, -50%)',
@@ -1871,53 +1869,53 @@ export const PDFEditor: React.FC = () => {
                                   const startY = e.clientY;
                                   const startPosX = textInput.x;
                                   const startPosY = textInput.y;
-                                  
+
                                   const onMove = (moveEvent: MouseEvent) => {
                                     const dx = (moveEvent.clientX - startX) * (canvasDimensions.width / canvasRef.current!.clientWidth);
                                     const dy = (moveEvent.clientY - startY) * (canvasDimensions.height / canvasRef.current!.clientHeight);
                                     setTextInput(prev => prev ? { ...prev, x: startPosX + dx, y: startPosY + dy } : null);
                                   };
-                                  
+
                                   const onUp = () => {
                                     window.removeEventListener('mousemove', onMove);
                                     window.removeEventListener('mouseup', onUp);
                                   };
-                                  
+
                                   window.addEventListener('mousemove', onMove);
                                   window.addEventListener('mouseup', onUp);
                                 }}
                               >
                                 <div className="flex flex-col gap-2">
                                   <div className="flex items-center gap-2 p-1 bg-slate-50 rounded-xl" onMouseDown={(e) => e.stopPropagation()}>
-                                    <button onClick={() => setTextInput({...textInput, isBold: !textInput.isBold})} className={cn("w-7 h-7 rounded-lg flex items-center justify-center transition-all", textInput.isBold ? "bg-indigo-600 text-white" : "text-slate-400 hover:bg-slate-200")}><Bold size={12} /></button>
-                                    <button onClick={() => setTextInput({...textInput, isItalic: !textInput.isItalic})} className={cn("w-7 h-7 rounded-lg flex items-center justify-center transition-all", textInput.isItalic ? "bg-indigo-600 text-white" : "text-slate-400 hover:bg-slate-200")}><Italic size={12} /></button>
-                                    <button onClick={() => setTextInput({...textInput, isHighlighted: !textInput.isHighlighted})} className={cn("w-7 h-7 rounded-lg flex items-center justify-center transition-all", textInput.isHighlighted ? "bg-yellow-400 text-white" : "text-slate-400 hover:bg-slate-200")}><Highlighter size={12} /></button>
+                                    <button onClick={() => setTextInput({ ...textInput, isBold: !textInput.isBold })} className={cn("w-7 h-7 rounded-lg flex items-center justify-center transition-all", textInput.isBold ? "bg-indigo-600 text-white" : "text-slate-400 hover:bg-slate-200")}><Bold size={12} /></button>
+                                    <button onClick={() => setTextInput({ ...textInput, isItalic: !textInput.isItalic })} className={cn("w-7 h-7 rounded-lg flex items-center justify-center transition-all", textInput.isItalic ? "bg-indigo-600 text-white" : "text-slate-400 hover:bg-slate-200")}><Italic size={12} /></button>
+                                    <button onClick={() => setTextInput({ ...textInput, isHighlighted: !textInput.isHighlighted })} className={cn("w-7 h-7 rounded-lg flex items-center justify-center transition-all", textInput.isHighlighted ? "bg-yellow-400 text-white" : "text-slate-400 hover:bg-slate-200")}><Highlighter size={12} /></button>
                                     <div className="h-3 w-px bg-slate-200 mx-1" />
-                                    <input 
-                                      type="number" 
-                                      value={textInput.fontSize || 20} 
-                                      onChange={(e) => setTextInput({...textInput, fontSize: Number(e.target.value)})}
+                                    <input
+                                      type="number"
+                                      value={textInput.fontSize || 20}
+                                      onChange={(e) => setTextInput({ ...textInput, fontSize: Number(e.target.value) })}
                                       className="w-10 bg-transparent text-[10px] font-bold text-center outline-none"
                                     />
                                   </div>
 
                                   <div className="flex items-center gap-3">
-                                    <input 
+                                    <input
                                       autoFocus
                                       value={textInput.text}
-                                      style={{ 
+                                      style={{
                                         fontWeight: textInput.isBold ? 'bold' : 'normal',
                                         fontStyle: textInput.isItalic ? 'italic' : 'normal',
                                         backgroundColor: textInput.isHighlighted ? '#fef08a' : 'transparent',
                                         fontSize: `${(textInput.fontSize || 20) * (canvasRef.current!.clientWidth / canvasDimensions.width)}px`
                                       }}
-                                      onChange={(e) => setTextInput({...textInput, text: e.target.value})}
+                                      onChange={(e) => setTextInput({ ...textInput, text: e.target.value })}
                                       onClick={(e) => e.stopPropagation()}
                                       onMouseDown={(e) => e.stopPropagation()}
                                       onKeyDown={(e) => {
                                         if (e.key === 'Enter' && textInput.text.trim()) {
                                           setCurrentDrawings(prev => [...prev, {
-                                            points: [{x: textInput.x, y: textInput.y}],
+                                            points: [{ x: textInput.x, y: textInput.y }],
                                             color: tempColor,
                                             width: 0,
                                             mode: 'text',
@@ -1937,12 +1935,12 @@ export const PDFEditor: React.FC = () => {
                                     />
                                     <div className="flex gap-1 border-l border-slate-200 pl-2">
                                       <button onClick={(e) => { e.stopPropagation(); setTextInput(null); }} className="p-1 hover:bg-rose-50 rounded text-rose-500"><X size={14} /></button>
-                                      <button 
+                                      <button
                                         onClick={(e) => {
                                           e.stopPropagation();
                                           if (textInput.text.trim()) {
                                             setCurrentDrawings(prev => [...prev, {
-                                              points: [{x: textInput.x, y: textInput.y}],
+                                              points: [{ x: textInput.x, y: textInput.y }],
                                               color: tempColor,
                                               width: 0,
                                               mode: 'text',
@@ -1956,15 +1954,15 @@ export const PDFEditor: React.FC = () => {
                                             }]);
                                             setTextInput(null);
                                           }
-                                        }} 
+                                        }}
                                         className="p-1 hover:bg-emerald-50 rounded text-emerald-600"
                                       >
                                         <Check size={14} />
                                       </button>
+                                    </div>
                                   </div>
                                 </div>
                               </div>
-                            </div>
                             )}
                           </div>
                         </div>
@@ -2023,7 +2021,7 @@ export const PDFEditor: React.FC = () => {
                   <p className="text-sm text-slate-500">Nous appliquons vos modifications au document PDF...</p>
                 </div>
                 <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-                  <motion.div 
+                  <motion.div
                     className="h-full bg-indigo-600"
                     initial={{ width: 0 }}
                     animate={{ width: `${loadingProgress}%` }}
@@ -2046,34 +2044,34 @@ export const PDFEditor: React.FC = () => {
             </motion.div>
           )}
 
-              {resultUrl && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="w-full p-6 bg-emerald-50 border border-emerald-100 rounded-2xl flex flex-col items-center gap-4"
-                >
-                  <div className="flex items-center gap-3 text-emerald-700 font-semibold">
-                    <CheckCircle2 size={24} />
-                    Modification réussie !
-                  </div>
-                  <button
-                    onClick={downloadResult}
-                    className="flex items-center gap-2 px-8 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-semibold shadow-lg shadow-emerald-200 transition-all hover:scale-105 active:scale-95"
-                    title="Télécharger le PDF (Ctrl+S)"
-                  >
-                    <Download size={20} />
-                    Télécharger le PDF modifié
-                  </button>
-                </motion.div>
-              )}
-            </AnimatePresence>
-    
-            <button
-              onClick={() => editPDF()}
-              disabled={rawFiles.length === 0 || isProcessing || thumbnails.length === 0}
-              className="w-full sm:w-auto flex items-center justify-center gap-2 px-10 py-4 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 text-white rounded-2xl font-bold text-lg shadow-xl shadow-indigo-100 transition-all hover:scale-105 active:scale-95 disabled:scale-100 disabled:shadow-none"
-              title="Appliquer les modifications (Ctrl+S)"
+          {resultUrl && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="w-full p-6 bg-emerald-50 border border-emerald-100 rounded-2xl flex flex-col items-center gap-4"
             >
+              <div className="flex items-center gap-3 text-emerald-700 font-semibold">
+                <CheckCircle2 size={24} />
+                Modification réussie !
+              </div>
+              <button
+                onClick={downloadResult}
+                className="flex items-center gap-2 px-8 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-semibold shadow-lg shadow-emerald-200 transition-all hover:scale-105 active:scale-95"
+                title="Télécharger le PDF (Ctrl+S)"
+              >
+                <Download size={20} />
+                Télécharger le PDF modifié
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <button
+          onClick={() => editPDF()}
+          disabled={rawFiles.length === 0 || isProcessing || thumbnails.length === 0}
+          className="w-full sm:w-auto flex items-center justify-center gap-2 px-10 py-4 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 text-white rounded-2xl font-bold text-lg shadow-xl shadow-indigo-100 transition-all hover:scale-105 active:scale-95 disabled:scale-100 disabled:shadow-none"
+          title="Appliquer les modifications (Ctrl+S)"
+        >
           {isProcessing ? (
             <>
               <Loader2 size={24} className="animate-spin" />
@@ -2106,7 +2104,7 @@ export const PDFEditor: React.FC = () => {
                   <Pencil className="text-emerald-500" size={24} />
                   Votre Signature
                 </h3>
-                <button 
+                <button
                   onClick={() => setIsSignaturePadOpen(false)}
                   className="p-2 hover:bg-slate-100 rounded-full"
                 >
@@ -2161,17 +2159,17 @@ export const PDFEditor: React.FC = () => {
                   onClick={() => {
                     const canvas = document.getElementById('signature-canvas') as HTMLCanvasElement;
                     if (canvas) {
-                       const dataUrl = canvas.toDataURL();
-                       setSignatureData(dataUrl);
-                       // Add signature to drawings
-                       setCurrentDrawings(prev => [...prev, {
-                         points: [{x: 50, y: 50}, {x: 200, y: 150}], // Placeholder rect for signature
-                         color: "#000000",
-                         width: 2,
-                         mode: 'stamp',
-                         text: 'SIGNATURE' // We'll handle dataUrl rendering separately
-                       }]);
-                       setIsSignaturePadOpen(false);
+                      const dataUrl = canvas.toDataURL();
+                      setSignatureData(dataUrl);
+                      // Add signature to drawings
+                      setCurrentDrawings(prev => [...prev, {
+                        points: [{ x: 50, y: 50 }, { x: 200, y: 150 }], // Placeholder rect for signature
+                        color: "#000000",
+                        width: 2,
+                        mode: 'stamp',
+                        text: 'SIGNATURE' // We'll handle dataUrl rendering separately
+                      }]);
+                      setIsSignaturePadOpen(false);
                     }
                   }}
                   className="flex-1 py-3 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 shadow-lg shadow-emerald-200 transition-all"

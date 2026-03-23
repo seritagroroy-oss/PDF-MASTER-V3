@@ -1,11 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import * as pdfjs from 'pdfjs-dist/legacy/build/pdf.mjs';
-import pdfWorker from 'pdfjs-dist/legacy/build/pdf.worker.min.mjs?url';
+import * as pdfjs from 'pdfjs-dist';
+pdfjs.GlobalWorkerOptions.workerSrc = 'https://unpkg.com/pdfjs-dist@5.5.207/build/pdf.worker.min.mjs';
 import { MessageSquare, Upload, FileText, Send, Loader2, Sparkles, X, AlertCircle } from 'lucide-react';
 import { cn } from '../utils/cn';
 
-pdfjs.GlobalWorkerOptions.workerSrc = pdfWorker;
 
 interface ChatMessage {
   id: string;
@@ -22,7 +21,7 @@ export const PDFChat = () => {
   const [isThinking, setIsThinking] = useState(false);
   const [error, setError] = useState('');
   const [isDragging, setIsDragging] = useState(false);
-  
+
   const inputRef = useRef<HTMLInputElement>(null);
   const chatBottomRef = useRef<HTMLDivElement>(null);
 
@@ -39,16 +38,16 @@ export const PDFChat = () => {
       const pdf = await loadingTask.promise;
       const numPages = pdf.numPages;
       let fullText = '';
-      
+
       for (let i = 1; i <= Math.min(numPages, 50); i++) { // Limit to 50 pages for token size
         const page = await pdf.getPage(i);
         const content = await page.getTextContent();
         const strings = content.items.map((item: any) => item.str);
         fullText += `\n--- PAGE ${i} ---\n` + strings.join(' ');
       }
-      
+
       if (!fullText.trim()) throw new Error('NO_TEXT');
-      
+
       setPdfText(fullText);
       setMessages([
         {
@@ -106,7 +105,7 @@ export const PDFChat = () => {
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() || isThinking || !pdfText) return;
-    
+
     const userMsg: ChatMessage = { id: Date.now().toString(), role: 'user', content: input.trim() };
     setMessages(prev => [...prev, userMsg]);
     setInput('');
@@ -202,7 +201,7 @@ export const PDFChat = () => {
         <>
           <div className="flex-1 overflow-y-auto p-4 sm:p-6 bg-slate-50">
             {error && <div className="mb-4 p-3 bg-rose-50 border border-rose-200 text-rose-600 rounded-xl text-xs font-bold w-full max-w-2xl mx-auto flex gap-2"><AlertCircle size={16} />{error}</div>}
-            
+
             <div className="max-w-3xl mx-auto space-y-6">
               {messages.map(msg => (
                 <motion.div key={msg.id} initial={{ opacity: 0, scale: 0.95, y: 10 }} animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -220,7 +219,7 @@ export const PDFChat = () => {
                   </div>
                 </motion.div>
               ))}
-              
+
               {isThinking && (
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex w-full gap-3 justify-start">
                   <div className="shrink-0 h-8 w-8 rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 text-white flex items-center justify-center shadow-sm">

@@ -1,12 +1,10 @@
 import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import * as pdfjs from 'pdfjs-dist/legacy/build/pdf.mjs';
-import pdfWorker from 'pdfjs-dist/legacy/build/pdf.worker.min.mjs?url';
+import * as pdfjs from 'pdfjs-dist';
+pdfjs.GlobalWorkerOptions.workerSrc = 'https://unpkg.com/pdfjs-dist@5.5.207/build/pdf.worker.min.mjs';
 import Tesseract from 'tesseract.js';
 import { ScanText, Upload, FileText, Copy, Loader2, CheckCircle2, Languages, X, Activity } from 'lucide-react';
 import { cn } from '../utils/cn';
-
-pdfjs.GlobalWorkerOptions.workerSrc = pdfWorker;
 
 export const PDFOCR = () => {
   const [file, setFile] = useState<File | null>(null);

@@ -1,13 +1,12 @@
 import React, { useState } from 'react';
 import * as pdfjs from 'pdfjs-dist';
-import pdfjsWorker from 'pdfjs-dist/build/pdf.worker.mjs?url';
+pdfjs.GlobalWorkerOptions.workerSrc = 'https://unpkg.com/pdfjs-dist@5.5.207/build/pdf.worker.min.mjs';
 import JSZip from 'jszip';
 import { FileUpload } from './FileUpload';
 import { FileImage, Download, Loader2, CheckCircle2, AlertCircle, Image as ImageIcon, Type } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '@/src/utils/cn';
 
-pdfjs.GlobalWorkerOptions.workerSrc = pdfjsWorker;
 
 type ConversionFormat = 'jpg' | 'png' | 'txt';
 
