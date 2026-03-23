@@ -1,4 +1,4 @@
-import { Suspense, lazy, useEffect, useState, useCallback } from 'react';
+import React, { Suspense, lazy, useEffect, useState, useCallback } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import {
   ArrowRight,
@@ -482,7 +482,7 @@ export default function App() {
                             className={cn("w-full text-left px-4 py-2.5 text-sm font-semibold hover:bg-slate-50 transition-colors flex items-center gap-2.5",
                               activeTool === tool.id ? "text-indigo-600 bg-indigo-50/50" : "text-slate-700")}
                           >
-                            <span className={cn("p-1.5 rounded-lg", tool.bg || tool.color.replace('text-', 'bg-').replace('600', '100'))}>
+                            <span className={cn("p-1.5 rounded-lg", (tool as any).bg || tool.color.replace('text-', 'bg-').replace('600', '100'))}>
                               <Icon size={14} className={tool.color.replace('bg-', 'text-')} />
                             </span>
                             {tool.shortName}
