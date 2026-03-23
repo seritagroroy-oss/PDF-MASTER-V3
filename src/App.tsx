@@ -460,26 +460,27 @@ export default function App() {
                   <button className="flex items-center gap-1.5 whitespace-nowrap shrink-0 rounded-full px-3 py-1.5 xl:px-4 xl:py-2 text-xs xl:text-sm font-semibold transition-colors text-slate-300 hover:bg-slate-900 hover:text-white">
                     Plus <ChevronDown size={14} className="group-hover:rotate-180 transition-transform" />
                   </button>
-                  <div className="absolute top-full right-0 mt-1 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all duration-200 w-48 bg-white border border-slate-100 shadow-xl shadow-slate-900/10 rounded-2xl overflow-hidden z-50">
-                    <div className="py-1">
-                      {tools.slice(6).map(tool => {
-                        const Icon = tool.icon;
-                        return (
-                          <button
-                            key={tool.id}
-                            onClick={() => handleToolChange(tool.id)}
-                            onMouseEnter={() => preloadTool(tool.id)}
-                            className={cn("w-full text-left px-4 py-2.5 text-sm font-semibold hover:bg-slate-50 transition-colors flex items-center gap-2.5",
-                              activeTool === tool.id ? "text-indigo-600 bg-indigo-50/50" : "text-slate-700")}
-                          >
-                            <span className={cn("p-1.5 rounded-lg", (tool as any).bg || tool.color.replace('text-', 'bg-').replace('600', '100'))}>
-                              <Icon size={14} className={tool.color.replace('bg-', 'text-')} />
-                            </span>
-                            {tool.shortName}
-                          </button>
-                        );
-                      })}
-                    </div>
+                  <div className="absolute top-full right-0 mt-3 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 w-64 bg-white/95 backdrop-blur-xl border border-slate-100 shadow-2xl shadow-slate-900/10 rounded-[1.5rem] overflow-hidden z-50 p-2 grid gap-1">
+                    {tools.slice(6).map(tool => {
+                      const Icon = tool.icon;
+                      return (
+                        <button
+                          key={tool.id}
+                          onClick={() => handleToolChange(tool.id)}
+                          onMouseEnter={() => preloadTool(tool.id)}
+                          className={cn("w-full text-left px-3 py-2.5 text-sm font-semibold rounded-xl hover:bg-slate-50 transition-all flex items-center gap-3",
+                            activeTool === tool.id ? "text-indigo-600 bg-indigo-50/50" : "text-slate-700")}
+                        >
+                          <span className={cn("p-2 rounded-xl flex shrink-0 items-center justify-center transition-transform group-hover:scale-110", (tool as any).bg || tool.color.replace('text-', 'bg-').replace('600', '100'))}>
+                            <Icon size={16} className={tool.color.replace('bg-', 'text-')} />
+                          </span>
+                          <div className="flex flex-col">
+                            <span className="leading-tight">{tool.shortName}</span>
+                            <span className="text-[10px] text-slate-400 font-medium truncate w-36">{tool.name}</span>
+                          </div>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 
@@ -580,50 +581,52 @@ export default function App() {
                 exit={{ opacity: 0, height: 0 }}
                 className="overflow-hidden border-t border-slate-800 bg-slate-950 md:hidden"
               >
-                <div className="space-y-3 px-4 py-4">
-                  {tools.map((tool) => (
-                    <button
-                      key={tool.id}
-                      type="button"
-                      onClick={() => handleToolChange(tool.id)}
-                      onMouseEnter={() => preloadTool(tool.id)}
-                      onFocus={() => preloadTool(tool.id)}
-                      className={cn(
-                        'block w-full rounded-2xl px-4 py-3 text-left text-sm font-semibold transition',
-                        activeTool === tool.id
-                          ? 'bg-cyan-400 text-slate-950'
-                          : 'bg-slate-900 text-slate-200 hover:bg-slate-800',
-                      )}
-                    >
-                      {tool.name}
-                    </button>
-                  ))}
+                <div className="space-y-4 px-4 py-5">
+                  <div className="grid grid-cols-2 gap-2">
+                    {tools.map((tool) => {
+                      const Icon = tool.icon;
+                      return (
+                        <button
+                          key={tool.id}
+                          type="button"
+                          onClick={() => { handleToolChange(tool.id); setIsMenuOpen(false); }}
+                          onMouseEnter={() => preloadTool(tool.id)}
+                          onFocus={() => preloadTool(tool.id)}
+                          className={cn(
+                            'relative group flex flex-col items-start gap-3 rounded-[1.25rem] p-4 text-left transition-all overflow-hidden',
+                            activeTool === tool.id
+                              ? 'bg-cyan-400 text-slate-950 shadow-lg shadow-cyan-400/20'
+                              : 'bg-slate-900 border border-slate-800 text-slate-200 hover:bg-slate-800',
+                          )}
+                        >
+                          <div className={cn("p-2.5 rounded-xl transition-transform group-hover:scale-110", activeTool === tool.id ? "bg-white/20 text-slate-950" : (tool as any).bg || tool.color.replace('text-', 'bg-').replace('600', '100'))}>
+                            <Icon size={20} className={activeTool === tool.id ? "text-slate-950" : tool.color.replace('bg-', 'text-')} />
+                          </div>
+                          <span className="text-sm font-bold leading-tight">{tool.shortName}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
                   {currentUser ? (
                     <button
                       type="button"
-                      onClick={handleLogout}
-                      className="block w-full rounded-2xl bg-rose-500 px-4 py-3 text-left font-bold text-white flex items-center gap-2"
+                      onClick={() => { handleLogout(); setIsMenuOpen(false); }}
+                      className="flex w-full items-center gap-3 rounded-2xl bg-rose-500/10 px-4 py-3.5 text-left font-bold text-rose-500 transition hover:bg-rose-500/20"
                     >
-                      <LogOut size={16} />
-                      Se déconnecter ({currentUser.name})
+                      <LogOut size={18} />
+                      <span className="flex-1 truncate">Se déconnecter ({currentUser.name})</span>
                     </button>
                   ) : (
                     <button
                       type="button"
                       onClick={() => { setIsAuthOpen(true); setIsMenuOpen(false); }}
-                      className="block w-full rounded-2xl bg-indigo-600 px-4 py-3 text-left font-bold text-white flex items-center gap-2"
+                      className="flex w-full items-center gap-3 rounded-2xl border border-indigo-500/30 bg-indigo-600/10 px-4 py-3.5 text-left font-bold text-indigo-400 transition hover:bg-indigo-600/20"
                     >
-                      <User size={16} />
+                      <User size={18} />
                       Connexion / Inscription
                     </button>
                   )}
-                  <button
-                    type="button"
-                    onClick={() => setActiveTool('merge')}
-                    className="block w-full rounded-2xl bg-cyan-400 px-4 py-3 text-left font-bold text-slate-950"
-                  >
-                    Essayer maintenant
-                  </button>
+
                 </div>
               </motion.div>
             )}
