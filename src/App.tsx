@@ -642,7 +642,7 @@ export default function App() {
               >
                 <section className="grid items-center gap-10 lg:grid-cols-[1.1fr_0.9fr]">
                   <div className="space-y-8">
-                    <div className="inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-white/80 px-4 py-2 text-sm font-semibold text-indigo-700 shadow-sm">
+                    <div className="hidden sm:inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-white/80 px-4 py-2 text-sm font-semibold text-indigo-700 shadow-sm">
                       <Sparkles size={16} />
                       Suite PDF locale, rapide et plus claire à utiliser
                     </div>
@@ -651,7 +651,7 @@ export default function App() {
                       <h1 className="max-w-4xl text-4xl font-display font-extrabold leading-tight text-slate-950 sm:text-5xl lg:text-7xl">
                         Gérez vos PDF avec une interface plus nette, plus rapide et plus rassurante.
                       </h1>
-                      <p className="max-w-2xl text-lg leading-8 text-slate-600 sm:text-xl">
+                      <p className="hidden sm:block max-w-2xl text-lg leading-8 text-slate-600 sm:text-xl">
                         Fusion, édition, compression, conversion et filigrane dans un seul espace.
                         Tout est pensé pour aller à l’essentiel, y compris sur mobile.
                       </p>
@@ -744,7 +744,7 @@ export default function App() {
                   </div>
                 </section>
 
-                <section className="mt-20">
+                <section className="mt-10 sm:mt-20">
                   <div className="mb-8 flex items-end justify-between gap-6">
                     <div>
                       <p className="text-sm font-semibold uppercase tracking-[0.26em] text-slate-400">
@@ -802,7 +802,7 @@ export default function App() {
                   </div>
                 </section>
 
-                <section className="mt-20 grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
+                <section className="hidden sm:grid mt-20 gap-6 lg:grid-cols-[0.95fr_1.05fr]">
                   <div className="rounded-[2rem] border border-slate-200 bg-slate-950 p-8 text-white shadow-xl shadow-slate-900/10">
                     <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-white/10">
                       <Shield size={28} />
