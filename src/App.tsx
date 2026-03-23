@@ -940,25 +940,34 @@ export default function App() {
             transition={{ type: 'spring', damping: 20, stiffness: 300 }}
             className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[200] w-[calc(100%-2rem)] max-w-md"
           >
-            <div className="flex items-center gap-4 rounded-2xl bg-slate-900 p-4 pr-3 shadow-2xl shadow-slate-900/40 border border-slate-700/50 backdrop-blur-xl">
-              <div className="shrink-0 h-12 w-12 rounded-xl bg-cyan-400 flex items-center justify-center shadow-lg shadow-cyan-500/30">
-                <DownloadCloud size={22} className="text-slate-950" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-bold text-white text-sm">Installer PDF Master</p>
-                <p className="text-xs text-slate-400 mt-0.5">Accès rapide depuis votre écran d'accueil</p>
-              </div>
-              <div className="flex items-center gap-2 shrink-0">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 rounded-2xl bg-slate-900 p-3 sm:p-4 shadow-2xl shadow-slate-900/40 border border-slate-700/50 backdrop-blur-xl">
+              <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0 w-full">
+                <div className="shrink-0 h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-cyan-400 flex items-center justify-center shadow-lg shadow-cyan-500/30">
+                  <DownloadCloud size={20} className="text-slate-950" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-bold text-white text-sm">Installer PDF Master</p>
+                  <p className="text-xs text-slate-400 mt-0.5 truncate sm:whitespace-normal">Accès rapide à un clic</p>
+                </div>
                 <button
                   onClick={() => setShowInstallBanner(false)}
-                  className="p-2 rounded-xl text-slate-500 hover:text-slate-300 hover:bg-slate-800 transition-colors"
+                  className="sm:hidden p-1.5 -mr-1 rounded-lg text-slate-500 hover:bg-slate-800 transition-colors"
+                  aria-label="Fermer"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+              <div className="flex items-center gap-2 mt-1 sm:mt-0 w-full sm:w-auto shrink-0">
+                <button
+                  onClick={() => setShowInstallBanner(false)}
+                  className="hidden sm:block p-2 rounded-xl text-slate-500 hover:text-slate-300 hover:bg-slate-800 transition-colors"
                   title="Fermer"
                 >
                   <X size={16} />
                 </button>
                 <button
                   onClick={handleInstallClick}
-                  className="px-4 py-2 bg-cyan-400 hover:bg-cyan-300 text-slate-950 font-bold text-sm rounded-xl transition-all hover:scale-105 active:scale-95 shadow-md shadow-cyan-500/20"
+                  className="w-full sm:w-auto px-4 py-2.5 sm:py-2 bg-cyan-400 hover:bg-cyan-300 text-slate-950 font-bold text-sm rounded-xl transition-all hover:scale-105 active:scale-95 shadow-md shadow-cyan-500/20"
                 >
                   Installer
                 </button>
