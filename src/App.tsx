@@ -33,7 +33,6 @@ import {
 } from 'lucide-react';
 import { BrandLockup } from './components/BrandLockup';
 import { AuthModal } from './components/AuthModal';
-import { ShortcutsPanel } from './components/ShortcutsPanel';
 import { UserDashboard } from './components/UserDashboard';
 import { updateLastSeen, addRecentFile } from './hooks/useUserStorage';
 import { cn } from './utils/cn';
@@ -249,7 +248,6 @@ export default function App() {
   const [isInstallable, setIsInstallable] = useState(false);
   const [isBooting, setIsBooting] = useState(true);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
-  const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem('pdfmaster_dark') === 'true');
   const [globalDragOver, setGlobalDragOver] = useState(false);
   const [showInstallBanner, setShowInstallBanner] = useState(false);
@@ -305,14 +303,6 @@ export default function App() {
     localStorage.setItem('pdfmaster_dark', String(isDarkMode));
   }, [isDarkMode]);
 
-  // Keyboard shortcuts
-  useEffect(() => {
-    const handleKey = (e: KeyboardEvent) => {
-      if (e.key === '?' && !e.ctrlKey && !e.metaKey) setIsShortcutsOpen(s => !s);
-    };
-    window.addEventListener('keydown', handleKey);
-    return () => window.removeEventListener('keydown', handleKey);
-  }, []);
 
   useEffect(() => {
     const timer = window.setTimeout(() => setIsBooting(false), 1100);
@@ -569,14 +559,6 @@ export default function App() {
                 className="p-2.5 rounded-full border border-slate-700 bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 transition-all"
               >
                 {isDarkMode ? <Sun size={17} /> : <Moon size={17} />}
-              </button>
-              <button
-                type="button"
-                onClick={() => setIsShortcutsOpen(true)}
-                title="Raccourcis clavier (?)"
-                className="p-2.5 rounded-full border border-slate-700 bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 transition-all"
-              >
-                <Keyboard size={17} />
               </button>
 
               <button
@@ -941,61 +923,12 @@ export default function App() {
           </AnimatePresence>
         </main>
 
-        <footer className="border-t border-white/60 bg-white/80 py-12 backdrop-blur-xl">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="grid gap-10 md:grid-cols-4">
-              <div className="space-y-5 md:col-span-2">
-                <BrandLockup compact />
-                <p className="max-w-md text-sm leading-7 text-slate-500">
-                  Une experience PDF plus claire pour fusionner, modifier, compresser,
-                  convertir et protéger vos documents en toute simplicité.
-                </p>
-                <div className="flex gap-3">
-                  {[Twitter, Github, Linkedin].map((Icon, index) => (
-                    <button
-                      key={index}
-                      type="button"
-                      className="rounded-xl border border-slate-200 p-2 text-slate-400 transition hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-600"
-                      aria-label="Lien reseau social"
-                    >
-                      <Icon size={18} />
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <h4 className="mb-5 font-bold text-slate-900">Outils</h4>
-                <div className="space-y-3 text-sm">
-                  {tools.map((tool) => (
-                    <button
-                      key={tool.id}
-                      type="button"
-                      onClick={() => handleToolChange(tool.id)}
-                      className="block text-slate-500 transition hover:text-indigo-600"
-                    >
-                      {tool.name}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <h4 className="mb-5 font-bold text-slate-900">Infos</h4>
-                <div className="space-y-3 text-sm text-slate-500">
-                  <p>Compatible desktop et mobile</p>
-                  <p>Traitement local annoncé dans l’interface</p>
-                  <p>Prévisualisation avant publication sur Vercel</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-10 flex flex-col items-start justify-between gap-4 border-t border-slate-100 pt-6 text-xs font-semibold uppercase tracking-[0.24em] text-slate-400 md:flex-row md:items-center">
-              <p>2026 PDFMaster. Tous droits réservés.</p>
-              <div className="flex items-center gap-2">
-                <Globe size={14} />
-                <span>Français</span>
-              </div>
+        <footer className="border-t border-slate-100/10 bg-white/5 py-6 backdrop-blur-xl">
+          <div className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8 text-xs font-semibold uppercase tracking-[0.24em] text-slate-400">
+            <p>2026 PDFMaster</p>
+            <div className="flex items-center gap-2">
+              <Globe size={14} />
+              <span>Français</span>
             </div>
           </div>
         </footer>
@@ -1007,12 +940,7 @@ export default function App() {
         onLogin={handleLogin}
       />
 
-      <ShortcutsPanel
-        isOpen={isShortcutsOpen}
-        onClose={() => setIsShortcutsOpen(false)}
-      />
 
-      {/* Floating install banner */}
       <AnimatePresence>
         {isInstallable && showInstallBanner && (
           <motion.div
@@ -1050,14 +978,6 @@ export default function App() {
         )}
       </AnimatePresence>
 
-      {/* Floating shortcuts hint */}
-      <button
-        onClick={() => setIsShortcutsOpen(true)}
-        title="Raccourcis clavier (?)"
-        className="fixed bottom-6 right-6 z-[100] h-12 w-12 rounded-full bg-slate-900 text-white shadow-xl flex items-center justify-center text-lg font-black hover:bg-indigo-600 transition-all hover:scale-110"
-      >
-        ?
-      </button>
     </div>
   );
 }
