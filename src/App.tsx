@@ -31,6 +31,7 @@ import {
   ChevronDown,
   Hash,
   Package,
+  PenTool,
 } from 'lucide-react';
 import { BrandLockup } from './components/BrandLockup';
 import { AuthModal } from './components/AuthModal';
@@ -43,7 +44,7 @@ interface AppUser {
   email: string;
 }
 
-type Tool = 'merge' | 'edit' | 'compress' | 'watermark' | 'convert' | 'split' | 'protect' | 'chat' | 'ocr' | 'numbering' | 'batch' | 'scanner' | 'dashboard' | 'home';
+type Tool = 'merge' | 'edit' | 'compress' | 'watermark' | 'convert' | 'split' | 'protect' | 'chat' | 'ocr' | 'numbering' | 'batch' | 'scanner' | 'sign' | 'dashboard' | 'home';
 
 type BeforeInstallPromptEvent = Event & {
   prompt: () => Promise<void>;
@@ -85,6 +86,9 @@ const PDFBatch = lazy(() =>
 );
 const PDFScanner = lazy(() =>
   import('./components/PDFScanner').then((module) => ({ default: module.PDFScanner })),
+);
+const PDFSign = lazy(() =>
+  import('./components/PDFSign').then((module) => ({ default: module.PDFSign })),
 );
 
 const tools = [
@@ -164,6 +168,17 @@ const tools = [
     color: 'bg-red-500',
     soft: 'from-red-500/15 to-rose-500/10',
     textColor: 'text-red-600',
+  },
+  {
+    id: 'sign' as const,
+    name: 'Signer PDF',
+    shortName: 'Signature',
+    description: 'Remplissez vos documents, dessinez votre signature et ajoutez une date.',
+    detail: 'Solution professionnelle de saisie de formulaires sans impression papier.',
+    icon: PenTool,
+    color: 'bg-emerald-600',
+    soft: 'from-emerald-600/15 to-teal-600/10',
+    textColor: 'text-emerald-700',
   },
   {
     id: 'chat' as const,
@@ -376,6 +391,7 @@ export default function App() {
       case 'numbering': return <PDFNumbering />;
       case 'batch': return <PDFBatch />;
       case 'scanner': return <PDFScanner />;
+      case 'sign': return <PDFSign />;
       default: return null;
     }
   };
