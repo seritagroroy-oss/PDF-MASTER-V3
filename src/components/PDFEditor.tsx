@@ -721,6 +721,9 @@ export const PDFEditor: React.FC = () => {
   };
 
   const startDrawing = (e: React.PointerEvent | React.MouseEvent | React.TouchEvent) => {
+    // If we are in "Move/Hand" mode, let the browser handle touches so we can scroll/zoom
+    if (visualTool === 'move') return;
+
     const pos = getCoordinates(e);
 
     // Prevent scrolling or other browser gestures on mobile when drawing
@@ -2075,7 +2078,14 @@ export const PDFEditor: React.FC = () => {
                         <div className="space-y-6">
                           <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 px-2 sm:px-4 py-3 bg-slate-50 rounded-xl border border-slate-100">
                             <div className="flex items-center justify-start gap-1 sm:gap-2 border-b md:border-b-0 md:border-r border-slate-200 pb-3 md:pb-0 pr-0 md:pr-4 overflow-x-auto scrollbar-none touch-pan-x">
-                              <button onClick={() => setVisualTool('move')} title="Déplacer" className={cn("p-2 shrink-0 rounded-lg", visualTool === 'move' ? "bg-indigo-600 text-white" : "text-slate-400")}><GripVertical size={16} /></button>
+                              <button 
+                                onClick={() => setVisualTool('move')} 
+                                title="Main (Déplacer / Scroll)" 
+                                className={cn("p-2 shrink-0 rounded-lg", visualTool === 'move' ? "bg-indigo-600 text-white" : "text-slate-400")}
+                              >
+                                <RefreshCw className={visualTool === 'move' ? "" : "opacity-50"} size={16} /> 
+                                {/* I'll use a clearer hand-like icon or just keep move with better logic */}
+                              </button>
                               <button onClick={() => setVisualTool('pen')} title="Stylo / Dessin" className={cn("p-2 shrink-0 rounded-lg", visualTool === 'pen' ? "bg-indigo-600 text-white" : "text-slate-400")}><Pencil size={16} /></button>
                               <button onClick={() => setVisualTool('text')} title="Ajouter du texte" className={cn("p-2 shrink-0 rounded-lg", visualTool === 'text' ? "bg-indigo-600 text-white" : "text-slate-400")}><Type size={16} /></button>
                               <button onClick={() => setVisualTool('rect')} title="Rectangle" className={cn("p-2 shrink-0 rounded-lg", visualTool === 'rect' ? "bg-indigo-600 text-white" : "text-slate-400")}><SquareIcon size={16} /></button>
@@ -2136,7 +2146,9 @@ export const PDFEditor: React.FC = () => {
                                 filter: isEyeSaverMode ? "invert(1) hue-rotate(180deg)" : "none",
                                 width: '100%',
                                 height: 'auto',
+                                touchAction: visualTool === 'move' ? 'auto' : 'none',
                                 cursor: (() => {
+                                  if (visualTool === 'move') return 'grab';
                                   if (['pen', 'eraser', 'highlighter'].includes(visualTool)) {
                                     const size = Math.max(4, brushSize);
                                     const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}"><circle cx="${size/2}" cy="${size/2}" r="${size/2 - 1}" fill="rgba(99, 102, 241, 0.2)" stroke="rgb(99, 102, 241)" stroke-width="1"/></svg>`;
