@@ -1,11 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Camera, FileDown, Trash2, X, RefreshCw, Plus, Settings2, RotateCw, Contrast, Image as ImageIcon, Crop, FileText } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { Camera, FileDown, Trash2, X, RefreshCw, Plus, Settings2, RotateCw, Contrast, Image as ImageIcon, Crop, FileText, GripVertical } from 'lucide-react';
+import { motion, AnimatePresence, Reorder } from 'motion/react';
 import { PDFDocument } from 'pdf-lib';
 
 export const PDFScanner: React.FC = () => {
   const [stream, setStream] = useState<MediaStream | null>(null);
-  const [scannedImages, setScannedImages] = useState<string[]>([]);
+  const [scannedImages, setScannedImages] = useState<{id: string, url: string}[]>([]);
   const [isScanning, setIsScanning] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -74,7 +74,7 @@ export const PDFScanner: React.FC = () => {
     
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
     const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
-    setScannedImages(prev => [...prev, dataUrl]);
+    setScannedImages(prev => [...prev, { id: crypto.randomUUID(), url: dataUrl }]);
   };
 
   const removeImage = (index: number) => {
@@ -87,8 +87,8 @@ export const PDFScanner: React.FC = () => {
     try {
       const pdfDoc = await PDFDocument.create();
       
-      for (const imgUrl of scannedImages) {
-        const imageBytes = await fetch(imgUrl).then(res => res.arrayBuffer());
+      for (const imgObj of scannedImages) {
+        const imageBytes = await fetch(imgObj.url).then(res => res.arrayBuffer());
         const image = await pdfDoc.embedJpg(imageBytes);
         
         const { width, height } = image.scaleToFit(595.28, 841.89); // A4 dimensions
@@ -125,7 +125,7 @@ export const PDFScanner: React.FC = () => {
   const openEditor = (idx: number) => {
     setEditingImageIdx(idx);
     setTimeout(() => {
-      drawToEditCanvas(scannedImages[idx]);
+      drawToEditCanvas(scannedImages[idx].url);
     }, 100);
   };
 
@@ -215,7 +215,7 @@ export const PDFScanner: React.FC = () => {
     const newUrl = canvas.toDataURL('image/jpeg', 0.9);
     setScannedImages(prev => {
       const copy = [...prev];
-      copy[editingImageIdx] = newUrl;
+      copy[editingImageIdx] = { ...copy[editingImageIdx], url: newUrl };
       return copy;
     });
     setEditingImageIdx(null);
@@ -324,39 +324,57 @@ export const PDFScanner: React.FC = () => {
             </button>
           </div>
           
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            <AnimatePresence>
+          <div className="max-w-2xl mx-auto">
+            <Reorder.Group
+              axis="y"
+              values={scannedImages}
+              onReorder={setScannedImages}
+              className="flex flex-col gap-3"
+            >
               {scannedImages.map((img, idx) => (
-                <motion.div
-                  key={idx}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  className="group relative bg-white dark:bg-slate-800 aspect-[3/4] rounded-2xl border-2 border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm hover:border-indigo-400 transition-colors"
+                <Reorder.Item
+                  key={img.id}
+                  value={img}
+                  className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-2 sm:p-3 flex items-center gap-4 cursor-grab active:cursor-grabbing hover:shadow-md transition-shadow select-none"
+                  whileDrag={{
+                    scale: 1.02,
+                    zIndex: 50,
+                    boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)"
+                  }}
                 >
-                  <img src={img} className="w-full h-full object-cover" />
-                  <div className="absolute top-2 left-2 bg-slate-900/80 text-white text-[10px] font-bold px-2 py-1 rounded shadow-sm backdrop-blur-sm">
-                    Page {idx + 1}
+                  <div className="text-slate-400 p-2 hover:text-indigo-500 transition-colors">
+                    <GripVertical size={20} />
                   </div>
-                  <div className="absolute inset-0 bg-slate-900/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                  
+                  <div className="w-12 h-16 sm:w-16 sm:h-20 bg-slate-100 dark:bg-slate-900 rounded-lg overflow-hidden shrink-0 border border-slate-200 dark:border-slate-700 flex items-center justify-center relative">
+                    <img src={img.url} className="max-w-full max-h-full object-contain pointer-events-none" />
+                  </div>
+                  
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold text-slate-800 dark:text-slate-200 text-sm sm:text-base">
+                      Page {idx + 1}
+                    </p>
+                  </div>
+                  
+                  <div className="flex gap-2 mr-2">
                     <button
                       onClick={() => openEditor(idx)}
-                      className="p-2 bg-indigo-500 text-white rounded-lg shadow-sm hover:bg-indigo-600 transition-colors"
+                      className="p-2 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-lg shadow-sm hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors"
                       title="Ajuster"
                     >
                       <Settings2 size={18} />
                     </button>
                     <button
                       onClick={() => removeImage(idx)}
-                      className="p-2 bg-rose-500 text-white rounded-lg shadow-sm hover:bg-rose-600 transition-colors"
+                      className="p-2 bg-rose-50 text-rose-600 dark:bg-rose-900/30 dark:text-rose-400 rounded-lg shadow-sm hover:bg-rose-100 dark:hover:bg-rose-900/40 transition-colors"
                       title="Supprimer"
                     >
                       <Trash2 size={18} />
                     </button>
                   </div>
-                </motion.div>
+                </Reorder.Item>
               ))}
-            </AnimatePresence>
+            </Reorder.Group>
           </div>
           
           <div className="flex justify-center pt-8">
@@ -445,7 +463,7 @@ export const PDFScanner: React.FC = () => {
               </button>
 
               <button
-                onClick={() => drawToEditCanvas(scannedImages[editingImageIdx!], 'none')}
+                onClick={() => drawToEditCanvas(scannedImages[editingImageIdx!].url, 'none')}
                 className="flex flex-col items-center gap-2 p-2 sm:p-3 text-slate-400 hover:text-white transition-colors shrink-0"
               >
                 <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-slate-800 flex items-center justify-center">
@@ -455,7 +473,7 @@ export const PDFScanner: React.FC = () => {
               </button>
 
               <button
-                onClick={() => drawToEditCanvas(scannedImages[editingImageIdx!], 'grayscale(100%) contrast(150%)')}
+                onClick={() => drawToEditCanvas(scannedImages[editingImageIdx!].url, 'grayscale(100%) contrast(150%)')}
                 className="flex flex-col items-center gap-2 p-2 sm:p-3 text-slate-400 hover:text-white transition-colors shrink-0"
               >
                 <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-slate-800 flex items-center justify-center">
@@ -465,7 +483,7 @@ export const PDFScanner: React.FC = () => {
               </button>
 
               <button
-                onClick={() => drawToEditCanvas(scannedImages[editingImageIdx!], 'contrast(130%) brightness(110%) saturate(120%)')}
+                onClick={() => drawToEditCanvas(scannedImages[editingImageIdx!].url, 'contrast(130%) brightness(110%) saturate(120%)')}
                 className="flex flex-col items-center gap-2 p-2 sm:p-3 text-slate-400 hover:text-white transition-colors shrink-0"
               >
                 <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-slate-800 flex items-center justify-center">
