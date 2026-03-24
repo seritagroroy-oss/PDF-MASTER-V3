@@ -642,21 +642,26 @@ export const PDFEditor: React.FC = () => {
     setCurrentDrawings(next);
   };
 
-  const applyMagicEraser = (pos: { x: number; y: number }) => {
+  const getPixelColor = (x: number, y: number): string => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+    if (!canvas) return "#ffffff";
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    if (!ctx) return "#ffffff";
+    try {
+      const pixel = ctx.getImageData(x, y, 1, 1).data;
+      if (pixel[3] < 20) return "#ffffff"; // Default to white if transparent
+      return "#" + [pixel[0], pixel[1], pixel[2]].map(c => c.toString(16).padStart(2, '0')).join('');
+    } catch (e) {
+      return "#ffffff";
+    }
+  };
 
-    // Sample color at click with 1x1 pixel
-    const pixel = ctx.getImageData(pos.x, pos.y, 1, 1).data;
-    const hexColor = "#" + ("000000" + ((pixel[0] << 16) | (pixel[1] << 8) | pixel[2]).toString(16)).slice(-6);
-
-    // Initial rectangle object that the user will resize while dragging
+  const applyMagicEraser = (pos: { x: number; y: number }) => {
+    const hexColor = getPixelColor(pos.x, pos.y);
     setCurrentDrawings(prev => [...prev, {
       points: [pos, pos],
       color: hexColor,
-      width: 0, // 0 width means filled rectangle
+      width: 0, // Filled rectangle
       mode: 'rect',
       canvasWidth: canvasDimensions.width,
       canvasHeight: canvasDimensions.height
@@ -664,15 +669,10 @@ export const PDFEditor: React.FC = () => {
   };
 
   const startDrawing = (e: React.MouseEvent | React.TouchEvent) => {
-    if (isPickingColor) {
-      const pos = getCoordinates(e);
-      const canvas = canvasRef.current;
-      if (!canvas) return;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) return;
+    const pos = getCoordinates(e);
 
-      const pixel = ctx.getImageData(pos.x, pos.y, 1, 1).data;
-      const hex = "#" + ("000000" + ((pixel[0] << 16) | (pixel[1] << 8) | pixel[2]).toString(16)).slice(-6);
+    if (isPickingColor) {
+      const hex = getPixelColor(pos.x, pos.y);
       setTempColor(hex);
       setLastNonEraserColor(hex);
       setIsPickingColor(false);
@@ -680,15 +680,15 @@ export const PDFEditor: React.FC = () => {
     }
 
     setIsDrawing(true);
-    const pos = getCoordinates(e);
 
     if (visualTool === 'magic-eraser') {
       applyMagicEraser(pos);
-      return; // Will be handled like a shape in draw()
+      return;
     }
 
     if (visualTool === 'eraser') {
-      // Don't add a new stroke, just erase existing ones in draw()
+      // Immediate erase on click
+      handleEraser(pos);
       return;
     }
 
@@ -699,7 +699,6 @@ export const PDFEditor: React.FC = () => {
       if (foundIdx !== -1) {
         setDraggingStrokeIdx(foundIdx);
         setDragOffset({ x: pos.x, y: pos.y });
-        setIsDrawing(true);
       }
       return;
     }
@@ -721,21 +720,43 @@ export const PDFEditor: React.FC = () => {
     }]);
   };
 
+  const handleEraser = (pos: { x: number, y: number }) => {
+    setCurrentDrawings(prev => {
+      const filtered = prev.filter(stroke => {
+        // Hit-detection radius (brush size + stroke width)
+        const radius = (brushSize / 2) + ((stroke.width || 2) / 2) + 5;
+
+        // Check if cursor is near any point of the stroke
+        return !stroke.points.some((p, i) => {
+          const dist = Math.sqrt(Math.pow(p.x - pos.x, 2) + Math.pow(p.y - pos.y, 2));
+          if (dist <= radius) return true;
+
+          // Check if cursor is near the segment between this point and the next
+          if (i < stroke.points.length - 1) {
+            const nextP = stroke.points[i + 1];
+            // Simple segment hit detection
+            const l2 = Math.pow(p.x - nextP.x, 2) + Math.pow(p.y - nextP.y, 2);
+            if (l2 === 0) return false;
+            let t = ((pos.x - p.x) * (nextP.x - p.x) + (pos.y - p.y) * (nextP.y - p.y)) / l2;
+            t = Math.max(0, Math.min(1, t));
+            const projX = p.x + t * (nextP.x - p.x);
+            const projY = p.y + t * (nextP.y - p.y);
+            const distToSegment = Math.sqrt(Math.pow(pos.x - projX, 2) + Math.pow(pos.y - projY, 2));
+            return distToSegment <= radius;
+          }
+          return false;
+        });
+      });
+      return filtered;
+    });
+  };
+
   const draw = (e: React.MouseEvent | React.TouchEvent) => {
     if (!isDrawing || isPickingColor) return;
     const pos = getCoordinates(e);
 
     if (visualTool === 'eraser') {
-      // Smart eraser: remove any stroke that intersects with the mouse position (eraser radius)
-      setCurrentDrawings(prev => {
-        return prev.filter(stroke => {
-          // Keep stroke if it's NOT intersecting
-          const isIntersecting = stroke.points.some(p => 
-            Math.sqrt(Math.pow(p.x - pos.x, 2) + Math.pow(p.y - pos.y, 2)) <= (brushSize / 2 + (stroke.width || 2) / 2)
-          );
-          return !isIntersecting;
-        });
-      });
+      handleEraser(pos);
       return;
     }
 
