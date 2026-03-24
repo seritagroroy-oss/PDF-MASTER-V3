@@ -720,8 +720,18 @@ export const PDFEditor: React.FC = () => {
     return false; // Nothing hit
   };
 
-  const startDrawing = (e: React.MouseEvent | React.TouchEvent) => {
+  const startDrawing = (e: React.PointerEvent | React.MouseEvent | React.TouchEvent) => {
     const pos = getCoordinates(e);
+
+    // Prevent scrolling or other browser gestures on mobile when drawing
+    if ('preventDefault' in e && (e as any).cancelable !== false) {
+      e.preventDefault();
+    }
+
+    // Capture pointer to continue drawing even if finger leaves the canvas
+    if ('setPointerCapture' in e.target) {
+       (e.target as HTMLElement).setPointerCapture((e as React.PointerEvent).pointerId);
+    }
 
     if (isPickingColor) {
       const hex = getPixelColor(pos.x, pos.y);
@@ -786,9 +796,13 @@ export const PDFEditor: React.FC = () => {
     }]);
   };
 
-  const draw = (e: React.MouseEvent | React.TouchEvent) => {
+  const draw = (e: React.PointerEvent | React.MouseEvent | React.TouchEvent) => {
     if (!isDrawing || isPickingColor) return;
     const pos = getCoordinates(e);
+
+    if ('preventDefault' in e && (e as any).cancelable !== false) {
+      e.preventDefault();
+    }
 
     if (visualTool === 'eraser') {
       // In eraser mode, we already started a Blanco stroke if no object was hit.
@@ -831,18 +845,30 @@ export const PDFEditor: React.FC = () => {
     });
   };
 
-  const stopDrawing = () => {
+  const stopDrawing = (e?: React.PointerEvent | React.MouseEvent | React.TouchEvent) => {
+    if (e && 'releasePointerCapture' in e.target && (e as React.PointerEvent).pointerId !== undefined) {
+       try {
+         (e.target as HTMLElement).releasePointerCapture((e as React.PointerEvent).pointerId);
+       } catch (err) {}
+    }
     setIsDrawing(false);
     setDraggingStrokeIdx(null);
     setDragOffset(null);
   };
 
-  const getCoordinates = (e: React.MouseEvent | React.TouchEvent) => {
+  const getCoordinates = (e: React.MouseEvent | React.TouchEvent | React.PointerEvent) => {
     const canvas = canvasRef.current;
     if (!canvas) return { x: 0, y: 0 };
     const rect = canvas.getBoundingClientRect();
-    const clientX = 'touches' in e ? e.touches[0].clientX : (e as React.MouseEvent).clientX;
-    const clientY = 'touches' in e ? e.touches[0].clientY : (e as React.MouseEvent).clientY;
+    
+    let clientX, clientY;
+    if ('touches' in e && e.touches.length > 0) {
+      clientX = e.touches[0].clientX;
+      clientY = e.touches[0].clientY;
+    } else {
+      clientX = e.clientX;
+      clientY = e.clientY;
+    }
 
     return {
       x: (clientX - rect.left) * (canvas.width / rect.width),
@@ -2048,37 +2074,34 @@ export const PDFEditor: React.FC = () => {
                       ) : (
                         <div className="space-y-6">
                           <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 px-2 sm:px-4 py-3 bg-slate-50 rounded-xl border border-slate-100">
-                            <div className="flex flex-wrap items-center justify-center gap-1 sm:gap-2 border-b md:border-b-0 md:border-r border-slate-200 pb-3 md:pb-0 pr-0 md:pr-4">
-                              <button onClick={() => setVisualTool('move')} title="Déplacer" className={cn("p-2 sm:p-2 rounded-lg", visualTool === 'move' ? "bg-indigo-600 text-white" : "text-slate-400")}><GripVertical size={16} /></button>
-                              <button onClick={() => setVisualTool('pen')} title="Stylo / Dessin" className={cn("p-2 sm:p-2 rounded-lg", visualTool === 'pen' ? "bg-indigo-600 text-white" : "text-slate-400")}><Pencil size={16} /></button>
-                              <button onClick={() => setVisualTool('text')} title="Ajouter du texte" className={cn("p-2 sm:p-2 rounded-lg", visualTool === 'text' ? "bg-indigo-600 text-white" : "text-slate-400")}><Type size={16} /></button>
-                              <button onClick={() => setVisualTool('rect')} title="Rectangle" className={cn("p-2 sm:p-2 rounded-lg", visualTool === 'rect' ? "bg-indigo-600 text-white" : "text-slate-400")}><SquareIcon size={16} /></button>
-                              <button onClick={() => setVisualTool('circle')} title="Cercle" className={cn("p-2 sm:p-2 rounded-lg", visualTool === 'circle' ? "bg-indigo-600 text-white" : "text-slate-400")}><Circle size={16} /></button>
-                              <button onClick={() => setVisualTool('arrow')} title="Flèche" className={cn("p-2 sm:p-2 rounded-lg", visualTool === 'arrow' ? "bg-indigo-600 text-white" : "text-slate-400")}><ArrowRight size={16} /></button>
-                              <button onClick={() => setVisualTool('eraser')} title="Gomme" className={cn("p-2 sm:p-2 rounded-lg", visualTool === 'eraser' ? "bg-indigo-600 text-white" : "text-slate-400")}><Eraser size={16} /></button>
-                              <button onClick={() => setVisualTool('magic-eraser')} title="Gomme Magique (IA)" className={cn("p-2 sm:p-2 rounded-lg", visualTool === 'magic-eraser' ? "bg-cyan-500 text-white" : "text-slate-400")}><Zap size={16} /></button>
+                            <div className="flex items-center justify-start gap-1 sm:gap-2 border-b md:border-b-0 md:border-r border-slate-200 pb-3 md:pb-0 pr-0 md:pr-4 overflow-x-auto scrollbar-none touch-pan-x">
+                              <button onClick={() => setVisualTool('move')} title="Déplacer" className={cn("p-2 shrink-0 rounded-lg", visualTool === 'move' ? "bg-indigo-600 text-white" : "text-slate-400")}><GripVertical size={16} /></button>
+                              <button onClick={() => setVisualTool('pen')} title="Stylo / Dessin" className={cn("p-2 shrink-0 rounded-lg", visualTool === 'pen' ? "bg-indigo-600 text-white" : "text-slate-400")}><Pencil size={16} /></button>
+                              <button onClick={() => setVisualTool('text')} title="Ajouter du texte" className={cn("p-2 shrink-0 rounded-lg", visualTool === 'text' ? "bg-indigo-600 text-white" : "text-slate-400")}><Type size={16} /></button>
+                              <button onClick={() => setVisualTool('rect')} title="Rectangle" className={cn("p-2 shrink-0 rounded-lg", visualTool === 'rect' ? "bg-indigo-600 text-white" : "text-slate-400")}><SquareIcon size={16} /></button>
+                              <button onClick={() => setVisualTool('circle')} title="Cercle" className={cn("p-2 shrink-0 rounded-lg", visualTool === 'circle' ? "bg-indigo-600 text-white" : "text-slate-400")}><Circle size={16} /></button>
+                              <button onClick={() => setVisualTool('arrow')} title="Flèche" className={cn("p-2 shrink-0 rounded-lg", visualTool === 'arrow' ? "bg-indigo-600 text-white" : "text-slate-400")}><ArrowRight size={16} /></button>
+                              <button onClick={() => setVisualTool('eraser')} title="Gomme" className={cn("p-2 shrink-0 rounded-lg", visualTool === 'eraser' ? "bg-indigo-600 text-white" : "text-slate-400")}><Eraser size={16} /></button>
+                              <button onClick={() => setVisualTool('magic-eraser')} title="Gomme Magique (IA)" className={cn("p-2 shrink-0 rounded-lg", visualTool === 'magic-eraser' ? "bg-cyan-500 text-white" : "text-slate-400")}><Zap size={16} /></button>
                               
-                              <div className="h-6 w-px bg-slate-200 mx-1 hidden sm:block" />
+                              <div className="h-6 w-px bg-slate-200 mx-1 shrink-0" />
                               
                               <button 
                                 onClick={() => setIsTableProtectionEnabled(!isTableProtectionEnabled)} 
                                 title="Protéger les lignes du tableau" 
                                 className={cn(
-                                  "px-2 py-1 rounded-md text-[9px] font-black uppercase tracking-tighter flex items-center gap-1 transition-all", 
+                                  "px-2 py-1 rounded-md text-[9px] font-black uppercase tracking-tighter flex items-center gap-1 transition-all shrink-0", 
                                   isTableProtectionEnabled ? "bg-emerald-500 text-white shadow-sm" : "bg-slate-200 text-slate-500 opacity-50"
                                 )}
                               >
                                 {isTableProtectionEnabled ? <Lock size={10} /> : <ScanLine size={10} />}
-                                <span className="hidden xs:inline">Tables</span>
+                                <span className="">Table</span>
                               </button>
-                              
-                              <button onClick={() => askAI('detect_wm')} title="Détecter filigranes AI" disabled={isAIProcessing} className="p-2 bg-indigo-500 text-white rounded-lg"><Sparkles size={16} /></button>
-                              <button onClick={clearDrawings} title="Tout effacer" className="p-2 text-rose-500"><Trash2 size={16} /></button>
                             </div>
 
-                            <div className="flex flex-col sm:flex-row items-center gap-4 px-0 md:px-4 border-l-0 md:border-l border-slate-200">
-                              <div className="flex flex-col gap-1 w-full sm:min-w-[100px]">
-                                <div className="flex justify-between items-center text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                            <div className="flex flex-row items-center gap-4 px-0 md:px-4 border-l-0 md:border-l border-slate-200 justify-between sm:justify-center">
+                              <div className="flex-1 sm:flex-none flex flex-col gap-1 min-w-0 sm:min-w-[100px]">
+                                <div className="flex justify-between items-center text-[9px] font-bold text-slate-400 uppercase tracking-widest">
                                   <span>Taille</span>
                                   <span>{brushSize}px</span>
                                 </div>
@@ -2092,9 +2115,11 @@ export const PDFEditor: React.FC = () => {
                                   title="Ajuster la taille de l'outil"
                                 />
                               </div>
-                              <div className="flex items-center gap-4 justify-center">
-                                <button onClick={undo} title="Annuler (Ctrl+Z)" className="p-2 text-slate-400 transition-colors hover:text-indigo-600"><Undo2 size={18} /></button>
-                                <button onClick={redo} title="Rétablir (Ctrl+Y)" className="p-2 text-slate-400 transition-colors hover:text-indigo-600"><RotateCcw size={18} className="rotate-180" /></button>
+                              <div className="flex items-center gap-2 shrink-0">
+                                <button onClick={() => askAI('detect_wm')} title="IA Watermark" disabled={isAIProcessing} className="p-2 bg-indigo-500 text-white rounded-lg"><Sparkles size={16} /></button>
+                                <button onClick={undo} title="Annuler" className="p-2 text-slate-400 hover:text-indigo-600"><Undo2 size={18} /></button>
+                                <button onClick={redo} title="Rétablir" className="p-2 text-slate-400 hover:text-indigo-600"><RotateCcw size={18} className="rotate-180" /></button>
+                                <button onClick={clearDrawings} title="Tout effacer" className="p-2 text-rose-500"><Trash2 size={16} /></button>
                               </div>
                             </div>
                           </div>
@@ -2103,9 +2128,10 @@ export const PDFEditor: React.FC = () => {
                           <div className="relative w-full bg-slate-100 rounded-2xl overflow-hidden shadow-inner border border-slate-200 flex items-center justify-center min-h-[600px]">
                             <canvas
                               ref={canvasRef}
-                              onMouseDown={startDrawing}
-                              onMouseMove={draw}
-                              onMouseUp={stopDrawing}
+                              onPointerDown={startDrawing}
+                              onPointerMove={draw}
+                              onPointerUp={stopDrawing}
+                              onPointerLeave={stopDrawing}
                               style={{
                                 filter: isEyeSaverMode ? "invert(1) hue-rotate(180deg)" : "none",
                                 width: '100%',
