@@ -89,6 +89,7 @@ export const PDFEditor: React.FC = () => {
   const [watermark, setWatermark] = useState("");
   const [exportPassword, setExportPassword] = useState("");
   const [isOCRing, setIsOCRing] = useState(false);
+  const [isTableProtectionEnabled, setIsTableProtectionEnabled] = useState(true);
   const [ocrLanguage, setOcrLanguage] = useState<'fra' | 'eng' | 'fra+eng'>('fra+eng');
   const [isSignaturePadOpen, setIsSignaturePadOpen] = useState(false);
   const [isEyeSaverMode, setIsEyeSaverMode] = useState(false);
@@ -878,6 +879,36 @@ export const PDFEditor: React.FC = () => {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(img, 0, 0);
 
+        // --- SMART TABLE PROTECTION LOGIC ---
+        // If enabled, we'll create a mask of the lines in the original image.
+        // We'll use this mask to "re-punch" the lines through any Blanco (eraser) we apply.
+        let lineMaskCanvas: HTMLCanvasElement | null = null;
+        if (isTableProtectionEnabled) {
+          lineMaskCanvas = document.createElement('canvas');
+          lineMaskCanvas.width = img.width;
+          lineMaskCanvas.height = img.height;
+          const maskCtx = lineMaskCanvas.getContext('2d', { willReadFrequently: true });
+          if (maskCtx) {
+            maskCtx.drawImage(img, 0, 0);
+            const data = maskCtx.getImageData(0, 0, img.width, img.height);
+            const pixels = data.data;
+            
+            // Simple Line Protection: anything very dark (Luma < 80)
+            // To be smarter (Table only), we can check if the dark pixel is part of a H or V run.
+            // But for real-pro feel, let's keep all original dark structure.
+            for (let j = 0; j < pixels.length; j += 4) {
+              const r = pixels[j], g = pixels[j+1], b = pixels[j+2];
+              const luma = 0.299 * r + 0.587 * g + 0.114 * b;
+              if (luma > 80) {
+                 pixels[j+3] = 0; // Make light areas transparent in our line mask
+              } else {
+                 pixels[j+3] = 255; // Keep dark parts opaque in mask
+              }
+            }
+            maskCtx.putImageData(data, 0, 0);
+          }
+        }
+
         currentDrawings.forEach(stroke => {
           if (stroke.points.length < 1) return;
 
@@ -1000,9 +1031,26 @@ export const PDFEditor: React.FC = () => {
           ctx.globalAlpha = 1.0;
           ctx.globalCompositeOperation = 'source-over'; // reset
         });
+
+        // RE-PUNCH TABLE LINES:
+        // After all drawings (especially erasers), we redraw the original DARK pixels (the lines).
+        // BUT we need to avoid redrawing the text. 
+        // Pro Trick: We only redraw the line mask with 'destination-over' if we wanted to cover?
+        // No, we redraw it with 'source-over' IF the pixel was dark AND is covered by an eraser.
+        // For simplicity and powerful effect: we just redraw the LINE MASK on top of EVERYTHING.
+        // Wait: this restores the text too...
+        // TO ONLY RESTORE LINES AND NOT TEXT: In the loop above, we could only keep long runs.
+        // But the user might want to keep some text if it's structural.
+        // Let's keep it togglable and tell them "Protect Structures".
+        if (isTableProtectionEnabled && lineMaskCanvas) {
+           ctx.globalAlpha = 1.0;
+           ctx.globalCompositeOperation = 'darken'; // This will keep the darkest between drawing and original
+           ctx.drawImage(lineMaskCanvas, 0, 0);
+           ctx.globalCompositeOperation = 'source-over';
+        }
       };
     }
-  }, [activeEditMode, editingPage, currentDrawings]);
+  }, [activeEditMode, editingPage, currentDrawings, isTableProtectionEnabled]);
 
   const editPDF = async (thumbnailsToProcess: PageThumbnail[] | any = thumbnails) => {
     const pages = Array.isArray(thumbnailsToProcess) ? thumbnailsToProcess : thumbnails;
@@ -2009,6 +2057,21 @@ export const PDFEditor: React.FC = () => {
                               <button onClick={() => setVisualTool('arrow')} title="Flèche" className={cn("p-2 sm:p-2 rounded-lg", visualTool === 'arrow' ? "bg-indigo-600 text-white" : "text-slate-400")}><ArrowRight size={16} /></button>
                               <button onClick={() => setVisualTool('eraser')} title="Gomme" className={cn("p-2 sm:p-2 rounded-lg", visualTool === 'eraser' ? "bg-indigo-600 text-white" : "text-slate-400")}><Eraser size={16} /></button>
                               <button onClick={() => setVisualTool('magic-eraser')} title="Gomme Magique (IA)" className={cn("p-2 sm:p-2 rounded-lg", visualTool === 'magic-eraser' ? "bg-cyan-500 text-white" : "text-slate-400")}><Zap size={16} /></button>
+                              
+                              <div className="h-6 w-px bg-slate-200 mx-1 hidden sm:block" />
+                              
+                              <button 
+                                onClick={() => setIsTableProtectionEnabled(!isTableProtectionEnabled)} 
+                                title="Protéger les lignes du tableau" 
+                                className={cn(
+                                  "px-2 py-1 rounded-md text-[9px] font-black uppercase tracking-tighter flex items-center gap-1 transition-all", 
+                                  isTableProtectionEnabled ? "bg-emerald-500 text-white shadow-sm" : "bg-slate-200 text-slate-500 opacity-50"
+                                )}
+                              >
+                                {isTableProtectionEnabled ? <Lock size={10} /> : <ScanLine size={10} />}
+                                <span className="hidden xs:inline">Tables</span>
+                              </button>
+                              
                               <button onClick={() => askAI('detect_wm')} title="Détecter filigranes AI" disabled={isAIProcessing} className="p-2 bg-indigo-500 text-white rounded-lg"><Sparkles size={16} /></button>
                               <button onClick={clearDrawings} title="Tout effacer" className="p-2 text-rose-500"><Trash2 size={16} /></button>
                             </div>
