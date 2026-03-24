@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { PDFDocument, rgb, StandardFonts, degrees } from 'pdf-lib';
+import { PDFDocument, rgb, StandardFonts, degrees, PDFPage } from 'pdf-lib';
 import { pdfjs } from '../pdfjs-setup';
 import { FileUpload } from './FileUpload';
 import { Scissors, Download, Loader2, CheckCircle2, AlertCircle, Trash2, GripVertical, RefreshCw, X, Eye, Search, CheckSquare, Square, Check, Minus, Plus, Type, Bold, Italic, Palette, Eraser, Pencil, Undo2, RotateCcw, FileText, Pipette, RotateCw, Sun, Moon, Square as SquareIcon, Circle, ArrowRight, Highlighter, Stamp, PlusCircle, Lock, Zap, Sparkles, Menu, Languages, ScanLine, Volume2 } from 'lucide-react';
@@ -422,7 +422,7 @@ export const PDFEditor: React.FC = () => {
       if (ctx) {
         canvas.height = viewport.height;
         canvas.width = viewport.width;
-        await page.render({ canvasContext: ctx, viewport: viewport }).promise;
+        await page.render({ canvasContext: ctx, viewport: viewport, canvas: canvas }).promise;
         setEditingPage({ ...thumbnail, url: canvas.toDataURL() });
       }
 
@@ -648,25 +648,15 @@ export const PDFEditor: React.FC = () => {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Sample color at click
+    // Sample color at click with 1x1 pixel
     const pixel = ctx.getImageData(pos.x, pos.y, 1, 1).data;
+    const hexColor = "#" + ("000000" + ((pixel[0] << 16) | (pixel[1] << 8) | pixel[2]).toString(16)).slice(-6);
 
-    // Simple bounding box detection based on color similarity (Magic Eraser-ish)
-    // For now, let's create a "Smart Rect" that covers an area of similar color
-    // Or simpler: just create a rect eraser at this point but with background color
-
-    // To make it "Magical", let's find the "object" at this point
-    // This is hard on a flat canvas without segmentation.
-    // Instead, I'll provide a "Quick Object Eraser" (Auto-rectangle)
-
-    const size = 50; // Dynamic or fixed
+    // Initial rectangle object that the user will resize while dragging
     setCurrentDrawings(prev => [...prev, {
-      points: [
-        { x: pos.x - size / 2, y: pos.y - size / 2 },
-        { x: pos.x + size / 2, y: pos.y + size / 2 }
-      ],
-      color: "#ffffff", // Use white as default "magic" eraser
-      width: 0,
+      points: [pos, pos],
+      color: hexColor,
+      width: 0, // 0 width means filled rectangle
       mode: 'rect',
       canvasWidth: canvasDimensions.width,
       canvasHeight: canvasDimensions.height
@@ -694,12 +684,15 @@ export const PDFEditor: React.FC = () => {
 
     if (visualTool === 'magic-eraser') {
       applyMagicEraser(pos);
-      setIsDrawing(false);
+      return; // Will be handled like a shape in draw()
+    }
+
+    if (visualTool === 'eraser') {
+      // Don't add a new stroke, just erase existing ones in draw()
       return;
     }
 
     if (visualTool === 'move') {
-      // Find the stroke under the cursor (simpler hit-detection: check points distance)
       const foundIdx = currentDrawings.findLastIndex(stroke =>
         stroke.points.some(p => Math.abs(p.x - pos.x) < 20 && Math.abs(p.y - pos.y) < 20)
       );
@@ -732,6 +725,20 @@ export const PDFEditor: React.FC = () => {
     if (!isDrawing || isPickingColor) return;
     const pos = getCoordinates(e);
 
+    if (visualTool === 'eraser') {
+      // Smart eraser: remove any stroke that intersects with the mouse position (eraser radius)
+      setCurrentDrawings(prev => {
+        return prev.filter(stroke => {
+          // Keep stroke if it's NOT intersecting
+          const isIntersecting = stroke.points.some(p => 
+            Math.sqrt(Math.pow(p.x - pos.x, 2) + Math.pow(p.y - pos.y, 2)) <= (brushSize / 2 + (stroke.width || 2) / 2)
+          );
+          return !isIntersecting;
+        });
+      });
+      return;
+    }
+
     if (visualTool === 'move' && draggingStrokeIdx !== null && dragOffset) {
       const dx = pos.x - dragOffset.x;
       const dy = pos.y - dragOffset.y;
@@ -752,8 +759,7 @@ export const PDFEditor: React.FC = () => {
       if (!last) return prev;
 
       const newPoints = [...last.points];
-      if (['rect', 'circle', 'arrow', 'stamp'].includes(last.mode)) {
-        // For shapes, we only keep start and end point
+      if (['rect', 'circle', 'arrow', 'stamp', 'magic-eraser'].includes(visualTool)) {
         newPoints[1] = pos;
       } else {
         newPoints.push(pos);
@@ -815,15 +821,19 @@ export const PDFEditor: React.FC = () => {
           if (stroke.points.length < 1) return;
 
           if (stroke.mode === 'eraser') {
+            // Eraser shouldn't be rendered anymore as it deletes objects, but just in case
             ctx.globalCompositeOperation = 'destination-out';
-            ctx.strokeStyle = 'white'; // Fallback
+            ctx.strokeStyle = 'rgba(255,255,255,1)';
+          } else if (stroke.mode === 'highlighter') {
+            ctx.globalCompositeOperation = 'multiply';
+            ctx.strokeStyle = stroke.color;
           } else {
             ctx.globalCompositeOperation = 'source-over';
             ctx.strokeStyle = stroke.color;
           }
 
           if (stroke.mode === 'highlighter') {
-            ctx.globalAlpha = 0.4;
+            ctx.globalAlpha = 0.7; // Brighter highlighter
           } else {
             ctx.globalAlpha = 1.0;
           }
@@ -896,14 +906,31 @@ export const PDFEditor: React.FC = () => {
             ctx.lineTo(end.x - headlen * Math.cos(angle + Math.PI / 6), end.y - headlen * Math.sin(angle + Math.PI / 6));
             ctx.stroke();
           } else {
-            ctx.moveTo(stroke.points[0].x, stroke.points[0].y);
-            for (let i = 1; i < stroke.points.length; i++) {
-              ctx.lineTo(stroke.points[i].x, stroke.points[i].y);
+            // Smooth Pen & Highlighter (Quadratic Bezier Curves)
+            if (stroke.points.length > 2) {
+              ctx.moveTo(stroke.points[0].x, stroke.points[0].y);
+              for (let i = 1; i < stroke.points.length - 2; i++) {
+                const xc = (stroke.points[i].x + stroke.points[i + 1].x) / 2;
+                const yc = (stroke.points[i].y + stroke.points[i + 1].y) / 2;
+                ctx.quadraticCurveTo(stroke.points[i].x, stroke.points[i].y, xc, yc);
+              }
+              ctx.quadraticCurveTo(
+                stroke.points[stroke.points.length - 2].x, stroke.points[stroke.points.length - 2].y,
+                stroke.points[stroke.points.length - 1].x, stroke.points[stroke.points.length - 1].y
+              );
+            } else if (stroke.points.length > 0) {
+              ctx.moveTo(stroke.points[0].x, stroke.points[0].y);
+              if (stroke.points.length > 1) {
+                ctx.lineTo(stroke.points[1].x, stroke.points[1].y);
+              } else {
+                ctx.lineTo(stroke.points[0].x + 0.1, stroke.points[0].y);
+              }
             }
             ctx.stroke();
           }
 
           ctx.globalAlpha = 1.0;
+          ctx.globalCompositeOperation = 'source-over'; // reset
         });
       };
     }
@@ -970,7 +997,7 @@ export const PDFEditor: React.FC = () => {
 
         const { width, height } = copiedPage.getSize();
         if (thumb.rotation) {
-          copiedPage.setRotation({ type: 'degrees', angle: thumb.rotation });
+          copiedPage.setRotation(degrees(thumb.rotation));
         }
 
         // OCR / Manual Text Edits
@@ -1951,9 +1978,17 @@ export const PDFEditor: React.FC = () => {
                               style={{
                                 filter: isEyeSaverMode ? "invert(1) hue-rotate(180deg)" : "none",
                                 width: '100%',
-                                height: 'auto'
+                                height: 'auto',
+                                cursor: (() => {
+                                  if (['pen', 'eraser', 'highlighter'].includes(visualTool)) {
+                                    const size = Math.max(4, brushSize);
+                                    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}"><circle cx="${size/2}" cy="${size/2}" r="${size/2 - 1}" fill="rgba(99, 102, 241, 0.2)" stroke="rgb(99, 102, 241)" stroke-width="1"/></svg>`;
+                                    return `url('data:image/svg+xml;base64,${btoa(svg)}') ${size/2} ${size/2}, auto`;
+                                  }
+                                  return 'crosshair';
+                                })()
                               }}
-                              className="bg-white shadow-2xl cursor-crosshair touch-none"
+                              className="bg-white shadow-2xl touch-none"
                             />
 
                             {textInput && (
