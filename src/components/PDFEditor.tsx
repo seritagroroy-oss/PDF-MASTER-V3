@@ -648,9 +648,21 @@ export const PDFEditor: React.FC = () => {
     const ctx = canvas.getContext('2d', { willReadFrequently: true });
     if (!ctx) return "#ffffff";
     try {
+      // Small adjustment: sometimes the exact point is transparent due to anti-aliasing or UI layers.
+      // We check a small 3x3 area if the exact center is transparent.
       const pixel = ctx.getImageData(x, y, 1, 1).data;
-      if (pixel[3] < 20) return "#ffffff"; // Default to white if transparent
-      return "#" + [pixel[0], pixel[1], pixel[2]].map(c => c.toString(16).padStart(2, '0')).join('');
+      if (pixel[3] > 50) {
+        return "#" + [pixel[0], pixel[1], pixel[2]].map(c => c.toString(16).padStart(2, '0')).join('');
+      }
+      
+      // Fallback: search nearby
+      for (let ox = -2; ox <= 2; ox += 2) {
+        for (let oy = -2; oy <= 2; oy += 2) {
+          const p = ctx.getImageData(x + ox, y + oy, 1, 1).data;
+          if (p[3] > 50) return "#" + [p[0], p[1], p[2]].map(c => c.toString(16).padStart(2, '0')).join('');
+        }
+      }
+      return "#ffffff";
     } catch (e) {
       return "#ffffff";
     }
@@ -661,11 +673,49 @@ export const PDFEditor: React.FC = () => {
     setCurrentDrawings(prev => [...prev, {
       points: [pos, pos],
       color: hexColor,
-      width: 0, // Filled rectangle
-      mode: 'rect',
+      width: 0, 
+      mode: 'magic-eraser' as any, // Use this to differentiate if needed, though rendered like rect
       canvasWidth: canvasDimensions.width,
       canvasHeight: canvasDimensions.height
     }]);
+  };
+
+  const handleEraser = (pos: { x: number, y: number }) => {
+    // 1. Identify if we are hitting an existing user drawing
+    let hitIndex = -1;
+    for (let i = currentDrawings.length - 1; i >= 0; i--) {
+      const stroke = currentDrawings[i];
+      const radius = (brushSize / 2) + ((stroke.width || 2) / 2) + 10;
+      
+      const isHit = stroke.points.some((p, j) => {
+        const dist = Math.sqrt(Math.pow(p.x - pos.x, 2) + Math.pow(p.y - pos.y, 2));
+        if (dist <= radius) return true;
+        if (j < stroke.points.length - 1) {
+          const nextP = stroke.points[j + 1];
+          const l2 = Math.pow(p.x - nextP.x, 2) + Math.pow(p.y - nextP.y, 2);
+          if (l2 === 0) return false;
+          let t = ((pos.x - p.x) * (nextP.x - p.x) + (pos.y - p.y) * (nextP.y - p.y)) / l2;
+          t = Math.max(0, Math.min(1, t));
+          const projX = p.x + t * (nextP.x - p.x);
+          const projY = p.y + t * (nextP.y - p.y);
+          const distToSeg = Math.sqrt(Math.pow(pos.x - projX, 2) + Math.pow(pos.y - projY, 2));
+          return distToSeg <= radius;
+        }
+        return false;
+      });
+      
+      if (isHit) {
+        hitIndex = i;
+        break;
+      }
+    }
+
+    if (hitIndex !== -1) {
+      // Object found: Remove it and don't start a blanco stroke
+      setCurrentDrawings(prev => prev.filter((_, i) => i !== hitIndex));
+      return true; // We hit something
+    }
+    return false; // Nothing hit
   };
 
   const startDrawing = (e: React.MouseEvent | React.TouchEvent) => {
@@ -687,8 +737,22 @@ export const PDFEditor: React.FC = () => {
     }
 
     if (visualTool === 'eraser') {
-      // Immediate erase on click
-      handleEraser(pos);
+      const didHitObject = handleEraser(pos);
+      if (didHitObject) {
+        // We removed an object, maybe don't start drawing white yet
+        setIsDrawing(false); 
+      } else {
+        // No object hit: Start drawing a "Blanco" stroke with BG color
+        const bgColor = getPixelColor(pos.x, pos.y);
+        setCurrentDrawings(prev => [...prev, {
+          points: [pos],
+          color: bgColor,
+          width: brushSize,
+          mode: 'eraser',
+          canvasWidth: canvasDimensions.width,
+          canvasHeight: canvasDimensions.height
+        }]);
+      }
       return;
     }
 
@@ -720,43 +784,18 @@ export const PDFEditor: React.FC = () => {
     }]);
   };
 
-  const handleEraser = (pos: { x: number, y: number }) => {
-    setCurrentDrawings(prev => {
-      const filtered = prev.filter(stroke => {
-        // Hit-detection radius (brush size + stroke width)
-        const radius = (brushSize / 2) + ((stroke.width || 2) / 2) + 5;
-
-        // Check if cursor is near any point of the stroke
-        return !stroke.points.some((p, i) => {
-          const dist = Math.sqrt(Math.pow(p.x - pos.x, 2) + Math.pow(p.y - pos.y, 2));
-          if (dist <= radius) return true;
-
-          // Check if cursor is near the segment between this point and the next
-          if (i < stroke.points.length - 1) {
-            const nextP = stroke.points[i + 1];
-            // Simple segment hit detection
-            const l2 = Math.pow(p.x - nextP.x, 2) + Math.pow(p.y - nextP.y, 2);
-            if (l2 === 0) return false;
-            let t = ((pos.x - p.x) * (nextP.x - p.x) + (pos.y - p.y) * (nextP.y - p.y)) / l2;
-            t = Math.max(0, Math.min(1, t));
-            const projX = p.x + t * (nextP.x - p.x);
-            const projY = p.y + t * (nextP.y - p.y);
-            const distToSegment = Math.sqrt(Math.pow(pos.x - projX, 2) + Math.pow(pos.y - projY, 2));
-            return distToSegment <= radius;
-          }
-          return false;
-        });
-      });
-      return filtered;
-    });
-  };
-
   const draw = (e: React.MouseEvent | React.TouchEvent) => {
     if (!isDrawing || isPickingColor) return;
     const pos = getCoordinates(e);
 
     if (visualTool === 'eraser') {
-      handleEraser(pos);
+      // In eraser mode, we already started a Blanco stroke if no object was hit.
+      // We just continue the line.
+      setCurrentDrawings(prev => {
+        const last = prev[prev.length - 1];
+        if (!last || last.mode !== 'eraser') return prev;
+        return [...prev.slice(0, -1), { ...last, points: [...last.points, pos] }];
+      });
       return;
     }
 
@@ -842,9 +881,9 @@ export const PDFEditor: React.FC = () => {
           if (stroke.points.length < 1) return;
 
           if (stroke.mode === 'eraser') {
-            // Eraser shouldn't be rendered anymore as it deletes objects, but just in case
-            ctx.globalCompositeOperation = 'destination-out';
-            ctx.strokeStyle = 'rgba(255,255,255,1)';
+            // New Pro Eraser: paints with the color sampled at the start of the click (Blanco)
+            ctx.globalCompositeOperation = 'source-over';
+            ctx.strokeStyle = stroke.color;
           } else if (stroke.mode === 'highlighter') {
             ctx.globalCompositeOperation = 'multiply';
             ctx.strokeStyle = stroke.color;
@@ -863,12 +902,19 @@ export const PDFEditor: React.FC = () => {
           ctx.lineCap = 'round';
           ctx.lineJoin = 'round';
 
-          if (stroke.mode === 'rect' && stroke.points.length >= 2) {
+          if ((stroke.mode === 'rect' || stroke.mode === 'magic-eraser') && stroke.points.length >= 2) {
             const start = stroke.points[0];
             const end = stroke.points[1];
             if (stroke.width === 0) {
               ctx.fillStyle = stroke.color;
               ctx.fillRect(start.x, start.y, end.x - start.x, end.y - start.y);
+              // Magic eraser visual feedback
+              if (stroke.mode === 'magic-eraser') {
+                ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+                ctx.setLineDash([5, 5]);
+                ctx.strokeRect(start.x, start.y, end.x - start.x, end.y - start.y);
+                ctx.setLineDash([]);
+              }
             } else {
               ctx.strokeRect(start.x, start.y, end.x - start.x, end.y - start.y);
             }
@@ -1066,14 +1112,14 @@ export const PDFEditor: React.FC = () => {
           for (const stroke of thumb.drawings) {
             if (stroke.points.length < 1) continue;
 
-            const strokeColor = stroke.mode === 'eraser' ? rgb(1, 1, 1) : hexToRgb(stroke.color);
+            const strokeColor = hexToRgb(stroke.color); // Eraser now uses its own color (Blanco)
             const cw = stroke.canvasWidth || canvasDimensions.width || 600;
             const ch = stroke.canvasHeight || canvasDimensions.height || 800;
             const scaleX = width / cw;
             const scaleY = height / ch;
-            const thickness = (stroke.width || 2) * scaleX * (stroke.mode === 'eraser' ? 1.2 : 1);
+            const thickness = (stroke.width || 2) * scaleX;
 
-            if (stroke.mode === 'rect' && stroke.points.length >= 2) {
+            if ((stroke.mode === 'rect' || stroke.mode === 'magic-eraser') && stroke.points.length >= 2) {
               const start = stroke.points[0];
               const end = stroke.points[1];
               copiedPage.drawRectangle({
