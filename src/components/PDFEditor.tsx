@@ -648,14 +648,10 @@ export const PDFEditor: React.FC = () => {
     const ctx = canvas.getContext('2d', { willReadFrequently: true });
     if (!ctx) return "#ffffff";
     try {
-      // Small adjustment: sometimes the exact point is transparent due to anti-aliasing or UI layers.
-      // We check a small 3x3 area if the exact center is transparent.
       const pixel = ctx.getImageData(x, y, 1, 1).data;
       if (pixel[3] > 50) {
         return "#" + [pixel[0], pixel[1], pixel[2]].map(c => c.toString(16).padStart(2, '0')).join('');
       }
-      
-      // Fallback: search nearby
       for (let ox = -2; ox <= 2; ox += 2) {
         for (let oy = -2; oy <= 2; oy += 2) {
           const p = ctx.getImageData(x + ox, y + oy, 1, 1).data;
@@ -670,11 +666,16 @@ export const PDFEditor: React.FC = () => {
 
   const applyMagicEraser = (pos: { x: number; y: number }) => {
     const hexColor = getPixelColor(pos.x, pos.y);
+    const size = brushSize * 2; // Use brushSize to define "stamp" size
+    
     setCurrentDrawings(prev => [...prev, {
-      points: [pos, pos],
+      points: [
+        { x: pos.x - size / 2, y: pos.y - size / 2 }, 
+        { x: pos.x + size / 2, y: pos.y + size / 2 }
+      ],
       color: hexColor,
       width: 0, 
-      mode: 'magic-eraser' as any, // Use this to differentiate if needed, though rendered like rect
+      mode: 'magic-eraser' as any,
       canvasWidth: canvasDimensions.width,
       canvasHeight: canvasDimensions.height
     }]);
@@ -2050,6 +2051,11 @@ export const PDFEditor: React.FC = () => {
                                   if (['pen', 'eraser', 'highlighter'].includes(visualTool)) {
                                     const size = Math.max(4, brushSize);
                                     const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}"><circle cx="${size/2}" cy="${size/2}" r="${size/2 - 1}" fill="rgba(99, 102, 241, 0.2)" stroke="rgb(99, 102, 241)" stroke-width="1"/></svg>`;
+                                    return `url('data:image/svg+xml;base64,${btoa(svg)}') ${size/2} ${size/2}, auto`;
+                                  }
+                                  if (visualTool === 'magic-eraser') {
+                                    const size = Math.max(10, brushSize * 2);
+                                    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}"><rect x="1" y="1" width="${size-2}" height="${size-2}" fill="rgba(6, 182, 212, 0.2)" stroke="rgb(6, 182, 212)" stroke-width="1" stroke-dasharray="2,2"/></svg>`;
                                     return `url('data:image/svg+xml;base64,${btoa(svg)}') ${size/2} ${size/2}, auto`;
                                   }
                                   return 'crosshair';
