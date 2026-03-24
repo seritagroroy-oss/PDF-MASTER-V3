@@ -367,45 +367,45 @@ export const PDFScanner: React.FC = () => {
               <canvas ref={editCanvasRef} className="max-w-full max-h-full object-contain bg-white rounded-md shadow-2xl" />
             </div>
 
-            <div className="p-6 bg-slate-900 border-t border-slate-800 flex justify-center gap-6 overflow-x-auto">
+            <div className="p-4 sm:p-6 bg-slate-900 border-t border-slate-800 flex justify-start sm:justify-center gap-2 sm:gap-6 overflow-x-auto w-full">
               <button
                 onClick={applyRotate}
-                className="flex flex-col items-center gap-2 p-3 text-slate-400 hover:text-white transition-colors shrink-0"
+                className="flex flex-col items-center gap-2 p-2 sm:p-3 text-slate-400 hover:text-white transition-colors shrink-0"
               >
-                <div className="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center">
-                  <RotateCw size={24} />
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-slate-800 flex items-center justify-center">
+                  <RotateCw size={20} className="sm:w-6 sm:h-6" />
                 </div>
-                <span className="text-xs font-bold font-display uppercase tracking-wider">Pivoter</span>
+                <span className="text-[10px] sm:text-xs font-bold font-display uppercase tracking-wider">Pivoter</span>
               </button>
               
               <button
                 onClick={() => drawToEditCanvas(scannedImages[editingImageIdx!], 'none')}
-                className="flex flex-col items-center gap-2 p-3 text-slate-400 hover:text-white transition-colors shrink-0"
+                className="flex flex-col items-center gap-2 p-2 sm:p-3 text-slate-400 hover:text-white transition-colors shrink-0"
               >
-                <div className="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center">
-                  <ImageIcon size={24} />
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-slate-800 flex items-center justify-center">
+                  <ImageIcon size={20} className="sm:w-6 sm:h-6" />
                 </div>
-                <span className="text-xs font-bold font-display uppercase tracking-wider">Original</span>
+                <span className="text-[10px] sm:text-xs font-bold font-display uppercase tracking-wider">Original</span>
               </button>
 
               <button
                 onClick={() => drawToEditCanvas(scannedImages[editingImageIdx!], 'grayscale(100%) contrast(150%)')}
-                className="flex flex-col items-center gap-2 p-3 text-slate-400 hover:text-white transition-colors shrink-0"
+                className="flex flex-col items-center gap-2 p-2 sm:p-3 text-slate-400 hover:text-white transition-colors shrink-0"
               >
-                <div className="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center">
-                  <FileDown size={24} />
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-slate-800 flex items-center justify-center">
+                  <FileDown size={20} className="sm:w-6 sm:h-6" />
                 </div>
-                <span className="text-xs font-bold font-display uppercase tracking-wider">Noir & Blanc</span>
+                <span className="text-[10px] sm:text-xs font-bold font-display uppercase tracking-wider">Noir & Blanc</span>
               </button>
 
               <button
                 onClick={() => drawToEditCanvas(scannedImages[editingImageIdx!], 'contrast(130%) brightness(110%) saturate(120%)')}
-                className="flex flex-col items-center gap-2 p-3 text-slate-400 hover:text-white transition-colors shrink-0"
+                className="flex flex-col items-center gap-2 p-2 sm:p-3 text-slate-400 hover:text-white transition-colors shrink-0"
               >
-                <div className="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center">
-                  <Contrast size={24} />
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-slate-800 flex items-center justify-center">
+                  <Contrast size={20} className="sm:w-6 sm:h-6" />
                 </div>
-                <span className="text-xs font-bold font-display uppercase tracking-wider">Doc Magique</span>
+                <span className="text-[10px] sm:text-xs font-bold font-display uppercase tracking-wider">Doc Magique</span>
               </button>
             </div>
           </motion.div>
