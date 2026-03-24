@@ -699,9 +699,12 @@ export default function App() {
               >
                 <section className="grid items-center gap-10 lg:grid-cols-[1.1fr_0.9fr]">
                   <div className="space-y-8">
-                    <div className="hidden sm:inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-white/80 px-4 py-2 text-sm font-semibold text-indigo-700 shadow-sm">
-                      <Sparkles size={16} />
-                      Suite PDF locale, rapide et plus claire à utiliser
+                    <div className="hidden sm:inline-flex items-center gap-3 rounded-full border border-indigo-200 bg-white/80 px-4 py-2 text-sm font-semibold text-indigo-700 shadow-sm">
+                      <div className="px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full text-[10px] font-black uppercase tracking-wider">Gratuit</div>
+                      <div className="flex items-center gap-2">
+                        <Sparkles size={16} />
+                        Suite PDF locale, rapide et plus claire à utiliser
+                      </div>
                     </div>
 
                     <div className="space-y-5">
@@ -970,12 +973,23 @@ export default function App() {
           </AnimatePresence>
         </main>
 
-        <footer className="border-t border-slate-100/10 bg-white/5 py-6 backdrop-blur-xl">
-          <div className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8 text-xs font-semibold uppercase tracking-[0.24em] text-slate-400">
-            <p>2026 PDFMaster</p>
-            <div className="flex items-center gap-2">
-              <Globe size={14} />
-              <span>Français</span>
+        <footer className="border-t border-slate-100/10 bg-white/5 py-8 backdrop-blur-xl">
+          <div className="mx-auto flex flex-col md:flex-row max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8 gap-6">
+            <div className="flex flex-col items-center md:items-start gap-2">
+              <p className="text-xs font-bold uppercase tracking-[0.24em] text-slate-400">SERI TAGRO ROY INDUSTRIE</p>
+              <div className="flex items-center gap-2 px-2 py-1 bg-white/5 rounded-full border border-white/10">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="text-[10px] font-black uppercase tracking-widest text-emerald-400">Site 100% Gratuit</span>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-6 text-[10px] font-bold uppercase tracking-widest text-slate-500">
+              <a href="#" className="hover:text-indigo-400">Confidentialité</a>
+              <a href="#" className="hover:text-indigo-400">Conditions</a>
+              <div className="flex items-center gap-2 ml-4">
+                <Globe size={14} />
+                <span>Français</span>
+              </div>
             </div>
           </div>
         </footer>
