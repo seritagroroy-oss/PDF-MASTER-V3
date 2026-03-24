@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Camera, FileDown, Trash2, X, RefreshCw, Plus, Settings2, RotateCw, Contrast, Image as ImageIcon } from 'lucide-react';
+import { Camera, FileDown, Trash2, X, RefreshCw, Plus, Settings2, RotateCw, Contrast, Image as ImageIcon, Crop, FileText } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { PDFDocument } from 'pdf-lib';
 
@@ -159,6 +159,52 @@ export const PDFScanner: React.FC = () => {
       ctx.translate(canvas.width / 2, canvas.height / 2);
       ctx.rotate(90 * Math.PI / 180);
       ctx.drawImage(img, -img.width / 2, -img.height / 2);
+    };
+    img.src = canvas.toDataURL('image/jpeg', 1.0);
+  };
+
+  const applyCrop = () => {
+    const canvas = editCanvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const img = new Image();
+    img.onload = () => {
+      const cropMargin = Math.min(img.width, img.height) * 0.05; // crop 5% from edges
+      canvas.width = img.width - cropMargin * 2;
+      canvas.height = img.height - cropMargin * 2;
+      ctx.drawImage(img, cropMargin, cropMargin, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
+    };
+    img.src = canvas.toDataURL('image/jpeg', 1.0);
+  };
+
+  const applyA4Ratio = () => {
+    const canvas = editCanvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const img = new Image();
+    img.onload = () => {
+      const targetRatio = 1 / 1.414; // A4 ratio
+      const currentRatio = img.width / img.height;
+      
+      let sx = 0, sy = 0, sWidth = img.width, sHeight = img.height;
+
+      if (currentRatio > targetRatio) {
+        const desiredWidth = img.height * targetRatio;
+        sx = (img.width - desiredWidth) / 2;
+        sWidth = desiredWidth;
+      } else {
+        const desiredHeight = img.width / targetRatio;
+        sy = (img.height - desiredHeight) / 2;
+        sHeight = desiredHeight;
+      }
+
+      canvas.width = sWidth;
+      canvas.height = sHeight;
+      ctx.drawImage(img, sx, sy, sWidth, sHeight, 0, 0, sWidth, sHeight);
     };
     img.src = canvas.toDataURL('image/jpeg', 1.0);
   };
@@ -378,6 +424,26 @@ export const PDFScanner: React.FC = () => {
                 <span className="text-[10px] sm:text-xs font-bold font-display uppercase tracking-wider">Pivoter</span>
               </button>
               
+              <button
+                onClick={applyCrop}
+                className="flex flex-col items-center gap-2 p-2 sm:p-3 text-slate-400 hover:text-white transition-colors shrink-0"
+              >
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-slate-800 flex items-center justify-center">
+                  <Crop size={20} className="sm:w-6 sm:h-6" />
+                </div>
+                <span className="text-[10px] sm:text-xs font-bold font-display uppercase tracking-wider">Recadrer</span>
+              </button>
+              
+              <button
+                onClick={applyA4Ratio}
+                className="flex flex-col items-center gap-2 p-2 sm:p-3 text-slate-400 hover:text-white transition-colors shrink-0"
+              >
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-slate-800 flex items-center justify-center">
+                  <FileText size={20} className="sm:w-6 sm:h-6" />
+                </div>
+                <span className="text-[10px] sm:text-xs font-bold font-display uppercase tracking-wider">Format A4</span>
+              </button>
+
               <button
                 onClick={() => drawToEditCanvas(scannedImages[editingImageIdx!], 'none')}
                 className="flex flex-col items-center gap-2 p-2 sm:p-3 text-slate-400 hover:text-white transition-colors shrink-0"
