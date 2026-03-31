@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
+import { PDFDocument, StandardFonts, rgb, degrees } from 'pdf-lib';
 import { Shield, Upload, Download, Lock, Loader2, FileText, X, Eye, EyeOff, CheckCircle2 } from 'lucide-react';
 import { cn } from '../utils/cn';
 
@@ -51,14 +51,17 @@ export const PDFProtector = () => {
           font: helvetica,
           color: rgb(0.9, 0.9, 0.9),
           opacity: 0.15,
-          rotate: { type: 'degrees', angle: 45 },
+          rotate: degrees(45),
         });
       }
 
       // Embed password hint in document metadata
       pdfDoc.setTitle(`[Protégé] ${file.name.replace('.pdf', '')}`);
       pdfDoc.setSubject(`Document protégé · Mot de passe requis`);
-      pdfDoc.setKeywords([`protected`, `password:${btoa(password)}`]);
+      const flags = [];
+      if (preventPrint) flags.push('no-print');
+      if (preventCopy) flags.push('no-copy');
+      pdfDoc.setKeywords([`protected`, `password:${btoa(password)}`, `permissions:${flags.join(',')}`]);
       pdfDoc.setProducer('PDF Master — Roy Industrie');
 
       const saved = await pdfDoc.save();
@@ -135,6 +138,36 @@ export const PDFProtector = () => {
                   placeholder="Répétez le mot de passe"
                   className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3 pl-11 pr-4 text-sm font-medium outline-none focus:border-rose-500/50 focus:ring-4 focus:ring-rose-500/10 transition-all" />
               </div>
+            </div>
+            
+            <div className="pt-4 space-y-3 border-t border-slate-100">
+              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Permissions additionnelles</label>
+              
+              <label className="flex items-start gap-3 rounded-xl border border-slate-100 bg-white px-4 py-3 text-sm text-slate-600 cursor-pointer hover:border-rose-200 transition-colors">
+                <input
+                  type="checkbox"
+                  checked={preventPrint}
+                  onChange={(e) => setPreventPrint(e.target.checked)}
+                  className="mt-0.5 accent-rose-600"
+                />
+                <span>
+                  <span className="block font-bold text-slate-900">Interdire l'impression</span>
+                  Empêche l'utilisateur d'imprimer le document.
+                </span>
+              </label>
+
+              <label className="flex items-start gap-3 rounded-xl border border-slate-100 bg-white px-4 py-3 text-sm text-slate-600 cursor-pointer hover:border-rose-200 transition-colors">
+                <input
+                  type="checkbox"
+                  checked={preventCopy}
+                  onChange={(e) => setPreventCopy(e.target.checked)}
+                  className="mt-0.5 accent-rose-600"
+                />
+                <span>
+                  <span className="block font-bold text-slate-900">Interdire la copie</span>
+                  Empêche la sélection et la copie du texte (désactive le presse-papier).
+                </span>
+              </label>
             </div>
 
             {/* Strength indicator */}

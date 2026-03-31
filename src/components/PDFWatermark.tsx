@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '@/src/utils/cn';
 
 type WatermarkType = 'text' | 'image';
-type Position = 'center' | 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
+type Position = 'center' | 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' | 'tiled';
 
 export const PDFWatermark: React.FC = () => {
   const [files, setFiles] = useState<any[]>([]);
@@ -86,74 +86,109 @@ export const PDFWatermark: React.FC = () => {
           let x = 0;
           let y = 0;
 
-          switch (position) {
-            case 'center':
-              x = width / 2 - textWidth / 2;
-              y = height / 2 - textHeight / 2;
-              break;
-            case 'top-left':
-              x = 50;
-              y = height - 50;
-              break;
-            case 'top-right':
-              x = width - textWidth - 50;
-              y = height - 50;
-              break;
-            case 'bottom-left':
-              x = 50;
-              y = 50;
-              break;
-            case 'bottom-right':
-              x = width - textWidth - 50;
-              y = 50;
-              break;
-          }
+          if (position === 'tiled') {
+            const stepX = textWidth + 150;
+            const stepY = textHeight + 150;
+            for (let tiledX = -width; tiledX < width * 2; tiledX += stepX) {
+              for (let tiledY = -height; tiledY < height * 2; tiledY += stepY) {
+                page.drawText(text, {
+                  x: tiledX,
+                  y: tiledY,
+                  size: fontSize,
+                  font,
+                  color: rgb(0.5, 0.5, 0.5),
+                  opacity,
+                  rotate: degrees(rotation),
+                });
+              }
+            }
+          } else {
+            switch (position) {
+              case 'center':
+                x = width / 2 - textWidth / 2;
+                y = height / 2 - textHeight / 2;
+                break;
+              case 'top-left':
+                x = 50;
+                y = height - 50;
+                break;
+              case 'top-right':
+                x = width - textWidth - 50;
+                y = height - 50;
+                break;
+              case 'bottom-left':
+                x = 50;
+                y = 50;
+                break;
+              case 'bottom-right':
+                x = width - textWidth - 50;
+                y = 50;
+                break;
+            }
 
-          page.drawText(text, {
-            x,
-            y,
-            size: fontSize,
-            font,
-            color: rgb(0.5, 0.5, 0.5),
-            opacity,
-            rotate: degrees(rotation),
-          });
+            page.drawText(text, {
+              x,
+              y,
+              size: fontSize,
+              font,
+              color: rgb(0.5, 0.5, 0.5),
+              opacity,
+              rotate: degrees(rotation),
+            });
+          }
         } else if (embeddedImage) {
           const imgDims = embeddedImage.scale(0.5);
           let x = 0;
           let y = 0;
 
-          switch (position) {
-            case 'center':
-              x = width / 2 - imgDims.width / 2;
-              y = height / 2 - imgDims.height / 2;
-              break;
-            case 'top-left':
-              x = 50;
-              y = height - imgDims.height - 50;
-              break;
-            case 'top-right':
-              x = width - imgDims.width - 50;
-              y = height - imgDims.height - 50;
-              break;
-            case 'bottom-left':
-              x = 50;
-              y = 50;
-              break;
-            case 'bottom-right':
-              x = width - imgDims.width - 50;
-              y = 50;
-              break;
-          }
+          if (position === 'tiled') {
+            const stepX = imgDims.width + 150;
+            const stepY = imgDims.height + 150;
+            for (let tiledX = -width; tiledX < width * 2; tiledX += stepX) {
+              for (let tiledY = -height; tiledY < height * 2; tiledY += stepY) {
+                page.drawImage(embeddedImage, {
+                  x: tiledX,
+                  y: tiledY,
+                  width: imgDims.width,
+                  height: imgDims.height,
+                  opacity,
+                  rotate: degrees(rotation),
+                });
+              }
+            }
+          } else {
+            switch (position) {
+              case 'center':
+                x = width / 2 - imgDims.width / 2;
+                y = height / 2 - imgDims.height / 2;
+                break;
+              case 'top-left':
+                x = 50;
+                y = height - imgDims.height - 50;
+                break;
+              case 'top-right':
+                x = width - imgDims.width - 50;
+                y = height - imgDims.height - 50;
+                break;
+              case 'bottom-left':
+                x = 50;
+                y = 50;
+                break;
+              case 'bottom-right':
+                x = width - imgDims.width - 50;
+                y = 50;
+                break;
+            }
 
-          page.drawImage(embeddedImage, {
-            x,
-            y,
-            width: imgDims.width,
-            height: imgDims.height,
-            opacity,
-            rotate: degrees(rotation),
-          });
+            page.drawImage(embeddedImage, {
+              x,
+              y,
+              width: imgDims.width,
+              height: imgDims.height,
+              opacity,
+              rotate: degrees(rotation),
+            });
+          }
         }
       }
 
@@ -279,6 +314,7 @@ export const PDFWatermark: React.FC = () => {
                 className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
               >
                 <option value="center">Centre</option>
+                <option value="tiled">Mosaïque (Répété)</option>
                 <option value="top-left">Haut Gauche</option>
                 <option value="top-right">Haut Droite</option>
                 <option value="bottom-left">Bas Gauche</option>

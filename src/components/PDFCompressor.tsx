@@ -12,6 +12,7 @@ export const PDFCompressor: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [customFilename, setCustomFilename] = useState('pdf_optimise');
   const [stripMetadata, setStripMetadata] = useState(true);
+  const [compressionLevel, setCompressionLevel] = useState<'low' | 'medium' | 'high'>('medium');
   const [stats, setStats] = useState<{ original: string; compressed: string; reduction: string } | null>(null);
 
   const formatSize = (bytes: number) => {
@@ -116,7 +117,7 @@ export const PDFCompressor: React.FC = () => {
             />
           </div>
 
-          <label className="flex items-start gap-3 rounded-xl border border-slate-100 bg-slate-50 px-4 py-4 text-sm text-slate-600">
+          <label className="flex items-start gap-3 rounded-xl border border-slate-100 bg-slate-50 px-4 py-4 text-sm text-slate-600 cursor-pointer">
             <input
               type="checkbox"
               checked={stripMetadata}
@@ -125,9 +126,35 @@ export const PDFCompressor: React.FC = () => {
             />
             <span>
               <span className="block font-bold text-slate-900">Nettoyer les métadonnées</span>
-              Supprime le titre, l’auteur et d’autres informations embarquées pour améliorer la confidentialité.
+              Supprime le titre, l'auteur et d'autres informations embarquées pour améliorer la confidentialité.
             </span>
           </label>
+
+          <div className="space-y-3 pt-2">
+            <p className="text-sm font-bold text-slate-700">Niveau de compression</p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <label className={`relative flex cursor-pointer flex-col p-4 border rounded-xl transition-all ${compressionLevel === 'low' ? 'border-indigo-500 bg-indigo-50 ring-1 ring-indigo-500' : 'border-slate-200 hover:border-indigo-200 bg-white'}`}>
+                <input type="radio" name="compression" value="low" checked={compressionLevel === 'low'} onChange={() => setCompressionLevel('low')} className="sr-only" />
+                <span className="font-bold text-slate-900 mb-1">Basse qualité</span>
+                <span className="text-xs text-slate-500">Compression maximale. Idéal pour l'envoi par e-mail. Qualité des images réduite.</span>
+                {compressionLevel === 'low' && <CheckCircle2 size={16} className="absolute top-4 right-4 text-indigo-600" />}
+              </label>
+              
+              <label className={`relative flex cursor-pointer flex-col p-4 border rounded-xl transition-all ${compressionLevel === 'medium' ? 'border-indigo-500 bg-indigo-50 ring-1 ring-indigo-500' : 'border-slate-200 hover:border-indigo-200 bg-white'}`}>
+                <input type="radio" name="compression" value="medium" checked={compressionLevel === 'medium'} onChange={() => setCompressionLevel('medium')} className="sr-only" />
+                <span className="font-bold text-slate-900 mb-1">Qualité moyenne</span>
+                <span className="text-xs text-slate-500">Bon compromis entre taille et lisibilité. Recommandé pour le web.</span>
+                {compressionLevel === 'medium' && <CheckCircle2 size={16} className="absolute top-4 right-4 text-indigo-600" />}
+              </label>
+
+              <label className={`relative flex cursor-pointer flex-col p-4 border rounded-xl transition-all ${compressionLevel === 'high' ? 'border-indigo-500 bg-indigo-50 ring-1 ring-indigo-500' : 'border-slate-200 hover:border-indigo-200 bg-white'}`}>
+                <input type="radio" name="compression" value="high" checked={compressionLevel === 'high'} onChange={() => setCompressionLevel('high')} className="sr-only" />
+                <span className="font-bold text-slate-900 mb-1">Haute qualité</span>
+                <span className="text-xs text-slate-500">Compression légère. Idéal pour l'impression. Garde une excellente netteté.</span>
+                {compressionLevel === 'high' && <CheckCircle2 size={16} className="absolute top-4 right-4 text-indigo-600" />}
+              </label>
+            </div>
+          </div>
         </div>
       )}
 

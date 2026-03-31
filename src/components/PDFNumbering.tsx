@@ -14,6 +14,7 @@ export const PDFNumbering = () => {
   const [position, setPosition] = useState<'bottom-center' | 'bottom-right' | 'top-right'>('bottom-right');
   const [format, setFormat] = useState('page-total'); // 'page', 'page-total'
   const [fontSize, setFontSize] = useState(12);
+  const [skipCoverPage, setSkipCoverPage] = useState(false);
 
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -32,9 +33,14 @@ export const PDFNumbering = () => {
       const pages = pdfDoc.getPages();
       const totalPages = pages.length;
 
+      const startIndex = skipCoverPage ? 1 : 0;
+      const effectiveTotal = skipCoverPage ? totalPages - 1 : totalPages;
+
       pages.forEach((page, idx) => {
-        const pageNum = idx + 1;
-        const text = format === 'page-total' ? `Page ${pageNum} sur ${totalPages}` : `${pageNum}`;
+        if (skipCoverPage && idx === 0) return; // Skip cover page
+
+        const pageNum = skipCoverPage ? idx : idx + 1;
+        const text = format === 'page-total' ? `Page ${pageNum} sur ${effectiveTotal}` : `${pageNum}`;
         const textSize = fontSize;
         const textWidth = helveticaFont.widthOfTextAtSize(text, textSize);
         const { width, height } = page.getSize();
@@ -143,6 +149,19 @@ export const PDFNumbering = () => {
                     </button>
                   </div>
                 </div>
+
+                <label className="flex items-start gap-3 rounded-xl border border-slate-100 bg-slate-50 px-4 py-4 text-sm text-slate-600 cursor-pointer mt-4">
+                  <input
+                    type="checkbox"
+                    checked={skipCoverPage}
+                    onChange={(e) => setSkipCoverPage(e.target.checked)}
+                    className="mt-0.5"
+                  />
+                  <span>
+                    <span className="block font-bold text-slate-900">Exclure la page de garde</span>
+                    La numérotation commencera à 1 sur la deuxième page.
+                  </span>
+                </label>
 
                 <button onClick={processNumbering} disabled={isProcessing}
                   className="w-full mt-4 flex items-center justify-center gap-2 py-4 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 shadow-lg shadow-indigo-200 transition-all disabled:opacity-50">
