@@ -730,63 +730,7 @@ export default function App() {
                   </div>
                 </section>
 
-                <section className="mt-10 sm:mt-20">
-                  <div className="mb-8 flex items-end justify-between gap-6">
-                    <div>
-                      <p className="text-sm font-semibold uppercase tracking-[0.26em] text-slate-400">
-                        Outils
-                      </p>
-                      <h2 className="mt-2 text-3xl font-display font-bold text-slate-950">
-                        Tout ce qu’il faut pour vos PDF
-                      </h2>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setActiveTool('merge')}
-                      className="hidden rounded-full border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-indigo-200 hover:text-indigo-600 md:inline-flex"
-                    >
-                      Ouvrir un outil
-                    </button>
-                  </div>
 
-                  <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-5">
-                    {tools.map((tool) => (
-                      <motion.button
-                        key={tool.id}
-                        type="button"
-                        whileHover={{ y: -8 }}
-                        whileTap={{ scale: 0.99 }}
-                        onClick={() => handleToolChange(tool.id)}
-                        onMouseEnter={() => preloadTool(tool.id)}
-                        onFocus={() => preloadTool(tool.id)}
-                        className={cn(
-                          'brand-sheen group relative overflow-hidden rounded-[2rem] border border-white/70 bg-gradient-to-br p-6 text-left shadow-lg shadow-slate-900/5 transition',
-                          tool.soft,
-                        )}
-                      >
-                        <div className="absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-white/90 to-transparent opacity-80" />
-                        <div className="absolute right-5 top-5 rounded-full border border-slate-900/8 bg-white/75 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.24em] text-slate-500">
-                          {tool.shortName}
-                        </div>
-                        <div
-                          className={cn(
-                            'mb-5 flex h-14 w-14 items-center justify-center rounded-2xl text-white shadow-lg ring-8 ring-white/55',
-                            tool.color,
-                          )}
-                        >
-                          <tool.icon size={26} />
-                        </div>
-                        <h3 className="text-xl font-display font-bold text-slate-950">{tool.name}</h3>
-                        <p className="mt-3 text-sm leading-6 text-slate-600">{tool.description}</p>
-                        <p className="mt-4 text-sm leading-6 text-slate-500">{tool.detail}</p>
-                        <div className={cn('mt-6 inline-flex items-center gap-2 text-sm font-bold', tool.textColor)}>
-                          Essayer l’outil
-                          <ArrowRight size={16} className="transition group-hover:translate-x-1" />
-                        </div>
-                      </motion.button>
-                    ))}
-                  </div>
-                </section>
 
                 <section className="hidden sm:grid mt-20 gap-6 lg:grid-cols-[0.95fr_1.05fr]">
                   <div className="rounded-[2rem] border border-slate-200 bg-slate-950 p-8 text-white shadow-xl shadow-slate-900/10">
