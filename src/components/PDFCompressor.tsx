@@ -58,7 +58,7 @@ export const PDFCompressor: React.FC = () => {
       const compressedSize = pdfBytes.length;
       const reduction = ((originalSize - compressedSize) / originalSize * 100).toFixed(1);
 
-      const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+      const blob = new Blob([pdfBytes as any], { type: 'application/pdf' });
       const url = URL.createObjectURL(blob);
 
       setResultUrl(url);

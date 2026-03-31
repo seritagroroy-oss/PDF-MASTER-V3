@@ -62,7 +62,7 @@ export const PDFSplitter = () => {
           const bytes = await doc.save();
           outputs.push({
             name: `${file.name.replace('.pdf', '')}_page_${i + 1}.pdf`,
-            url: URL.createObjectURL(new Blob([bytes], { type: 'application/pdf' })),
+            url: URL.createObjectURL(new Blob([bytes as any], { type: 'application/pdf' })),
           });
         }
       } else if (mode === 'range') {
@@ -74,7 +74,7 @@ export const PDFSplitter = () => {
           const bytes = await doc.save();
           outputs.push({
             name: `${file.name.replace('.pdf', '')}_p${range.from}-${range.to}.pdf`,
-            url: URL.createObjectURL(new Blob([bytes], { type: 'application/pdf' })),
+            url: URL.createObjectURL(new Blob([bytes as any], { type: 'application/pdf' })),
           });
         }
       } else {
@@ -86,7 +86,7 @@ export const PDFSplitter = () => {
         const bytes = await doc.save();
         outputs.push({
           name: `${file.name.replace('.pdf', '')}_extrait.pdf`,
-          url: URL.createObjectURL(new Blob([bytes], { type: 'application/pdf' })),
+          url: URL.createObjectURL(new Blob([bytes as any], { type: 'application/pdf' })),
         });
       }
 

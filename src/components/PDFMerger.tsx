@@ -148,7 +148,7 @@ export const PDFMerger: React.FC = () => {
       }
 
       const pdfBytes = await mergedPdf.save();
-      const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+      const blob = new Blob([pdfBytes as any], { type: 'application/pdf' });
       const url = URL.createObjectURL(blob);
       setResultUrl(url);
       setPreviewImages([]); // Reset preview images for new result

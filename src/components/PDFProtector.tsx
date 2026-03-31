@@ -65,7 +65,7 @@ export const PDFProtector = () => {
       pdfDoc.setProducer('PDF Master — Roy Industrie');
 
       const saved = await pdfDoc.save();
-      const blob = new Blob([saved], { type: 'application/pdf' });
+      const blob = new Blob([saved as any], { type: 'application/pdf' });
       setResultUrl(URL.createObjectURL(blob));
     } catch (e: any) {
       setError('Erreur lors du traitement du fichier.');

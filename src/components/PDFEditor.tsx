@@ -2075,95 +2075,126 @@ export const PDFEditor: React.FC = () => {
                           />
                         </div>
                       ) : (
-                        <div className="space-y-6">
-                          <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 px-2 sm:px-4 py-3 bg-slate-50 rounded-xl border border-slate-100">
-                            <div className="flex items-center justify-start gap-1 sm:gap-2 border-b md:border-b-0 md:border-r border-slate-200 pb-3 md:pb-0 pr-0 md:pr-4 overflow-x-auto scrollbar-none touch-pan-x">
-                              <button 
-                                onClick={() => setVisualTool('move')} 
-                                title="Main (Déplacer / Scroll)" 
-                                className={cn("p-2 shrink-0 rounded-lg", visualTool === 'move' ? "bg-indigo-600 text-white" : "text-slate-400")}
-                              >
-                                <RefreshCw className={visualTool === 'move' ? "" : "opacity-50"} size={16} /> 
-                                {/* I'll use a clearer hand-like icon or just keep move with better logic */}
+                        <div className="flex h-[calc(100vh-140px)] w-full -mx-2 sm:-mx-10 -mt-2 sm:-mt-10 mb-[-10px] rounded-2xl overflow-hidden bg-slate-100">
+                          {/* Left Sidebar (Tools) - Canva style */}
+                          <aside className="w-16 md:w-20 lg:w-24 bg-white border-r border-slate-200 flex flex-col items-center py-6 gap-6 z-10 shrink-0 shadow-sm overflow-y-auto scrollbar-none">
+                            <div className="flex flex-col gap-4 w-full px-2 sm:px-4">
+                              <button onClick={() => setVisualTool('move')} title="Main (Déplacer)" className={cn("p-2 sm:p-3 rounded-xl flex flex-col items-center gap-1 sm:gap-2 transition-all group", visualTool === 'move' ? "bg-indigo-50 text-indigo-600" : "text-slate-500 hover:bg-slate-50 hover:text-slate-900")}>
+                                <RefreshCw className={cn(visualTool === 'move' ? "" : "opacity-70 group-hover:opacity-100")} size={18} />
                               </button>
-                              <button onClick={() => setVisualTool('pen')} title="Stylo / Dessin" className={cn("p-2 shrink-0 rounded-lg", visualTool === 'pen' ? "bg-indigo-600 text-white" : "text-slate-400")}><Pencil size={16} /></button>
-                              <button onClick={() => setVisualTool('text')} title="Ajouter du texte" className={cn("p-2 shrink-0 rounded-lg", visualTool === 'text' ? "bg-indigo-600 text-white" : "text-slate-400")}><Type size={16} /></button>
-                              <button onClick={() => setVisualTool('rect')} title="Rectangle" className={cn("p-2 shrink-0 rounded-lg", visualTool === 'rect' ? "bg-indigo-600 text-white" : "text-slate-400")}><SquareIcon size={16} /></button>
-                              <button onClick={() => setVisualTool('circle')} title="Cercle" className={cn("p-2 shrink-0 rounded-lg", visualTool === 'circle' ? "bg-indigo-600 text-white" : "text-slate-400")}><Circle size={16} /></button>
-                              <button onClick={() => setVisualTool('arrow')} title="Flèche" className={cn("p-2 shrink-0 rounded-lg", visualTool === 'arrow' ? "bg-indigo-600 text-white" : "text-slate-400")}><ArrowRight size={16} /></button>
-                              <button onClick={() => setVisualTool('eraser')} title="Gomme" className={cn("p-2 shrink-0 rounded-lg", visualTool === 'eraser' ? "bg-indigo-600 text-white" : "text-slate-400")}><Eraser size={16} /></button>
-                              <button onClick={() => setVisualTool('magic-eraser')} title="Gomme Magique (IA)" className={cn("p-2 shrink-0 rounded-lg", visualTool === 'magic-eraser' ? "bg-cyan-500 text-white" : "text-slate-400")}><Zap size={16} /></button>
                               
-                              <div className="h-6 w-px bg-slate-200 mx-1 shrink-0" />
+                              <div className="w-full h-px bg-slate-100" />
                               
-                              <button 
-                                onClick={() => setIsTableProtectionEnabled(!isTableProtectionEnabled)} 
-                                title="Protéger les lignes du tableau" 
-                                className={cn(
-                                  "px-2 py-1 rounded-md text-[9px] font-black uppercase tracking-tighter flex items-center gap-1 transition-all shrink-0", 
-                                  isTableProtectionEnabled ? "bg-emerald-500 text-white shadow-sm" : "bg-slate-200 text-slate-500 opacity-50"
+                              <button onClick={() => setVisualTool('pen')} title="Stylo" className={cn("p-2 sm:p-3 rounded-xl flex flex-col items-center gap-1 sm:gap-2 transition-all group", visualTool === 'pen' ? "bg-indigo-50 text-indigo-600" : "text-slate-500 hover:bg-slate-50 hover:text-slate-900")}>
+                                <Pencil size={18} />
+                                <span className="text-[9px] font-bold hidden sm:block">Stylo</span>
+                              </button>
+                              <button onClick={() => setVisualTool('text')} title="Texte" className={cn("p-2 sm:p-3 rounded-xl flex flex-col items-center gap-1 sm:gap-2 transition-all group", visualTool === 'text' ? "bg-indigo-50 text-indigo-600" : "text-slate-500 hover:bg-slate-50 hover:text-slate-900")}>
+                                <Type size={18} />
+                                <span className="text-[9px] font-bold hidden sm:block">Texte</span>
+                              </button>
+                              
+                              <div className="w-full h-px bg-slate-100" />
+                              
+                              <button onClick={() => setVisualTool('rect')} title="Rectangle" className={cn("p-2 sm:p-3 rounded-xl flex flex-col items-center gap-1 sm:gap-2 transition-all group", visualTool === 'rect' ? "bg-indigo-50 text-indigo-600" : "text-slate-500 hover:bg-slate-50 hover:text-slate-900")}>
+                                <SquareIcon size={18} />
+                                <span className="text-[9px] font-bold hidden sm:block">Formes</span>
+                              </button>
+                              <button onClick={() => setVisualTool('circle')} title="Cercle" className={cn("hidden p-2 sm:p-3 rounded-xl flex-col items-center gap-1 sm:gap-2 transition-all group", visualTool === 'circle' ? "bg-indigo-50 text-indigo-600" : "text-slate-500 hover:bg-slate-50 hover:text-slate-900")}>
+                                <Circle size={18} />
+                              </button>
+                              <button onClick={() => setVisualTool('arrow')} title="Flèche" className={cn("p-2 sm:p-3 rounded-xl flex flex-col items-center gap-1 sm:gap-2 transition-all group", visualTool === 'arrow' ? "bg-indigo-50 text-indigo-600" : "text-slate-500 hover:bg-slate-50 hover:text-slate-900")}>
+                                <ArrowRight size={18} />
+                                <span className="text-[9px] font-bold hidden sm:block">Flèche</span>
+                              </button>
+                              
+                              <div className="w-full h-px bg-slate-100" />
+                              
+                              <button onClick={() => setVisualTool('eraser')} title="Gomme" className={cn("p-2 sm:p-3 rounded-xl flex flex-col items-center gap-1 sm:gap-2 transition-all group", visualTool === 'eraser' ? "bg-rose-50 text-rose-600" : "text-slate-500 hover:bg-slate-50 hover:text-slate-900")}>
+                                <Eraser size={18} />
+                                <span className="text-[9px] font-bold hidden sm:block">Gomme</span>
+                              </button>
+                              <button onClick={() => setVisualTool('magic-eraser')} title="Gomme Magique (IA)" className={cn("p-2 sm:p-3 rounded-xl flex flex-col items-center gap-1 sm:gap-2 transition-all group", visualTool === 'magic-eraser' ? "bg-cyan-50 text-cyan-500" : "text-slate-500 hover:bg-slate-50 hover:text-slate-900")}>
+                                <Zap size={18} />
+                                <span className="text-[9px] font-bold hidden sm:block text-center leading-tight">Gomme IA</span>
+                              </button>
+                            </div>
+                          </aside>
+
+                          {/* Canvas Area  */}
+                          <div className="flex-1 flex flex-col h-full relative overflow-hidden bg-slate-200/50">
+                            
+                            {/* Top Properties Bar */}
+                            <div className="absolute top-4 left-4 right-4 z-20 flex justify-center pointer-events-none">
+                              <div className="bg-white/90 backdrop-blur-md px-6 py-3 rounded-full shadow-lg border border-slate-200/50 flex items-center gap-6 pointer-events-auto transition-all animate-in slide-in-from-top-4">
+                                
+                                {['pen', 'rect', 'circle', 'arrow', 'text'].includes(visualTool) && (
+                                  <div className="flex items-center gap-3">
+                                    <input 
+                                      type="color" 
+                                      value={tempColor} 
+                                      onChange={(e) => setTempColor(e.target.value)} 
+                                      className="w-8 h-8 rounded-full cursor-pointer border-2 border-white shadow-sm overflow-hidden" 
+                                      title="Couleur"
+                                    />
+                                    <div className="w-px h-6 bg-slate-200" />
+                                  </div>
                                 )}
-                              >
-                                {isTableProtectionEnabled ? <Lock size={10} /> : <ScanLine size={10} />}
-                                <span className="">Table</span>
-                              </button>
-                            </div>
+                                
+                                {['pen', 'eraser', 'magic-eraser', 'rect', 'circle', 'arrow'].includes(visualTool) && (
+                                  <div className="flex items-center gap-4 w-32 sm:w-48">
+                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest min-w-[3ch]">{brushSize}</span>
+                                    <input
+                                      type="range"
+                                      min="1"
+                                      max="50"
+                                      value={brushSize}
+                                      onChange={(e) => setBrushSize(Number(e.target.value))}
+                                      className="flex-1 h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
+                                      title="Taille de l'outil"
+                                    />
+                                  </div>
+                                )}
 
-                            <div className="flex flex-row items-center gap-4 px-0 md:px-4 border-l-0 md:border-l border-slate-200 justify-between sm:justify-center">
-                              <div className="flex-1 sm:flex-none flex flex-col gap-1 min-w-0 sm:min-w-[100px]">
-                                <div className="flex justify-between items-center text-[9px] font-bold text-slate-400 uppercase tracking-widest">
-                                  <span>Taille</span>
-                                  <span>{brushSize}px</span>
+                                {visualTool === 'move' && (
+                                  <button 
+                                    onClick={() => setIsTableProtectionEnabled(!isTableProtectionEnabled)} 
+                                    title="Protéger les lignes du tableau" 
+                                    className={cn(
+                                      "px-4 py-1.5 rounded-full text-[10px] font-black uppercase flex items-center gap-1.5 transition-all", 
+                                      isTableProtectionEnabled ? "bg-emerald-500 text-white shadow-sm" : "bg-slate-100 text-slate-500"
+                                    )}
+                                  >
+                                    {isTableProtectionEnabled ? <Lock size={12} /> : <ScanLine size={12} />}
+                                    <span className="hidden sm:inline">Grille Tableaux</span>
+                                  </button>
+                                )}
+
+                                <div className="w-px h-6 bg-slate-200 ml-2" />
+
+                                <div className="flex items-center gap-1">
+                                  <button onClick={undo} title="Annuler" className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition-colors"><Undo2 size={16} /></button>
+                                  <button onClick={redo} title="Rétablir" className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition-colors"><RotateCcw size={16} className="rotate-180" /></button>
+                                  <button onClick={clearDrawings} title="Tout effacer" className="p-2 text-rose-400 hover:text-rose-600 hover:bg-rose-50 rounded-full transition-colors"><Trash2 size={16} /></button>
                                 </div>
-                                <input
-                                  type="range"
-                                  min="1"
-                                  max="50"
-                                  value={brushSize}
-                                  onChange={(e) => setBrushSize(Number(e.target.value))}
-                                  className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
-                                  title="Ajuster la taille de l'outil"
-                                />
-                              </div>
-                              <div className="flex items-center gap-2 shrink-0">
-                                <button onClick={() => askAI('detect_wm')} title="IA Watermark" disabled={isAIProcessing} className="p-2 bg-indigo-500 text-white rounded-lg"><Sparkles size={16} /></button>
-                                <button onClick={undo} title="Annuler" className="p-2 text-slate-400 hover:text-indigo-600"><Undo2 size={18} /></button>
-                                <button onClick={redo} title="Rétablir" className="p-2 text-slate-400 hover:text-indigo-600"><RotateCcw size={18} className="rotate-180" /></button>
-                                <button onClick={clearDrawings} title="Tout effacer" className="p-2 text-rose-500"><Trash2 size={16} /></button>
                               </div>
                             </div>
-                          </div>
 
-
-                          <div className="relative w-full bg-slate-100 rounded-2xl overflow-hidden shadow-inner border border-slate-200 flex items-center justify-center min-h-[600px]">
-                            <canvas
-                              ref={canvasRef}
-                              onPointerDown={startDrawing}
-                              onPointerMove={draw}
-                              onPointerUp={stopDrawing}
-                              onPointerLeave={stopDrawing}
-                              style={{
-                                filter: isEyeSaverMode ? "invert(1) hue-rotate(180deg)" : "none",
-                                width: '100%',
-                                height: 'auto',
-                                touchAction: visualTool === 'move' ? 'auto' : 'none',
-                                cursor: (() => {
-                                  if (visualTool === 'move') return 'grab';
-                                  if (['pen', 'eraser', 'highlighter'].includes(visualTool)) {
-                                    const size = Math.max(4, brushSize);
-                                    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}"><circle cx="${size/2}" cy="${size/2}" r="${size/2 - 1}" fill="rgba(99, 102, 241, 0.2)" stroke="rgb(99, 102, 241)" stroke-width="1"/></svg>`;
-                                    return `url('data:image/svg+xml;base64,${btoa(svg)}') ${size/2} ${size/2}, auto`;
-                                  }
-                                  if (visualTool === 'magic-eraser') {
-                                    const size = Math.max(10, brushSize * 2);
-                                    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}"><rect x="1" y="1" width="${size-2}" height="${size-2}" fill="rgba(6, 182, 212, 0.2)" stroke="rgb(6, 182, 212)" stroke-width="1" stroke-dasharray="2,2"/></svg>`;
-                                    return `url('data:image/svg+xml;base64,${btoa(svg)}') ${size/2} ${size/2}, auto`;
-                                  }
-                                  return 'crosshair';
-                                })()
-                              }}
-                              className="bg-white shadow-2xl touch-none"
-                            />
+                            <div className="flex-1 flex justify-center items-center overflow-auto p-4 sm:p-12 scrollbar-none">
+                              <div className="relative shadow-2xl transition-all w-fit">
+                                <canvas
+                                  ref={canvasRef}
+                                  onPointerDown={startDrawing}
+                                  onPointerMove={draw}
+                                  onPointerUp={stopDrawing}
+                                  onPointerLeave={stopDrawing}
+                                  style={{
+                                    filter: isEyeSaverMode ? "invert(1) hue-rotate(180deg)" : "none",
+                                    touchAction: visualTool === 'move' ? 'auto' : 'none',
+                                    cursor: visualTool === 'move' ? 'grab' : 'crosshair'
+                                  }}
+                                  className="bg-white touch-none"
+                                />
 
                             {textInput && (
                               <div
@@ -2276,6 +2307,8 @@ export const PDFEditor: React.FC = () => {
                                 </div>
                               </div>
                             )}
+                              </div>
+                            </div>
                           </div>
                         </div>
                       )}
