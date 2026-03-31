@@ -489,57 +489,7 @@ export default function App() {
               <BrandLockup dark />
             </button>
 
-            <div className="hidden lg:flex flex-1 min-w-0 items-center justify-start xl:justify-center mr-6">
-              <div className="flex w-full items-center justify-start xl:justify-center gap-1 xl:gap-2">
-                {tools.slice(0, 6).map((tool) => (
-                  <button
-                    key={tool.id}
-                    type="button"
-                    onClick={() => handleToolChange(tool.id)}
-                    onMouseEnter={() => preloadTool(tool.id)}
-                    onFocus={() => preloadTool(tool.id)}
-                    className={cn(
-                      'whitespace-nowrap shrink-0 rounded-full px-3 py-1.5 xl:px-4 xl:py-2 text-xs xl:text-sm font-semibold transition-colors',
-                      activeTool === tool.id
-                        ? 'bg-cyan-400 text-slate-950'
-                        : 'text-slate-300 hover:bg-slate-900 hover:text-white',
-                    )}
-                  >
-                    {tool.shortName}
-                  </button>
-                ))}
 
-                {/* Dropdown "Plus" pour les outils restants */}
-                <div className="relative group">
-                  <button className="flex items-center gap-1.5 whitespace-nowrap shrink-0 rounded-full px-3 py-1.5 xl:px-4 xl:py-2 text-xs xl:text-sm font-semibold transition-colors text-slate-300 hover:bg-slate-900 hover:text-white">
-                    Plus <ChevronDown size={14} className="group-hover:rotate-180 transition-transform" />
-                  </button>
-                  <div className="absolute top-full right-0 mt-3 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 w-64 bg-white/95 backdrop-blur-xl border border-slate-100 shadow-2xl shadow-slate-900/10 rounded-[1.5rem] overflow-hidden z-50 p-2 grid gap-1">
-                    {tools.slice(6).map(tool => {
-                      const Icon = tool.icon;
-                      return (
-                        <button
-                          key={tool.id}
-                          onClick={() => handleToolChange(tool.id)}
-                          onMouseEnter={() => preloadTool(tool.id)}
-                          className={cn("w-full text-left px-3 py-2.5 text-sm font-semibold rounded-xl hover:bg-slate-50 transition-all flex items-center gap-3",
-                            activeTool === tool.id ? "text-indigo-600 bg-indigo-50/50" : "text-slate-700")}
-                        >
-                          <span className={cn("p-2 rounded-xl flex shrink-0 items-center justify-center transition-transform group-hover:scale-110", (tool as any).bg || tool.color.replace('text-', 'bg-').replace('600', '100'))}>
-                            <Icon size={16} className={tool.color.replace('bg-', 'text-')} />
-                          </span>
-                          <div className="flex flex-col">
-                            <span className="leading-tight">{tool.shortName}</span>
-                            <span className="text-[10px] text-slate-400 font-medium truncate w-36">{tool.name}</span>
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-              </div>
-            </div>
 
             <div className="hidden items-center shrink-0 gap-2 xl:gap-3 md:flex">
 
@@ -636,31 +586,7 @@ export default function App() {
                 className="overflow-hidden border-t border-slate-800 bg-slate-950 md:hidden"
               >
                 <div className="space-y-4 px-4 py-5">
-                  <div className="grid grid-cols-2 gap-2">
-                    {tools.map((tool) => {
-                      const Icon = tool.icon;
-                      return (
-                        <button
-                          key={tool.id}
-                          type="button"
-                          onClick={() => { handleToolChange(tool.id); setIsMenuOpen(false); }}
-                          onMouseEnter={() => preloadTool(tool.id)}
-                          onFocus={() => preloadTool(tool.id)}
-                          className={cn(
-                            'relative group flex flex-col items-start gap-3 rounded-[1.25rem] p-4 text-left transition-all overflow-hidden',
-                            activeTool === tool.id
-                              ? 'bg-cyan-400 text-slate-950 shadow-lg shadow-cyan-400/20'
-                              : 'bg-slate-900 border border-slate-800 text-slate-200 hover:bg-slate-800',
-                          )}
-                        >
-                          <div className={cn("p-2.5 rounded-xl transition-transform group-hover:scale-110", activeTool === tool.id ? "bg-white/20 text-slate-950" : (tool as any).bg || tool.color.replace('text-', 'bg-').replace('600', '100'))}>
-                            <Icon size={20} className={activeTool === tool.id ? "text-slate-950" : tool.color.replace('bg-', 'text-')} />
-                          </div>
-                          <span className="text-sm font-bold leading-tight">{tool.shortName}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
+
                   {currentUser ? (
                     <button
                       type="button"
