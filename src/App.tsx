@@ -799,7 +799,7 @@ export default function App() {
                     </button>
                   </div>
 
-                  <div className="hidden lg:grid gap-6 md:grid-cols-2 xl:grid-cols-5">
+                  <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 mt-8 lg:mt-12">
                     {tools.map((tool) => (
                       <motion.button
                         key={tool.id}
