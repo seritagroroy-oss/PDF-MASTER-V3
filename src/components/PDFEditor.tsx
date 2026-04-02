@@ -60,7 +60,7 @@ export const PDFEditor: React.FC = () => {
   const [tempIsItalic, setTempIsItalic] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(1); // 0: Small, 1: Medium, 2: Large
   const [searchQuery, setSearchQuery] = useState("");
-  const [editorZoom, setEditorZoom] = useState(1);
+  const [editorZoom, setEditorZoom] = useState(typeof window !== 'undefined' && window.innerWidth < 768 ? 0.6 : 1);
 
   const deselectAll = () => {
     setSelectedIds(new Set());
@@ -69,7 +69,7 @@ export const PDFEditor: React.FC = () => {
   const [highResUrl, setHighResUrl] = useState<string | null>(null);
   const [isRenderingHighRes, setIsRenderingHighRes] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [activeEditMode, setActiveEditMode] = useState<'text' | 'visual'>('text');
+  const [activeEditMode, setActiveEditMode] = useState<'text' | 'visual'>('visual');
   const [isPickingColor, setIsPickingColor] = useState(false);
   const [lastNonEraserColor, setLastNonEraserColor] = useState("#1a1a1a");
   const [visualTool, setVisualTool] = useState<'pen' | 'eraser' | 'magic-eraser' | 'highlighter' | 'rect' | 'circle' | 'arrow' | 'stamp' | 'text' | 'move'>('pen');
@@ -2455,14 +2455,13 @@ export const PDFEditor: React.FC = () => {
               [
                 { label: 'Modèles', icon: Layout },
                 { label: 'Éléments', icon: Shapes },
-                { label: 'Texte', icon: Type, tool: 'text' },
                 { label: 'Pinceau', icon: Pencil, tool: 'pen' },
                 { label: 'Gomme IA', icon: Sparkles, tool: 'magic-eraser' },
                 { label: 'Assistant', icon: MessageCircle, action: () => setIsAISidebarOpen(!isAISidebarOpen) },
               ].map(item => (
                 <button 
                     key={item.label}
-                    onClick={() => (item as any).action ? (item as any).action() : ((item as any).tool ? (setVisualTool((item as any).tool as any), (item as any).tool === 'text' ? setActiveEditMode('text') : setActiveEditMode('visual')) : null)}
+                    onClick={() => (item as any).action ? (item as any).action() : ((item as any).tool ? (setVisualTool((item as any).tool as any), setActiveEditMode('visual')) : null)}
                     className={cn(
                         "flex flex-col items-center gap-1 min-w-[56px] transition-all",
                         ((item as any).tool && visualTool === (item as any).tool) || (item.label === 'Assistant' && isAISidebarOpen) ? "text-[#00c4cc]" : "text-slate-400"
