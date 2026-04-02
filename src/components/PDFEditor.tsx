@@ -1933,353 +1933,187 @@ export const PDFEditor: React.FC = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-[100] bg-slate-100 flex flex-col"
+              className="fixed inset-0 z-[100] bg-[#f0f2f5] flex flex-col overflow-hidden animate-in fade-in duration-300"
             >
-              {/* Toolbar Ribon */}
-              <div className="min-h-16 lg:h-16 border-b border-slate-200 bg-white/80 backdrop-blur-md flex flex-col lg:flex-row items-center justify-between px-4 lg:px-6 py-2 lg:py-0 shrink-0 z-50 gap-4">
-                <div className="flex items-center justify-between w-full lg:w-auto gap-4">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-indigo-600 rounded-lg text-white shrink-0">
-                      <FileText size={16} />
+              {/* 1. TOP HEADER (Teal) */}
+              <header className="h-[56px] bg-[#00c4cc] flex items-center px-4 justify-between shrink-0 z-[110] shadow-md border-b border-white/10 relative">
+                <div className="flex items-center gap-5">
+                    <div className="w-9 h-9 bg-white/15 rounded-lg flex items-center justify-center hover:bg-white/25 cursor-pointer transition-colors group">
+                        <Menu size={20} className="text-white group-active:scale-95 transition-transform" />
                     </div>
-                    <div>
-                      <h3 className="text-[11px] sm:text-sm font-bold text-slate-900 leading-none">Page {editingPage.index + 1}</h3>
-                      <p className="text-[9px] text-slate-500 font-medium tracking-wide uppercase">Mode Immersif</p>
+                    <nav className="flex items-center gap-6 text-white/90 text-[14px] font-bold tracking-tight h-full">
+                        <button onClick={() => setActiveEditMode('text')} className={cn("hover:text-white transition-colors py-4 border-b-2 border-transparent", activeEditMode === 'text' && "border-white text-white")}>Fichier</button>
+                        <button className="hover:text-white transition-colors flex items-center gap-2 group">
+                          <Sparkles size={16} className="fill-white/20 group-hover:rotate-12 transition-transform" /> Transformation magique
+                        </button>
+                        <button className="hover:text-white transition-colors flex items-center gap-2">
+                          Retouche <RotateCw size={14} className="opacity-80" />
+                        </button>
+                    </nav>
+                </div>
+                
+                <div className="absolute left-1/2 -translate-x-1/2 hidden lg:block">
+                    <div className="bg-black/10 px-5 py-1.5 rounded-full text-white/80 text-[12px] font-bold border border-white/10 shadow-inner">
+                        {rawFiles[editingPage.sourceFileIndex]?.name || "Document en cours"}
                     </div>
-                  </div>
+                </div>
 
-                  <div className="flex lg:hidden items-center gap-2">
-                    <button
-                      onClick={() => setEditingPage(null)}
-                      className="p-2 hover:bg-slate-100 rounded-lg transition-all text-slate-500"
-                    >
-                      <X size={20} />
+                <div className="flex items-center gap-1 sm:gap-4 scrollbar-none">
+                    <div className="flex items-center gap-1 sm:gap-2 mr-4 bg-black/10 p-1 rounded-xl">
+                        <button onClick={() => setActiveEditMode('text')} className={cn("px-4 py-1.5 rounded-lg text-xs font-black transition-all", activeEditMode === 'text' ? "bg-white text-slate-900 shadow-sm" : "text-white/60 hover:text-white")}>Texte</button>
+                        <button onClick={() => setActiveEditMode('visual')} className={cn("px-4 py-1.5 rounded-lg text-xs font-black transition-all", activeEditMode === 'visual' ? "bg-white text-slate-900 shadow-sm" : "text-white/60 hover:text-white")}>Visuel</button>
+                    </div>
+
+                    <button className="hidden sm:flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-xl text-[13px] font-extrabold transition-all border border-white/10 shadow-lg active:scale-95">
+                        <Star size={16} className="fill-yellow-400 text-yellow-400" /> Tester pour 0 $
                     </button>
-                    <button
-                      onClick={savePageEdits}
-                      className="px-3 py-1.5 bg-indigo-600 text-white text-[11px] font-bold rounded-lg hover:bg-indigo-700 shadow-sm transition-all"
-                    >
-                      OK
+                    <button onClick={savePageEdits} className="bg-white text-[#00c4cc] px-6 py-2 rounded-xl text-[13px] font-black shadow-[0_4px_12px_rgba(0,0,0,0.1)] hover:shadow-[0_6px_20px_rgba(0,0,0,0.15)] hover:scale-[1.03] active:scale-95 transition-all">
+                        Enregistrer
                     </button>
-                  </div>
                 </div>
+              </header>
 
-                <div className="flex items-center gap-1 sm:gap-2 bg-slate-100 p-1 rounded-xl w-full lg:w-auto overflow-x-auto scrollbar-none">
-                  <button
-                    onClick={() => setActiveEditMode('text')}
-                    className={cn(
-                      "px-3 sm:px-6 py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-bold transition-all flex items-center gap-1.5 shrink-0",
-                      activeEditMode === 'text' ? "bg-white text-indigo-600 shadow-sm" : "text-slate-500 hover:bg-slate-200"
-                    )}
-                  >
-                    <Type size={14} />
-                    <span>Texte</span>
-                  </button>
-                  <button
-                    onClick={() => setActiveEditMode('visual')}
-                    className={cn(
-                      "px-3 sm:px-6 py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-bold transition-all flex items-center gap-1.5 shrink-0",
-                      activeEditMode === 'visual' ? "bg-white text-indigo-600 shadow-sm" : "text-slate-500 hover:bg-slate-200"
-                    )}
-                  >
-                    <Pencil size={14} />
-                    <span>Visuel</span>
-                  </button>
-                  <button
-                    onClick={() => setIsAISidebarOpen(!isAISidebarOpen)}
-                    className={cn(
-                      "px-3 sm:px-6 py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-bold transition-all flex items-center gap-1.5 shrink-0",
-                      isAISidebarOpen ? "bg-cyan-500 text-white shadow-sm" : "text-cyan-600 hover:bg-cyan-50"
-                    )}
-                  >
-                    <Sparkles size={14} />
-                    <span>AI</span>
-                  </button>
-                </div>
-
-                <div className="hidden lg:flex items-center gap-3">
-                  <button
-                    onClick={() => setEditingPage(null)}
-                    className="px-4 py-2 text-xs font-bold text-slate-500 hover:bg-slate-100 rounded-lg transition-all"
-                  >
-                    Fermer
-                  </button>
-                  <button
-                    onClick={savePageEdits}
-                    className="px-6 py-2 bg-indigo-600 text-white text-xs font-bold rounded-lg hover:bg-indigo-700 shadow-md transition-all"
-                  >
-                    Enregistrer
-                  </button>
-                </div>
-              </div>
-
-
-              <div className="flex-1 flex overflow-hidden">
-                {/* Main Workspace */}
-                <main className="flex-1 overflow-x-hidden overflow-y-auto bg-slate-200 flex flex-col items-center py-6 sm:py-12 px-2 sm:px-4 scrollbar-thin scroll-smooth relative">
-                  <div className="max-w-5xl w-full flex flex-col gap-4 sm:gap-6 animate-in fade-in slide-in-from-bottom-8 duration-700">
-                    <div className="bg-white rounded-2xl shadow-xl p-2 sm:p-10 border border-white/40 overflow-hidden">
-
-                      {activeEditMode === 'text' ? (
-                        <div className="space-y-6">
-                          <div className="flex justify-between items-center px-2">
-                            <div className="flex gap-2">
-                              <button
-                                onClick={runOCR}
-                                disabled={isOCRing}
-                                className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 text-indigo-600 text-xs font-bold rounded-lg hover:bg-indigo-100 transition-all disabled:opacity-50"
-                              >
-                                {isOCRing ? <Loader2 size={14} className="animate-spin" /> : <Search size={14} />}
-                                OCR
-                              </button>
-                              <button
-                                onClick={copyToClipboard}
-                                className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 text-slate-600 text-xs font-bold rounded-lg hover:bg-slate-200 transition-all"
-                              >
-                                <Check size={14} />
-                                Copier
-                              </button>
-                              <button
-                                onClick={resetPageText}
-                                className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 text-slate-600 text-xs font-bold rounded-lg hover:bg-slate-200 transition-all"
-                              >
-                                <RotateCcw size={14} />
-                                Reset
-                              </button>
+              <div className="flex flex-1 overflow-hidden relative">
+                {/* 2. LEFT SIDEBAR (Dark) */}
+                <aside className="w-[82px] bg-[#1d1e21] flex flex-col items-center py-6 gap-8 z-[100] shrink-0 border-r border-white/5 shadow-2xl relative">
+                    {[
+                        { label: 'Modèles', icon: Layout },
+                        { label: 'Éléments', icon: Shapes },
+                        { label: 'Texte', icon: Type, tool: 'text' },
+                        { label: 'Importer', icon: Upload },
+                        { label: 'Dessin', icon: Pencil, tool: 'pen' },
+                        { label: 'Projets', icon: Folder },
+                        { label: 'AI', icon: Sparkles, color: 'cyan' },
+                    ].map(item => (
+                        <button 
+                            key={item.label}
+                            onClick={() => (item as any).tool ? setVisualTool((item as any).tool as any) : ((item as any).label === 'AI' && setIsAISidebarOpen(!isAISidebarOpen))}
+                            className={cn(
+                                "flex flex-col items-center gap-1.5 w-full transition-all group relative px-1", 
+                                ((item as any).tool && visualTool === (item as any).tool) || (item.label === 'AI' && isAISidebarOpen) ? "text-white" : "text-white/50 hover:text-white/90"
+                            )}
+                        >
+                            <div className={cn(
+                                "p-3 rounded-2xl transition-all group-hover:bg-white/10 group-active:scale-90",
+                                (((item as any).tool && visualTool === (item as any).tool) || (item.label === 'AI' && isAISidebarOpen)) && "bg-white/15 text-white shadow-inner"
+                            )}>
+                                <item.icon size={26} className={cn("transition-transform", item.label === 'AI' && "text-cyan-400")} />
                             </div>
-                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                              {tempText.length} caractères
-                            </span>
-                          </div>
+                            <span className="text-[11px] font-bold tracking-tight opacity-90">{item.label}</span>
+                        </button>
+                    ))}
+                    <div className="mt-auto pb-6">
+                         <button className="text-white/40 hover:text-white transition-all p-3 hover:bg-white/10 rounded-2xl group"><Grid size={24} className="group-hover:rotate-90 transition-transform"/></button>
+                    </div>
+                </aside>
 
-                          <div className="flex flex-wrap items-center gap-4 px-4 py-3 bg-slate-50 rounded-xl border border-slate-100">
-                            <div className="flex items-center gap-1.5 border-r border-slate-200 pr-4">
-                              <Type size={14} className="text-slate-400" />
-                              <select
-                                value={tempFontSize}
-                                onChange={(e) => setTempFontSize(Number(e.target.value))}
-                                className="bg-transparent text-xs font-bold text-slate-600 outline-none"
-                              >
-                                {[8, 10, 12, 14, 16, 20, 24].map(size => (
-                                  <option key={size} value={size}>{size}px</option>
-                                ))}
-                              </select>
-                            </div>
-                            <input type="color" value={tempColor} onChange={(e) => setTempColor(e.target.value)} className="w-6 h-6 rounded cursor-pointer" />
-                          </div>
-
-                          <textarea
-                            value={tempText}
-                            onChange={(e) => setTempText(e.target.value)}
-                            style={{ fontSize: `${tempFontSize}px`, color: tempColor }}
-                            className="w-full h-96 p-8 rounded-2xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none leading-relaxed resize-none bg-white shadow-inner"
-                            placeholder="Éditez le texte ici..."
-                          />
+                {/* 3. CENTER CONTENT */}
+                <main className="flex-1 flex flex-col relative overflow-hidden">
+                    {/* CONTEXTUAL TOOLBAR (White) */}
+                    <div className="h-[56px] bg-white border-b border-slate-200 flex items-center px-8 gap-4 shrink-0 z-50 shadow-[0_2px_8px_rgba(0,0,0,0.04)] overflow-x-auto no-scrollbar scroll-smooth">
+                        <button className="flex items-center gap-2.5 px-4 py-2.5 bg-slate-50 hover:bg-slate-100 rounded-xl text-[13px] font-black text-slate-800 transition-all border border-slate-200/50 shadow-sm">
+                            <Sparkles size={18} className="text-indigo-600 fill-indigo-100" /> Écriture magique
+                        </button>
+                        <div className="h-6 w-px bg-slate-200 mx-1" />
+                        
+                        <div className="flex items-center gap-3 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 hover:border-slate-300 cursor-pointer transition-all shadow-sm group">
+                            <span className="text-[13px] font-bold text-slate-800">Open Sans</span>
+                            <Plus size={14} className="text-slate-400 rotate-45 group-hover:text-slate-600 transition-all" />
                         </div>
-                      ) : (
-                        <div className="flex flex-col md:flex-row h-[calc(100vh-140px)] w-full -mx-2 sm:-mx-10 -mt-2 sm:-mt-10 mb-[-10px] sm:rounded-2xl overflow-hidden bg-[#0A0A0A] relative shadow-2xl border border-slate-800/50">
-                          {/* Modern Floating Glass Dock */}
-                          <div className="absolute left-6 top-1/2 -translate-y-1/2 z-40 hidden md:flex flex-col items-center pointer-events-none group/sidebar">
-                            <aside className="bg-slate-900/60 backdrop-blur-2xl p-3.5 rounded-[3.5rem] border border-white/10 shadow-[0_32px_64px_rgba(0,0,0,0.6)] flex flex-col items-center justify-start gap-4 pointer-events-auto transition-all duration-500 hover:bg-slate-900/80 hover:scale-[1.01] hover:shadow-[0_40px_80px_rgba(0,0,0,0.7)] group-hover/sidebar:border-white/20">
-                              {/* Tool Group */}
-                              <div className="flex flex-col gap-2">
-                                <button 
-                                  onClick={() => setVisualTool('move')} 
-                                  title="Navigation"
-                                  className={cn(
-                                    "w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 relative group/tool",
-                                    visualTool === 'move' ? "bg-white text-slate-900 shadow-[0_0_25px_rgba(255,255,255,0.4)]" : "text-slate-400 hover:text-white hover:bg-white/5"
-                                  )}
-                                >
-                                  <RefreshCw size={20} className={cn("transition-transform group-active/tool:rotate-180 duration-500", visualTool === 'move' ? "scale-110" : "opacity-70 group-hover/tool:opacity-100")} />
-                                </button>
-                                
-                                <div className="h-px w-8 bg-white/5 mx-auto my-1" />
 
-                                {[
-                                  { id: 'pen', icon: 'Pencil', color: 'indigo' },
-                                  { id: 'text', icon: 'Type', color: 'blue' },
-                                  { id: 'rect', icon: 'SquareIcon', color: 'emerald' },
-                                  { id: 'arrow', icon: 'ArrowRight', color: 'emerald' },
-                                  { id: 'eraser', icon: 'Eraser', color: 'rose' }
-                                ].map((t) => {
-                                  const IconComponent = t.id === 'pen' ? Pencil : t.id === 'text' ? Type : t.id === 'rect' ? SquareIcon : t.id === 'arrow' ? ArrowRight : Eraser;
-                                  return (
-                                    <button 
-                                      key={t.id}
-                                      onClick={() => setVisualTool(t.id as any)} 
-                                      className={cn(
-                                        "w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 relative group/tool",
-                                        visualTool === t.id ? `bg-${t.color}-500 text-white scale-110 shadow-lg shadow-${t.color}-500/20` : "text-slate-400 hover:text-white hover:bg-white/5"
-                                      )}
-                                      style={visualTool === t.id ? { boxShadow: (t.id === 'pen' ? '0 0 20px #6366f180' : t.id === 'text' ? '0 0 20px #3b82f680' : t.id === 'eraser' ? '0 0 20px #f43f5e80' : '0 0 20px #10b98180') } : {}}
-                                    >
-                                      <IconComponent size={20} />
-                                    </button>
-                                  );
-                                })}
-                              </div>
+                        <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl p-1.5 shadow-sm">
+                            <button onClick={() => setBrushSize(prev => Math.max(1, prev - 1))} className="w-8 h-8 flex items-center justify-center hover:bg-white rounded-lg text-slate-600 shadow-sm transition-all active:scale-90"><Minus size={18}/></button>
+                            <div className="px-3 text-[14px] font-black text-slate-900 min-w-[32px] text-center">{brushSize}</div>
+                            <button onClick={() => setBrushSize(prev => Math.min(50, prev + 1))} className="w-8 h-8 flex items-center justify-center hover:bg-white rounded-lg text-slate-600 shadow-sm transition-all active:scale-90"><Plus size={18}/></button>
+                        </div>
 
-                              <div className="h-px w-10 bg-white/10" />
+                        <div className="h-6 w-px bg-slate-200 mx-1" />
+                        
+                        <div className="flex items-center gap-1">
+                            <label className="w-10 h-10 flex items-center justify-center hover:bg-slate-50 rounded-xl transition-all cursor-pointer group relative border border-transparent hover:border-slate-200">
+                                <div className="w-7 h-7 rounded-lg border-2 border-white shadow-lg transition-transform group-active:scale-90 ring-1 ring-black/5" style={{ backgroundColor: tempColor }} />
+                                <input type="color" value={tempColor} onChange={(e) => setTempColor(e.target.value)} className="absolute inset-0 opacity-0 cursor-pointer" />
+                            </label>
+                            <button onClick={() => setTempIsBold(!tempIsBold)} className={cn("w-10 h-10 flex items-center justify-center hover:bg-slate-50 rounded-xl transition-all font-black text-lg", tempIsBold ? "bg-slate-100 text-[#00c4cc]" : "text-slate-600")}><Bold size={18}/></button>
+                            <button onClick={() => setTempIsItalic(!tempIsItalic)} className={cn("w-10 h-10 flex items-center justify-center hover:bg-slate-50 rounded-xl transition-all italic text-lg", tempIsItalic ? "bg-slate-100 text-[#00c4cc]" : "text-slate-600")}><Italic size={18}/></button>
+                            <button className="w-10 h-10 flex items-center justify-center hover:bg-slate-50 rounded-xl transition-all"><Underline size={18} className="text-slate-600"/></button>
+                        </div>
 
-                              {/* Properties Group */}
-                              <div className="flex flex-col items-center gap-4">
-                                {['pen', 'rect', 'circle', 'arrow', 'text'].includes(visualTool) && (
-                                  <div className="flex flex-col items-center gap-3">
-                                    <div className="grid grid-cols-2 gap-1.5 p-1 bg-white/5 rounded-2xl">
-                                      {['#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#ffffff', '#1a1a1a'].map(c => (
-                                        <button 
-                                          key={c}
-                                          onClick={() => setTempColor(c)}
-                                          className={cn(
-                                            "w-5 h-5 rounded-full transition-all border border-transparent",
-                                            tempColor === c ? "scale-125 ring-2 ring-white shadow-xl rotate-12" : "hover:scale-110 opacity-60 hover:opacity-100"
-                                          )}
-                                          style={{ backgroundColor: c }}
-                                        />
-                                      ))}
-                                    </div>
-                                    <label className="relative cursor-pointer group/color">
-                                      <div className="w-10 h-10 rounded-2xl border border-white/10 p-0.5 bg-slate-900/40 shadow-inner group-hover/color:border-white/30 transition-colors flex items-center justify-center">
-                                        <div className="w-full h-full rounded-[0.8rem]" style={{ backgroundColor: tempColor }} />
-                                      </div>
-                                      <input type="color" value={tempColor} onChange={(e) => setTempColor(e.target.value)} className="absolute inset-0 opacity-0 cursor-pointer" />
-                                    </label>
-                                  </div>
-                                )}
-
-                                {['pen', 'eraser', 'rect', 'arrow'].includes(visualTool) && (
-                                  <div className="flex flex-col items-center gap-3 bg-white/5 rounded-[2rem] p-3 py-4">
-                                    <input
-                                      type="range"
-                                      min="1"
-                                      max="50"
-                                      value={brushSize}
-                                      onChange={(e) => setBrushSize(Number(e.target.value))}
-                                      style={{ writingMode: 'vertical-lr', WebkitAppearance: 'slider-vertical' }}
-                                      className="w-2 h-24 bg-slate-700/50 rounded-full cursor-pointer accent-indigo-500 opacity-60 hover:opacity-100 transition-opacity"
-                                    />
-                                  </div>
-                                )}
-                              </div>
-
-                              <div className="h-px w-10 bg-white/10" />
-
-                              {/* View & History Group */}
-                              <div className="flex flex-col items-center gap-3">
-                                <div className="flex flex-col items-center gap-0.5 bg-white/5 rounded-[2.5rem] p-1">
-                                  <button onClick={() => setEditorZoom(prev => Math.min(3, prev + 0.1))} className="w-10 h-10 flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 rounded-full transition-all"><Plus size={16} /></button>
-                                  <span className="text-[9px] font-black text-slate-500 py-1">{Math.round(editorZoom * 100)}%</span>
-                                  <button onClick={() => setEditorZoom(prev => Math.max(0.2, prev - 0.1))} className="w-10 h-10 flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 rounded-full transition-all"><Minus size={16} /></button>
-                                </div>
-
-                                <div className="flex flex-col gap-1.5 mt-2">
-                                  <button onClick={undo} title="Undo" className="w-10 h-10 flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 rounded-full transition-all"><Undo2 size={18} /></button>
-                                  <button onClick={redo} title="Redo" className="w-10 h-10 flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 rounded-full transition-all"><RotateCcw size={18} className="translate-y-px" /></button>
-                                  <button onClick={clearDrawings} title="Clear All" className="w-10 h-10 flex items-center justify-center text-rose-500/50 hover:text-rose-400 hover:bg-rose-500/10 rounded-full transition-all"><Trash2 size={18} /></button>
-                                </div>
-                              </div>
-                            </aside>
-                          </div>
-                          {/* Mobile Modern Navigation Overlay */}
-                          <div className="md:hidden fixed bottom-6 left-4 right-4 z-[70] bg-slate-900/70 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] p-3.5 flex items-center justify-between shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
-                            <div className="flex items-center gap-2 overflow-x-auto scrollbar-none px-2 flex-1">
-                               {[
-                                  { t: 'move', i: RefreshCw },
-                                  { t: 'pen', i: Pencil },
-                                  { t: 'text', i: Type },
-                                  { t: 'rect', i: SquareIcon },
-                                  { t: 'arrow', i: ArrowRight },
-                                  { t: 'eraser', i: Eraser }
-                               ].map((tool) => (
-                                 <button
-                                   key={tool.t}
-                                   onClick={() => setVisualTool(tool.t as any)}
-                                   className={cn(
-                                     "w-12 h-12 rounded-2xl flex items-center justify-center transition-all shrink-0",
-                                     visualTool === tool.t ? "bg-white text-slate-900 shadow-xl scale-105" : "bg-white/5 text-slate-400"
-                                   )}
-                                 >
-                                   <tool.i size={20} />
-                                 </button>
-                               ))}
+                        <div className="ml-auto flex items-center gap-2">
+                            <div className="flex bg-slate-50 border border-slate-200 rounded-xl p-1 shadow-sm">
+                                <button onClick={undo} className="w-8 h-8 flex items-center justify-center hover:bg-white rounded-lg text-slate-400 hover:text-slate-800 transition-all active:scale-90"><Undo2 size={18}/></button>
+                                <button onClick={redo} className="w-8 h-8 flex items-center justify-center hover:bg-white rounded-lg text-slate-400 hover:text-slate-800 transition-all active:scale-90"><RotateCcw size={18} className="rotate-180"/></button>
                             </div>
-                            <div className="w-px h-10 bg-white/10 mx-3 shrink-0" />
-                            <div className="flex items-center gap-1.5 shrink-0 px-2">
-                              <button onClick={undo} className="w-12 h-12 flex items-center justify-center bg-white/5 text-slate-400 rounded-2xl transition-all active:scale-90"><Undo2 size={20} /></button>
-                              <button onClick={clearDrawings} className="w-12 h-12 flex items-center justify-center bg-rose-500/10 text-rose-500 rounded-2xl transition-all active:scale-90"><Trash2 size={20} /></button>
-                            </div>
-                          </div>
+                            <div className="h-6 w-px bg-slate-200 mx-1" />
+                            <button onClick={() => setEditingPage(null)} className="w-10 h-10 flex items-center justify-center hover:bg-rose-50 text-slate-400 hover:text-rose-500 rounded-xl transition-all active:scale-90 bg-slate-50 border border-slate-200 shadow-sm"><X size={20}/></button>
+                        </div>
+                    </div>
 
-                          {/* Canvas Area  */}
-                          <div className="flex-1 flex flex-col h-full relative overflow-hidden bg-[radial-gradient(#334155_1px,transparent_1px)] [background-size:24px_24px] bg-[#0A0A0A]">
-                            
-
-
-
-                            <div className="flex-1 flex overflow-auto p-4 sm:p-12 scrollbar-none items-start justify-center">
-                              <div className="relative shadow-xl transition-all w-fit my-auto mx-auto">
-                                <canvas
-                                  ref={canvasRef}
-                                  onPointerDown={startDrawing}
-                                  onPointerMove={draw}
-                                  onPointerUp={stopDrawing}
-                                  onPointerLeave={stopDrawing}
-                                  style={{
-                                    width: canvasDimensions.width ? `${canvasDimensions.width * editorZoom}px` : 'auto',
-                                    height: canvasDimensions.height ? `${canvasDimensions.height * editorZoom}px` : 'auto',
-                                    filter: isEyeSaverMode ? "invert(1) hue-rotate(180deg)" : "none",
-                                    touchAction: visualTool === 'move' ? 'auto' : 'none',
-                                    cursor: visualTool === 'move' ? 'grab' : 'crosshair'
-                                  }}
-                                  className="bg-white touch-none shadow-[0_0_40px_rgba(0,0,0,0.5)] rounded-sm"
+                    {/* WORKSPACE */}
+                    <div className="flex-1 overflow-auto bg-[#e3e5e8] flex items-center justify-center p-8 sm:p-20 relative no-scrollbar scroll-smooth">
+                        <div 
+                          className="relative shadow-[0_20px_50px_rgba(0,0,0,0.15)] bg-white transition-all transform-gpu origin-center max-w-full"
+                          style={{ transform: `scale(${editorZoom})` }}
+                        >
+                            {activeEditMode === 'text' ? (
+                                <div className="p-12 w-full max-w-4xl mx-auto">
+                                   <div className="flex justify-between items-center mb-6">
+                                       <div className="flex gap-2">
+                                          <button onClick={runOCR} disabled={isOCRing} className="px-4 py-2 bg-indigo-600 text-white rounded-xl font-bold flex items-center gap-2 hover:bg-indigo-700 disabled:opacity-50 transition-all">
+                                              {isOCRing ? <Loader2 size={16} className="animate-spin" /> : <Search size={16} />} OCR
+                                          </button>
+                                          <button onClick={copyToClipboard} className="px-4 py-2 bg-slate-100 text-slate-600 rounded-xl font-bold hover:bg-slate-200 transition-all">Copier</button>
+                                       </div>
+                                   </div>
+                                   <textarea
+                                      value={tempText}
+                                      onChange={(e) => setTempText(e.target.value)}
+                                      style={{ fontSize: `${tempFontSize}px`, color: tempColor, minHeight: '600px' }}
+                                      className="w-full p-12 bg-white outline-none leading-relaxed resize-none shadow-inner border border-slate-100 rounded-sm"
+                                      placeholder="Éditez le texte..."
+                                   />
+                                </div>
+                            ) : (
+                                <canvas 
+                                    ref={canvasRef}
+                                    onPointerDown={startDrawing}
+                                    onPointerMove={draw}
+                                    onPointerUp={stopDrawing}
+                                    onPointerLeave={stopDrawing}
+                                    style={{
+                                        width: canvasDimensions.width ? `${canvasDimensions.width}px` : 'auto',
+                                        height: canvasDimensions.height ? `${canvasDimensions.height}px` : 'auto',
+                                        filter: isEyeSaverMode ? "invert(1) hue-rotate(180deg)" : "none",
+                                        touchAction: visualTool === 'move' ? 'auto' : 'none',
+                                        cursor: visualTool === 'move' ? 'grab' : 'crosshair'
+                                    }}
+                                    className="bg-white touch-none"
                                 />
-
+                            )}
+                            
                             {textInput && (
                               <div
-                                className="absolute bg-white/95 backdrop-blur-md p-3 rounded-2xl shadow-2xl border-2 border-indigo-500 z-50 flex items-center gap-3 animate-in fade-in zoom-in-95 duration-200"
+                                className="absolute bg-white/95 backdrop-blur-md p-4 rounded-2xl shadow-2xl border border-indigo-200 z-[120] flex items-center gap-4 animate-in fade-in zoom-in-95 duration-200 ring-4 ring-indigo-500/10 min-w-[300px]"
                                 style={{
                                   left: `${(textInput.x / canvasDimensions.width) * 100}%`,
                                   top: `${(textInput.y / canvasDimensions.height) * 100}%`,
                                   transform: 'translate(-50%, -50%)',
-                                  cursor: 'move'
-                                }}
-                                onMouseDown={(e) => {
-                                  // Dragging logic
-                                  const startX = e.clientX;
-                                  const startY = e.clientY;
-                                  const startPosX = textInput.x;
-                                  const startPosY = textInput.y;
-
-                                  const onMove = (moveEvent: MouseEvent) => {
-                                    const dx = (moveEvent.clientX - startX) * (canvasDimensions.width / canvasRef.current!.clientWidth);
-                                    const dy = (moveEvent.clientY - startY) * (canvasDimensions.height / canvasRef.current!.clientHeight);
-                                    setTextInput(prev => prev ? { ...prev, x: startPosX + dx, y: startPosY + dy } : null);
-                                  };
-
-                                  const onUp = () => {
-                                    window.removeEventListener('mousemove', onMove);
-                                    window.removeEventListener('mouseup', onUp);
-                                  };
-
-                                  window.addEventListener('mousemove', onMove);
-                                  window.addEventListener('mouseup', onUp);
                                 }}
                               >
-                                <div className="flex flex-col gap-2">
-                                  <div className="flex items-center gap-2 p-1 bg-slate-50 rounded-xl" onMouseDown={(e) => e.stopPropagation()}>
-                                    <button onClick={() => setTextInput({ ...textInput, isBold: !textInput.isBold })} className={cn("w-7 h-7 rounded-lg flex items-center justify-center transition-all", textInput.isBold ? "bg-indigo-600 text-white" : "text-slate-400 hover:bg-slate-200")}><Bold size={12} /></button>
-                                    <button onClick={() => setTextInput({ ...textInput, isItalic: !textInput.isItalic })} className={cn("w-7 h-7 rounded-lg flex items-center justify-center transition-all", textInput.isItalic ? "bg-indigo-600 text-white" : "text-slate-400 hover:bg-slate-200")}><Italic size={12} /></button>
-                                    <button onClick={() => setTextInput({ ...textInput, isHighlighted: !textInput.isHighlighted })} className={cn("w-7 h-7 rounded-lg flex items-center justify-center transition-all", textInput.isHighlighted ? "bg-yellow-400 text-white" : "text-slate-400 hover:bg-slate-200")}><Highlighter size={12} /></button>
-                                    <div className="h-3 w-px bg-slate-200 mx-1" />
-                                    <input
-                                      type="number"
-                                      value={textInput.fontSize || 20}
-                                      onChange={(e) => setTextInput({ ...textInput, fontSize: Number(e.target.value) })}
-                                      className="w-10 bg-transparent text-[10px] font-bold text-center outline-none"
-                                    />
+                                <div className="flex flex-col gap-3 w-full">
+                                  <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                                     <span className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Édition de texte</span>
+                                     <div className="flex items-center gap-1 bg-slate-50 rounded-lg p-0.5">
+                                         <button onClick={() => setTextInput({ ...textInput, isBold: !textInput.isBold })} className={cn("w-7 h-7 rounded-md flex items-center justify-center transition-all", textInput.isBold ? "bg-indigo-600 text-white" : "text-slate-400 hover:bg-slate-200")}><Bold size={14} /></button>
+                                         <button onClick={() => setTextInput({ ...textInput, isItalic: !textInput.isItalic })} className={cn("w-7 h-7 rounded-md flex items-center justify-center transition-all", textInput.isItalic ? "bg-indigo-600 text-white" : "text-slate-400 hover:bg-slate-200")}><Italic size={14} /></button>
+                                         <input
+                                           type="number"
+                                           value={textInput.fontSize || 20}
+                                           onChange={(e) => setTextInput({ ...textInput, fontSize: Number(e.target.value) })}
+                                           className="w-10 bg-transparent text-[12px] font-black text-center outline-none text-slate-700"
+                                         />
+                                     </div>
                                   </div>
-
                                   <div className="flex items-center gap-3">
                                     <input
                                       autoFocus
@@ -2287,12 +2121,9 @@ export const PDFEditor: React.FC = () => {
                                       style={{
                                         fontWeight: textInput.isBold ? 'bold' : 'normal',
                                         fontStyle: textInput.isItalic ? 'italic' : 'normal',
-                                        backgroundColor: textInput.isHighlighted ? '#fef08a' : 'transparent',
-                                        fontSize: `${(textInput.fontSize || 20) * (canvasRef.current!.clientWidth / canvasDimensions.width)}px`
+                                        fontSize: `16px`
                                       }}
                                       onChange={(e) => setTextInput({ ...textInput, text: e.target.value })}
-                                      onClick={(e) => e.stopPropagation()}
-                                      onMouseDown={(e) => e.stopPropagation()}
                                       onKeyDown={(e) => {
                                         if (e.key === 'Enter' && textInput.text.trim()) {
                                           setCurrentDrawings(prev => [...prev, {
@@ -2304,79 +2135,77 @@ export const PDFEditor: React.FC = () => {
                                             fontSize: (textInput.fontSize || 20),
                                             isBold: textInput.isBold,
                                             isItalic: textInput.isItalic,
-                                            isHighlighted: textInput.isHighlighted,
                                             canvasWidth: canvasDimensions.width,
                                             canvasHeight: canvasDimensions.height
                                           }]);
                                           setTextInput(null);
                                         }
                                       }}
-                                      className="bg-transparent text-slate-900 outline-none w-full max-w-[200px] sm:max-w-none sm:min-w-[150px]"
-                                      placeholder="Écrivez..."
+                                      className="bg-slate-50 rounded-xl px-4 py-3 text-slate-900 outline-none w-full border border-slate-200 focus:border-indigo-400 focus:ring-2 ring-indigo-100 transition-all"
+                                      placeholder="Appuyez sur Entrée pour valider..."
                                     />
-
-                                    <div className="flex gap-1 border-l border-slate-200 pl-2">
-                                      <button onClick={(e) => { e.stopPropagation(); setTextInput(null); }} className="p-1 hover:bg-rose-50 rounded text-rose-500"><X size={14} /></button>
-                                      <button
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          if (textInput.text.trim()) {
-                                            setCurrentDrawings(prev => [...prev, {
-                                              points: [{ x: textInput.x, y: textInput.y }],
-                                              color: tempColor,
-                                              width: 0,
-                                              mode: 'text',
-                                              text: textInput.text,
-                                              fontSize: (textInput.fontSize || 20),
-                                              isBold: textInput.isBold,
-                                              isItalic: textInput.isItalic,
-                                              isHighlighted: textInput.isHighlighted,
-                                              canvasWidth: canvasDimensions.width,
-                                              canvasHeight: canvasDimensions.height
-                                            }]);
-                                            setTextInput(null);
-                                          }
-                                        }}
-                                        className="p-1 hover:bg-emerald-50 rounded text-emerald-600"
-                                      >
-                                        <Check size={14} />
-                                      </button>
-                                    </div>
+                                    <button onClick={() => setTextInput(null)} className="w-10 h-10 flex items-center justify-center hover:bg-rose-50 text-rose-500 rounded-xl transition-all shrink-0"><X size={20}/></button>
                                   </div>
                                 </div>
                               </div>
                             )}
-                              </div>
-                            </div>
-
-                          </div>
                         </div>
-                      )}
                     </div>
-                  </div>
+
+                    {/* BOTTOM STATUS BAR */}
+                    <footer className="h-[44px] bg-white border-t border-slate-200 flex items-center justify-between px-6 shrink-0 z-50 text-[12px] font-bold text-slate-500 shadow-[0_-2px_10px_rgba(0,0,0,0.03)] focus-within:ring-0">
+                        <div className="flex items-center gap-8">
+                            <button className="flex items-center gap-2 hover:text-slate-900 transition-colors group"><FileText size={16} className="group-hover:scale-110 transition-transform" /> Notes</button>
+                            <button className="flex items-center gap-2 hover:text-slate-900 transition-colors group"><Layout size={16} className="group-hover:scale-110 transition-transform"/> Plan</button>
+                            <button className="flex items-center gap-2 hover:text-slate-900 transition-colors group"><RotateCw size={16} className="opacity-80 group-hover:rotate-180 transition-all duration-500"/> Minuteur</button>
+                        </div>
+                        
+                        <div className="flex items-center gap-6">
+                           <div className="flex items-center gap-4 bg-slate-50 px-4 py-1.5 rounded-full border border-slate-100 shadow-inner">
+                               <button onClick={() => setEditorZoom(prev => Math.max(0.1, prev - 0.1))} className="hover:text-slate-900 transition-colors active:scale-75"><Minus size={16} /></button>
+                               <div className="w-32 h-1.5 bg-slate-200 rounded-full relative group cursor-pointer overflow-hidden">
+                                   <div className="absolute top-0 left-0 h-full bg-[#00c4cc] transition-all duration-300 shadow-[0_0_8px_#00c4cc]" style={{ width: `${(editorZoom / 3) * 100}%` }} />
+                               </div>
+                               <button onClick={() => setEditorZoom(prev => Math.min(3, prev + 0.1))} className="hover:text-slate-900 transition-colors active:scale-75"><Plus size={16} /></button>
+                               <span className="w-14 text-center text-slate-900 font-black">{Math.round(editorZoom * 100)}%</span>
+                           </div>
+                           <div className="flex items-center gap-4 border-l border-slate-200 pl-6 ml-2">
+                               <button className="hover:text-slate-900 hover:rotate-45 transition-transform"><Settings size={18} /></button>
+                               <button className="hover:text-slate-900 active:rotate-180 transition-transform"><RotateCw size={18} /></button>
+                               <button className="bg-slate-900 text-white w-20 py-1.5 rounded-lg hover:bg-slate-800 transition-colors shadow-lg active:scale-95">Page: {editingPage.index + 1}</button>
+                           </div>
+                        </div>
+                    </footer>
                 </main>
 
-                {/* Sidebar AI */}
+                {/* Sidebar AI Integrated */}
                 <AnimatePresence>
                   {isAISidebarOpen && (
                     <motion.div
                       initial={{ x: '100%' }}
                       animate={{ x: 0 }}
                       exit={{ x: '100%' }}
-                      className="absolute inset-y-0 right-0 w-full md:w-96 border-l border-slate-100 bg-white flex flex-col z-[60] shadow-2xl"
+                      className="absolute inset-y-0 right-0 w-80 lg:w-96 border-l border-slate-200 bg-white flex flex-col z-[105] shadow-2xl"
                     >
-
-                      <div className="p-6 space-y-6">
-                        <div className="flex justify-between items-center">
-                          <h4 className="font-bold flex items-center gap-2"><Sparkles size={18} className="text-cyan-500" />Assistant AI</h4>
-                          <button onClick={() => setIsAISidebarOpen(false)}><X size={18} /></button>
+                      <div className="p-6 space-y-6 flex flex-col h-full bg-[#f8f9fa]">
+                        <div className="flex justify-between items-center border-b border-slate-200 pb-4">
+                          <h4 className="font-black flex items-center gap-2 text-slate-900 tracking-tight"><Sparkles size={20} className="text-[#00c4cc]" /> Assistant Intelligence</h4>
+                          <button onClick={() => setIsAISidebarOpen(false)} className="p-2 hover:bg-slate-100 rounded-xl transition-all"><X size={20} /></button>
                         </div>
-                        <div className="grid grid-cols-2 gap-2">
-                          <button onClick={() => askAI('summary')} className="p-4 bg-slate-50 rounded-xl text-xs font-bold hover:bg-indigo-50 transition-all">Résumé</button>
-                          <button onClick={() => askAI('translate')} className="p-4 bg-slate-50 rounded-xl text-xs font-bold hover:bg-indigo-50 transition-all">Traduire</button>
+                        <div className="grid grid-cols-2 gap-3">
+                          <button onClick={() => askAI('summary')} className="p-4 bg-white border border-slate-200 rounded-2xl text-[11px] font-black hover:bg-cyan-50 hover:border-cyan-200 transition-all shadow-sm">Résumé Automatique</button>
+                          <button onClick={() => askAI('translate')} className="p-4 bg-white border border-slate-200 rounded-2xl text-[11px] font-black hover:bg-cyan-50 hover:border-cyan-200 transition-all shadow-sm">Traduction Directe</button>
                         </div>
-                        <div className="flex-1 bg-slate-50 rounded-2xl p-6 min-h-[300px] overflow-auto text-sm leading-relaxed whitespace-pre-wrap font-medium text-slate-600">
-                          {isAIProcessing ? <div className="flex items-center justify-center h-full animate-pulse">L'IA réfléchit...</div> : aiResponse || "Choisissez un outil IA."}
+                        <div className="flex-1 bg-white border border-slate-200 rounded-2xl p-6 overflow-auto text-sm leading-relaxed whitespace-pre-wrap font-medium text-slate-700 shadow-inner">
+                          {isAIProcessing ? (
+                            <div className="flex flex-col items-center justify-center h-full gap-4 text-center">
+                              <Loader2 size={32} className="animate-spin text-[#00c4cc]" />
+                              <span className="text-slate-400 font-bold animate-pulse">L'IA parcourt votre document...</span>
+                            </div>
+                          ) : aiResponse || "Posez une question ou utilisez un outil pour analyser cette page."}
+                        </div>
+                        <div className="mt-4 p-4 bg-cyan-900 rounded-2xl text-white text-[11px] font-bold flex items-center gap-2 overflow-hidden">
+                            <Zap size={14} className="fill-white shrink-0" /> Propulsé par Google Gemini
                         </div>
                       </div>
                     </motion.div>
