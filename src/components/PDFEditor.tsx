@@ -2129,19 +2129,19 @@ export const PDFEditor: React.FC = () => {
                           {/* Canvas Area  */}
                           <div className="flex-1 flex flex-col h-full relative overflow-hidden bg-[radial-gradient(#334155_1px,transparent_1px)] [background-size:24px_24px] bg-[#0A0A0A]">
                             
-                            {/* Floating Bottom Properties Bar */}
-                            <div className="absolute bottom-4 md:bottom-8 left-2 right-2 md:left-4 md:right-4 z-20 flex justify-center pointer-events-none">
-                              <div className="bg-slate-900/80 backdrop-blur-xl px-4 md:px-6 py-2 md:py-3 rounded-2xl md:rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.5)] border border-white/10 flex flex-wrap md:flex-nowrap items-center justify-center gap-3 md:gap-6 pointer-events-auto transition-all animate-in slide-in-from-bottom-8 duration-500 w-[95%] md:w-auto">
+                            {/* Floating Right Properties Bar */}
+                            <div className="absolute right-4 top-1/2 -translate-y-1/2 z-20 flex flex-col justify-center pointer-events-none h-[calc(100%-2rem)]">
+                              <div className="bg-slate-900/80 backdrop-blur-xl p-3 md:p-4 rounded-[2rem] shadow-[0_8px_32px_rgba(0,0,0,0.5)] border border-white/10 flex flex-col items-center justify-center gap-4 pointer-events-auto transition-all animate-in slide-in-from-right-8 duration-500 w-auto max-h-full overflow-y-auto scrollbar-none">
                                 
                                 {['pen', 'rect', 'circle', 'arrow', 'text'].includes(visualTool) && (
-                                  <div className="flex items-center gap-2 md:gap-4">
-                                    <div className="flex items-center gap-1.5 mr-2">
+                                  <div className="flex flex-col items-center gap-3 w-full">
+                                    <div className="grid grid-cols-2 gap-2">
                                       {/* Quick vibrant colors */}
                                       {['#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#1a1a1a', '#ffffff'].map(c => (
                                         <button 
                                           key={c}
                                           onClick={() => setTempColor(c)}
-                                          className={cn("w-5 h-5 md:w-6 md:h-6 rounded-full border-2 shadow-sm transition-transform hover:scale-110", tempColor === c ? "scale-110 ring-2 ring-white/50 border-transparent relative z-10" : "border-white/20")}
+                                          className={cn("w-6 h-6 rounded-full border-2 shadow-sm transition-transform hover:scale-110", tempColor === c ? "scale-110 ring-2 ring-white/50 border-transparent relative z-10" : "border-white/20")}
                                           style={{ backgroundColor: c }}
                                         />
                                       ))}
@@ -2150,59 +2150,62 @@ export const PDFEditor: React.FC = () => {
                                       type="color" 
                                       value={tempColor} 
                                       onChange={(e) => setTempColor(e.target.value)} 
-                                      className="w-6 h-6 md:w-8 md:h-8 rounded-full cursor-pointer border-2 border-slate-700 bg-slate-800 shadow-inner overflow-hidden shrink-0" 
+                                      className="w-10 h-10 rounded-full cursor-pointer border-2 border-slate-700 bg-slate-800 shadow-inner overflow-hidden shrink-0 mt-1" 
                                       title="Couleur personnalisée"
                                     />
-                                    <div className="w-px h-4 md:h-6 bg-slate-700 ml-1" />
+                                    <div className="w-8 h-px bg-slate-700 my-1" />
                                   </div>
                                 )}
                                 
                                 {['pen', 'eraser', 'magic-eraser', 'rect', 'circle', 'arrow'].includes(visualTool) && (
-                                  <div className="flex items-center gap-2 md:gap-4 w-28 md:w-32 lg:w-48 bg-slate-800/50 rounded-full px-3 py-1">
-                                    <span className="text-[9px] md:text-[10px] font-bold text-indigo-300 uppercase tracking-widest min-w-[3ch]">{brushSize}</span>
+                                  <div className="flex flex-col items-center gap-3 w-full bg-slate-800/50 rounded-2xl p-2 py-4">
+                                    <span className="text-[10px] font-bold text-indigo-300 uppercase tracking-widest leading-none">{brushSize}</span>
                                     <input
                                       type="range"
                                       min="1"
                                       max="50"
                                       value={brushSize}
                                       onChange={(e) => setBrushSize(Number(e.target.value))}
-                                      className="flex-1 h-1 md:h-1.5 bg-slate-600 rounded-lg appearance-none cursor-pointer accent-indigo-400"
                                       title="Taille de l'outil"
+                                      style={{ writingMode: 'vertical-lr', direction: 'rtl', WebkitAppearance: 'slider-vertical' }}
+                                      className="w-3 h-24 bg-slate-600 rounded-lg cursor-pointer accent-indigo-400"
                                     />
                                   </div>
                                 )}
 
                                 {visualTool === 'move' && (
-                                  <button 
-                                    onClick={() => setIsTableProtectionEnabled(!isTableProtectionEnabled)} 
-                                    title="Protéger les lignes du tableau" 
-                                    className={cn(
-                                      "px-3 md:px-4 py-1.5 rounded-full text-[9px] md:text-[10px] font-black uppercase flex items-center gap-1.5 transition-all outline-none", 
-                                      isTableProtectionEnabled ? "bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-[0_0_15px_rgba(16,185,129,0.3)]" : "bg-slate-800 text-slate-400 hover:text-slate-200 hover:bg-slate-700"
-                                    )}
-                                  >
-                                    {isTableProtectionEnabled ? <Lock size={12} /> : <ScanLine size={12} />}
-                                    <span className="hidden sm:inline">Grille Tableaux</span>
-                                  </button>
+                                  <>
+                                    <button 
+                                      onClick={() => setIsTableProtectionEnabled(!isTableProtectionEnabled)} 
+                                      title="Protéger les lignes du tableau" 
+                                      className={cn(
+                                        "p-3 rounded-2xl flex flex-col items-center justify-center transition-all outline-none", 
+                                        isTableProtectionEnabled ? "bg-gradient-to-br from-emerald-500 to-teal-500 text-white shadow-[0_0_15px_rgba(16,185,129,0.3)]" : "bg-slate-800 text-slate-400 hover:text-slate-200 hover:bg-slate-700"
+                                      )}
+                                    >
+                                      {isTableProtectionEnabled ? <Lock size={16} /> : <ScanLine size={16} />}
+                                      <span className="text-[8px] font-black uppercase mt-1.5 text-center leading-tight">Grille</span>
+                                    </button>
+                                    <div className="w-8 h-px bg-slate-700 my-1" />
+                                  </>
                                 )}
 
-                                <div className="hidden md:block w-px h-6 bg-slate-700 mx-1 md:mx-3" />
-
-                                <div className="flex items-center gap-1 shrink-0 bg-slate-800 rounded-full md:rounded-xl p-1 shadow-inner border border-slate-700">
-                                  <button onClick={() => setEditorZoom(prev => Math.max(0.5, prev - 0.2))} className="p-1 md:p-1.5 text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg transition-colors"><Minus size={14} /></button>
-                                  <span className="text-[10px] font-bold text-slate-300 min-w-[35px] text-center">{Math.round(editorZoom * 100)}%</span>
-                                  <button onClick={() => setEditorZoom(prev => Math.min(3, prev + 0.2))} className="p-1 md:p-1.5 text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg transition-colors"><Plus size={14} /></button>
+                                <div className="flex flex-col items-center gap-1 shrink-0 bg-slate-800 rounded-2xl p-1.5 shadow-inner border border-slate-700 w-full">
+                                  <button onClick={() => setEditorZoom(prev => Math.min(3, prev + 0.2))} className="p-2 w-full flex justify-center text-slate-400 hover:text-white hover:bg-slate-700 rounded-xl transition-colors"><Plus size={16} /></button>
+                                  <span className="text-[10px] font-bold text-slate-300 w-full text-center py-1">{Math.round(editorZoom * 100)}%</span>
+                                  <button onClick={() => setEditorZoom(prev => Math.max(0.5, prev - 0.2))} className="p-2 w-full flex justify-center text-slate-400 hover:text-white hover:bg-slate-700 rounded-xl transition-colors"><Minus size={16} /></button>
                                 </div>
 
-                                <div className="hidden md:block w-px h-6 bg-slate-700 mx-1 md:mx-3" />
+                                <div className="w-8 h-px bg-slate-700 my-1" />
 
-                                <div className="flex items-center justify-center gap-1 mt-1 md:mt-0 w-full md:w-auto border-t md:border-t-0 border-slate-700 pt-1 md:pt-0">
-                                  <button onClick={undo} title="Annuler" className="p-1.5 md:p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-full transition-all active:scale-95"><Undo2 size={16} /></button>
-                                  <button onClick={redo} title="Rétablir" className="p-1.5 md:p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-full transition-all active:scale-95"><RotateCcw size={16} className="rotate-180" /></button>
-                                  <button onClick={clearDrawings} title="Tout effacer" className="p-1.5 md:p-2 text-rose-400 hover:text-rose-200 hover:bg-rose-950/50 rounded-full transition-all active:scale-95"><Trash2 size={16} /></button>
+                                <div className="flex flex-col items-center justify-center gap-2 w-full">
+                                  <button onClick={undo} title="Annuler" className="p-2 md:p-3 text-slate-400 hover:text-white hover:bg-slate-800 rounded-2xl transition-all active:scale-95"><Undo2 size={18} /></button>
+                                  <button onClick={redo} title="Rétablir" className="p-2 md:p-3 text-slate-400 hover:text-white hover:bg-slate-800 rounded-2xl transition-all active:scale-95"><RotateCcw size={18} className="rotate-180" /></button>
+                                  <button onClick={clearDrawings} title="Tout effacer" className="p-2 md:p-3 text-rose-400 hover:text-rose-200 hover:bg-rose-950/50 rounded-2xl transition-all active:scale-95"><Trash2 size={18} /></button>
                                 </div>
                               </div>
                             </div>
+
 
                             <div className="flex-1 flex overflow-auto p-4 sm:p-12 scrollbar-none items-start justify-center">
                               <div className="relative shadow-xl transition-all w-fit my-auto mx-auto">
