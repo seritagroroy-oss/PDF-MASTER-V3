@@ -1979,11 +1979,6 @@ export const PDFEditor: React.FC = () => {
                           <Sparkles size={16} className="fill-white/20 group-hover:rotate-12 transition-transform" /> Transformation magique
                         </button>
                     </nav>
-
-                    <div className="flex items-center gap-1.5 sm:hidden bg-black/10 rounded-full px-1 py-0.5 ml-1">
-                        <button onClick={undo} className="p-1 px-2.5 hover:bg-white/10 rounded-full transition-all active:scale-90"><Undo2 size={18}/></button>
-                        <button onClick={redo} className="p-1 px-2.5 hover:bg-white/10 rounded-full transition-all active:scale-90"><RotateCcw size={18} className="rotate-180"/></button>
-                    </div>
                 </div>
                 
                 <div className="absolute left-1/2 -translate-x-1/2 hidden lg:block">
@@ -1999,9 +1994,11 @@ export const PDFEditor: React.FC = () => {
                     </div>
 
                     <div className="flex sm:hidden items-center gap-4 mr-1 text-slate-400">
-                        <Undo2 size={22} onClick={undo} className="active:scale-75 transition-transform" />
-                        <RotateCcw size={22} onClick={redo} className="rotate-180 active:scale-75 transition-transform" />
-                        <button onClick={savePageEdits} className="bg-[#00c4cc] text-white px-4 py-1.5 rounded-full text-xs font-black shadow-sm">Terminé</button>
+                        <div className="flex bg-slate-100 rounded-full p-0.5">
+                           <button onClick={undo} className="p-2 hover:bg-white rounded-full transition-all active:scale-90"><Undo2 size={18}/></button>
+                           <button onClick={redo} className="p-2 hover:bg-white rounded-full transition-all active:scale-90"><RotateCcw size={18} className="rotate-180"/></button>
+                        </div>
+                        <button onClick={savePageEdits} className="bg-[#00c4cc] text-white px-5 py-2 rounded-full text-xs font-black shadow-lg active:scale-95 transition-all">Terminé</button>
                     </div>
 
                     <button className="hidden sm:flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-xl text-[13px] font-extrabold transition-all border border-white/10 shadow-lg active:scale-95">
@@ -2231,29 +2228,6 @@ export const PDFEditor: React.FC = () => {
                          )}
                     </div>
 
-                    {/* 4. MOBILE BOTTOM NAV (Canva style) */}
-                    <div className="md:hidden h-[72px] bg-white border-t border-slate-200 flex items-center justify-around px-2 shrink-0 z-[120] shadow-[0_-4px_12px_rgba(0,0,0,0.05)]">
-                        {[
-                            { label: 'Modèles', icon: Layout },
-                            { label: 'Éléments', icon: Shapes },
-                            { label: 'Texte', icon: Type, tool: 'text' },
-                            { label: 'Pinceau', icon: Pencil, tool: 'pen' },
-                            { label: 'Gomme', icon: Eraser, tool: 'eraser' },
-                        ].map(item => (
-                            <button 
-                                key={item.label}
-                                onClick={() => (item as any).tool ? (setVisualTool((item as any).tool as any), (item as any).tool === 'text' ? setActiveEditMode('text') : setActiveEditMode('visual')) : null}
-                                className={cn(
-                                    "flex flex-col items-center gap-1 min-w-[64px] transition-all",
-                                    (item as any).tool && visualTool === (item as any).tool ? "text-[#00c4cc]" : "text-slate-400 hover:text-slate-600"
-                                )}
-                            >
-                                <item.icon size={22} className={cn("transition-transform", (item as any).tool && visualTool === (item as any).tool && "scale-110")} />
-                                <span className="text-[10px] font-bold tracking-tight">{item.label}</span>
-                            </button>
-                        ))}
-                    </div>
-
                     {/* BOTTOM STATUS BAR (Desktop/Tablet) */}
                     <footer className="hidden md:flex h-[44px] bg-white border-t border-slate-200 items-center justify-between px-6 shrink-0 z-50 text-[12px] font-bold text-slate-500 shadow-[0_-2px_10px_rgba(0,0,0,0.03)] focus-within:ring-0">
                         <div className="flex items-center gap-8">
@@ -2474,35 +2448,61 @@ export const PDFEditor: React.FC = () => {
         )}
       </AnimatePresence>
 
-      {/* GLOBAL MOBILE BOTTOM NAV (Canva style) */}
+      {/* GLOBAL MOBILE BOTTOM NAV (Smart State-aware) */}
       <div className="sm:hidden fixed bottom-0 left-0 right-0 h-[80px] bg-white border-t border-slate-100 flex items-center justify-around px-2 z-[200] shadow-[0_-8px_30px_rgba(0,0,0,0.08)] pb-2 rounded-t-[1.5rem]">
-          {[
-              { label: 'Accueil', icon: Home, active: !editingPage, action: () => setEditingPage(null) },
-              { label: 'Modèles', icon: Layout },
-          ].map((item, i) => (
-              <React.Fragment key={item.label}>
-                  <button onClick={item.action} className={cn("flex flex-col items-center gap-1 min-w-[56px] transition-all", item.active ? "text-[#00c4cc]" : "text-slate-400")}>
-                      <item.icon size={20} className={cn("transition-transform", item.active && "scale-110")} />
-                      <span className="text-[9px] font-black tracking-tight">{item.label}</span>
-                  </button>
-                  {i === 1 && (
-                      <div className="relative -top-4">
-                          <button onClick={() => (document.getElementById('pdf-upload') as any)?.click()} className="w-14 h-14 bg-gradient-to-tr from-[#7d2ae8] to-[#9d50f5] rounded-full flex items-center justify-center shadow-xl shadow-purple-200 border-4 border-white transition-transform active:scale-90">
-                            <Plus size={28} className="text-white" />
-                          </button>
-                      </div>
-                  )}
-              </React.Fragment>
-          ))}
-          {[
-              { label: 'Projets', icon: Folder },
-              { label: 'Applis', icon: Library },
-          ].map(item => (
-              <button key={item.label} className="flex flex-col items-center gap-1 min-w-[56px] text-slate-400">
-                  <item.icon size={20} />
-                  <span className="text-[9px] font-black tracking-tight">{item.label}</span>
-              </button>
-          ))}
+          {editingPage ? (
+              // EDITOR STATE NAV
+              [
+                { label: 'Modèles', icon: Layout },
+                { label: 'Éléments', icon: Shapes },
+                { label: 'Texte', icon: Type, tool: 'text' },
+                { label: 'Pinceau', icon: Pencil, tool: 'pen' },
+                { label: 'Gomme', icon: Eraser, tool: 'eraser' },
+              ].map(item => (
+                <button 
+                    key={item.label}
+                    onClick={() => (item as any).tool ? (setVisualTool((item as any).tool as any), (item as any).tool === 'text' ? setActiveEditMode('text') : setActiveEditMode('visual')) : null}
+                    className={cn(
+                        "flex flex-col items-center gap-1 min-w-[64px] transition-all",
+                        (item as any).tool && visualTool === (item as any).tool ? "text-[#00c4cc]" : "text-slate-400"
+                    )}
+                >
+                    <item.icon size={22} className={cn("transition-transform", (item as any).tool && visualTool === (item as any).tool && "scale-110")} />
+                    <span className="text-[10px] font-bold tracking-tight">{item.label}</span>
+                </button>
+              ))
+          ) : (
+              // HOME STATE NAV
+              <>
+                {[
+                    { label: 'Accueil', icon: Home, active: !editingPage, action: () => setEditingPage(null) },
+                    { label: 'Modèles', icon: Layout },
+                ].map((item, i) => (
+                    <React.Fragment key={item.label}>
+                        <button onClick={item.action} className={cn("flex flex-col items-center gap-1 min-w-[56px] transition-all", item.active ? "text-[#00c4cc]" : "text-slate-400")}>
+                            <item.icon size={20} className={cn("transition-transform", item.active && "scale-110")} />
+                            <span className="text-[9px] font-black tracking-tight">{item.label}</span>
+                        </button>
+                        {i === 1 && (
+                            <div className="relative -top-4">
+                                <button onClick={() => (document.getElementById('pdf-upload') as any)?.click()} className="w-14 h-14 bg-gradient-to-tr from-[#7d2ae8] to-[#9d50f5] rounded-full flex items-center justify-center shadow-xl shadow-purple-200 border-4 border-white transition-transform active:scale-90">
+                                    <Plus size={28} className="text-white" />
+                                </button>
+                            </div>
+                        )}
+                    </React.Fragment>
+                ))}
+                {[
+                    { label: 'Projets', icon: Folder },
+                    { label: 'Applis', icon: Library },
+                ].map(item => (
+                    <button key={item.label} className="flex flex-col items-center gap-1 min-w-[56px] text-slate-400">
+                        <item.icon size={20} />
+                        <span className="text-[9px] font-black tracking-tight">{item.label}</span>
+                    </button>
+                ))}
+              </>
+          )}
       </div>
       </div>
       </div>
