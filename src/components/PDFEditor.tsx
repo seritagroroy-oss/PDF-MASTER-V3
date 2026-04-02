@@ -97,10 +97,56 @@ export const PDFEditor: React.FC = () => {
   const [isReorderingMode, setIsReorderingMode] = useState(false);
   const [signatureData, setSignatureData] = useState<string | null>(null);
   const [showHelp, setShowHelp] = useState(false);
-  const [history, setHistory] = useState<DrawingStroke[][]>([]);
   const [redoStack, setRedoStack] = useState<DrawingStroke[][]>([]);
   const pinchStartDistRef = useRef<number | null>(null);
   const initialPinchZoomRef = useRef<number | null>(null);
+  const workspaceRef = useRef<HTMLDivElement>(null);
+
+  // Prevention of native zoom on mobile
+  useEffect(() => {
+    const ws = workspaceRef.current;
+    if (!ws) return;
+
+    const handleTouchStart = (e: TouchEvent) => {
+        if (e.touches.length === 2) {
+            const dist = Math.hypot(
+                e.touches[0].pageX - e.touches[1].pageX,
+                e.touches[0].pageY - e.touches[1].pageY
+            );
+            pinchStartDistRef.current = dist;
+            initialPinchZoomRef.current = editorZoom;
+            e.preventDefault(); // Stop native behavior
+        }
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+        if (e.touches.length === 2 && pinchStartDistRef.current != null && initialPinchZoomRef.current != null) {
+            const currentDist = Math.hypot(
+                e.touches[0].pageX - e.touches[1].pageX,
+                e.touches[0].pageY - e.touches[1].pageY
+            );
+            const ratio = currentDist / pinchStartDistRef.current;
+            const newZoom = Math.min(3, Math.max(0.1, initialPinchZoomRef.current * ratio));
+            setEditorZoom(newZoom);
+            if (e.cancelable) e.preventDefault();
+        }
+    };
+
+    const handleTouchEnd = () => {
+        pinchStartDistRef.current = null;
+        initialPinchZoomRef.current = null;
+    };
+
+    ws.addEventListener('touchstart', handleTouchStart, { passive: false });
+    ws.addEventListener('touchmove', handleTouchMove, { passive: false });
+    ws.addEventListener('touchend', handleTouchEnd);
+
+    return () => {
+        ws.removeEventListener('touchstart', handleTouchStart);
+        ws.removeEventListener('touchmove', handleTouchMove);
+        ws.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, [editorZoom]);
 
   // Keyboard shortcuts implementation
   const shortcutsRef = useRef({
@@ -2101,33 +2147,9 @@ export const PDFEditor: React.FC = () => {
 
                     {/* WORKSPACE */}
                     <div 
-                        className="flex-1 overflow-auto bg-[#f8f9fa] relative scroll-smooth p-2 sm:p-20"
-                        onTouchStart={(e) => {
-                            if (e.touches.length === 2) {
-                                const dist = Math.hypot(
-                                    e.touches[0].pageX - e.touches[1].pageX,
-                                    e.touches[0].pageY - e.touches[1].pageY
-                                );
-                                pinchStartDistRef.current = dist;
-                                initialPinchZoomRef.current = editorZoom;
-                            }
-                        }}
-                        onTouchMove={(e) => {
-                            if (e.touches.length === 2 && pinchStartDistRef.current != null && initialPinchZoomRef.current != null) {
-                                const currentDist = Math.hypot(
-                                    e.touches[0].pageX - e.touches[1].pageX,
-                                    e.touches[0].pageY - e.touches[1].pageY
-                                );
-                                const ratio = currentDist / pinchStartDistRef.current;
-                                const newZoom = Math.min(3, Math.max(0.1, initialPinchZoomRef.current * ratio));
-                                setEditorZoom(newZoom);
-                                e.preventDefault(); // Prevent native browser zoom while pinching workspace
-                            }
-                        }}
-                        onTouchEnd={() => {
-                            pinchStartDistRef.current = null;
-                            initialPinchZoomRef.current = null;
-                        }}
+                        ref={workspaceRef}
+                        className="flex-1 overflow-auto bg-[#f8f9fa] relative scroll-smooth p-2 sm:p-20 overscroll-none"
+                        style={{ touchAction: 'pan-x pan-y' }}
                     >
                         <div className="min-h-full min-w-full flex items-center justify-center pointer-events-none">
                             <div 
