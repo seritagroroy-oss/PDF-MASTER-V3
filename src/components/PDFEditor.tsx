@@ -101,26 +101,32 @@ export const PDFEditor: React.FC = () => {
   const pinchStartDistRef = useRef<number | null>(null);
   const initialPinchZoomRef = useRef<number | null>(null);
   const workspaceRef = useRef<HTMLDivElement>(null);
+  const editorZoomRef = useRef(editorZoom);
 
-  // Prevention of native zoom on mobile
+  useEffect(() => {
+    editorZoomRef.current = editorZoom;
+  }, [editorZoom]);
+
+  // Prevention of native zoom on mobile with stable listeners
   useEffect(() => {
     const ws = workspaceRef.current;
     if (!ws) return;
 
     const handleTouchStart = (e: TouchEvent) => {
         if (e.touches.length === 2) {
+            e.preventDefault();
             const dist = Math.hypot(
                 e.touches[0].pageX - e.touches[1].pageX,
                 e.touches[0].pageY - e.touches[1].pageY
             );
             pinchStartDistRef.current = dist;
-            initialPinchZoomRef.current = editorZoom;
-            e.preventDefault(); // Stop native behavior
+            initialPinchZoomRef.current = editorZoomRef.current;
         }
     };
 
     const handleTouchMove = (e: TouchEvent) => {
         if (e.touches.length === 2 && pinchStartDistRef.current != null && initialPinchZoomRef.current != null) {
+            e.preventDefault();
             const currentDist = Math.hypot(
                 e.touches[0].pageX - e.touches[1].pageX,
                 e.touches[0].pageY - e.touches[1].pageY
@@ -128,7 +134,6 @@ export const PDFEditor: React.FC = () => {
             const ratio = currentDist / pinchStartDistRef.current;
             const newZoom = Math.min(3, Math.max(0.1, initialPinchZoomRef.current * ratio));
             setEditorZoom(newZoom);
-            if (e.cancelable) e.preventDefault();
         }
     };
 
@@ -146,7 +151,7 @@ export const PDFEditor: React.FC = () => {
         ws.removeEventListener('touchmove', handleTouchMove);
         ws.removeEventListener('touchend', handleTouchEnd);
     };
-  }, [editorZoom]);
+  }, [editingPage]); // Re-run when editor opens to bind workspaceRef
 
   // Keyboard shortcuts implementation
   const shortcutsRef = useRef({
@@ -2153,7 +2158,7 @@ export const PDFEditor: React.FC = () => {
                     >
                         <div className="min-h-full min-w-full flex items-center justify-center pointer-events-none">
                             <div 
-                              className="relative shadow-[0_20px_50px_rgba(0,0,0,0.15)] bg-white transition-shadow duration-300 pointer-events-auto"
+                              className="relative shadow-[0_20px_50px_rgba(0,0,0,0.15)] bg-white transition-shadow duration-300 pointer-events-auto origin-center"
                               style={{ transform: `scale(${editorZoom})` }}
                             >
                             {activeEditMode === 'text' ? (
