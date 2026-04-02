@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { PDFDocument, rgb, StandardFonts, degrees, PDFPage } from 'pdf-lib';
 import { pdfjs } from '../pdfjs-setup';
 import { FileUpload } from './FileUpload';
-import { Scissors, Download, Upload, Loader2, CheckCircle2, AlertCircle, Trash2, GripVertical, RefreshCw, X, Eye, Search, CheckSquare, Square, Check, Minus, Plus, Type, Bold, Italic, Underline, Palette, Eraser, Pencil, Undo2, RotateCcw, FileText, Pipette, RotateCw, Sun, Moon, Square as SquareIcon, Circle, ArrowRight, Highlighter, Stamp, PlusCircle, Lock, Zap, Sparkles, Menu, Languages, ScanLine, Volume2, Layout, Shapes, Folder, Grid, Settings, Star, AlignLeft, List } from 'lucide-react';
+import { Scissors, Download, Upload, Loader2, CheckCircle2, AlertCircle, Trash2, GripVertical, RefreshCw, X, Eye, Search, CheckSquare, Square, Check, Minus, Plus, Type, Bold, Italic, Underline, Palette, Eraser, Pencil, Undo2, RotateCcw, FileText, Pipette, RotateCw, Sun, Moon, Square as SquareIcon, Circle, ArrowRight, Highlighter, Stamp, PlusCircle, Lock, Zap, Sparkles, Menu, Languages, ScanLine, Volume2, Layout, Shapes, Folder, Grid, Settings, Star, AlignLeft, List, Home, MoreHorizontal, MessageCircle, Undo, PenTool, LayoutGrid, Library, PlusCircle as AddIcon } from 'lucide-react';
 import { motion, AnimatePresence, Reorder } from 'motion/react';
 import { cn } from '@/src/utils/cn';
 import { GoogleGenerativeAI } from "@google/generative-ai";
@@ -651,15 +651,17 @@ export const PDFEditor: React.FC = () => {
     const ctx = canvas.getContext('2d', { willReadFrequently: true });
     if (!ctx) return "#ffffff";
     try {
-      const pixel = ctx.getImageData(x, y, 1, 1).data;
-      if (pixel[3] > 50) {
-        return "#" + [pixel[0], pixel[1], pixel[2]].map(c => c.toString(16).padStart(2, '0')).join('');
+      const area = ctx.getImageData(Math.max(0, x - 1), Math.max(0, y - 1), 3, 3).data;
+      let r = 0, g = 0, b = 0, count = 0;
+      for (let i = 0; i < area.length; i += 4) {
+          if (area[i+3] > 0) { 
+              r += area[i]; g += area[i+1]; b += area[i+2]; count++;
+          }
       }
-      for (let ox = -2; ox <= 2; ox += 2) {
-        for (let oy = -2; oy <= 2; oy += 2) {
-          const p = ctx.getImageData(x + ox, y + oy, 1, 1).data;
-          if (p[3] > 50) return "#" + [p[0], p[1], p[2]].map(c => c.toString(16).padStart(2, '0')).join('');
-        }
+      if (count > 0) {
+          r = Math.round(r/count); g = Math.round(g/count); b = Math.round(b/count);
+          if (r > 240 && g > 240 && b > 240) return "#ffffff";
+          return "#" + [r, g, b].map(c => c.toString(16).padStart(2, '0')).join('');
       }
       return "#ffffff";
     } catch (e) {
@@ -1390,16 +1392,46 @@ export const PDFEditor: React.FC = () => {
     <div className={cn("min-h-screen transition-colors duration-500 overflow-x-hidden", isDarkMode ? "bg-slate-950 text-slate-100" : "bg-slate-50 text-slate-900")}>
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-8 sm:py-12">
 
-        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-12">
-          <div className="flex items-center gap-4 w-full lg:w-auto">
-            <div className="p-3 sm:p-4 bg-indigo-600 rounded-3xl shadow-xl shadow-indigo-200 rotate-3 shrink-0">
-              <Scissors className="text-white" size={28} />
+        <div className="flex flex-col items-center justify-center text-center gap-4 mb-2 md:mb-12">
+            <div className="flex items-center gap-3 md:gap-4 w-full justify-center">
+                <div className="p-2 sm:p-4 bg-indigo-600 rounded-2xl shadow-xl shadow-indigo-200 rotate-3 shrink-0">
+                    <Scissors className="text-white w-5 h-5 md:w-7 md:h-7" />
+                </div>
+                <div className="min-w-0">
+                    <h1 className="text-xl sm:text-4xl font-display font-black tracking-tight truncate">PDF Master Pro</h1>
+                </div>
             </div>
-            <div className="min-w-0">
-              <h1 className="text-2xl sm:text-4xl font-display font-black tracking-tight truncate">PDF Master Pro</h1>
-              <p className={cn("text-xs sm:text-sm font-medium", isDarkMode ? "text-slate-400" : "text-slate-500")}>Édition, Fusion, OCR & Plus</p>
+            
+            {/* Mobile Search Bar (Canva Style) */}
+            <div className="w-full max-w-lg relative sm:hidden mb-4">
+                <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-slate-400">
+                    <Search size={18} />
+                </div>
+                <input 
+                    type="text" 
+                    placeholder="Qu'allez-vous créer aujourd'hui ?" 
+                    className="w-full bg-white border border-slate-200 rounded-full py-3.5 pl-12 pr-4 shadow-sm text-sm font-bold outline-none focus:border-indigo-400 transition-all"
+                />
             </div>
-          </div>
+        </div>
+
+        {/* Canva-style Categories (Mobile Only) */}
+        <div className="sm:hidden overflow-x-auto no-scrollbar flex items-center gap-6 px-1 mb-8">
+            {[
+                { label: 'Modifier', icon: Pencil, color: 'bg-purple-100 text-purple-600' },
+                { label: 'Fusionner', icon: RefreshCw, color: 'bg-indigo-100 text-indigo-600' },
+                { label: 'Magie', icon: Sparkles, color: 'bg-cyan-100 text-cyan-600' },
+                { label: 'Signer', icon: PenTool, color: 'bg-emerald-100 text-emerald-600' },
+                { label: 'Trier', icon: LayoutGrid, color: 'bg-amber-100 text-amber-600' },
+            ].map(cat => (
+                <div key={cat.label} className="flex flex-col items-center gap-2 shrink-0">
+                    <div className={cn("w-14 h-14 rounded-2xl flex items-center justify-center transition-transform active:scale-90", cat.color)}>
+                        <cat.icon size={24} />
+                    </div>
+                    <span className="text-[10px] font-black text-slate-500">{cat.label}</span>
+                </div>
+            ))}
+        </div>
 
           <div className="flex flex-wrap items-center gap-3 sm:gap-4 w-full lg:w-auto">
             {rawFiles.length > 1 && (
@@ -1503,8 +1535,7 @@ export const PDFEditor: React.FC = () => {
               </button>
             </div>
 
-          </div>
-        </div>
+
 
 
         <FileUpload
@@ -1603,11 +1634,11 @@ export const PDFEditor: React.FC = () => {
 
         {!isLoadingPages && thumbnails.length > 0 && (
           <>
-            <div className="space-y-6 mt-12">
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                <h3 className="text-xl font-display font-bold flex items-center gap-2">
-                  <FileText size={20} className="text-indigo-600" />
-                  Pages du document
+            <div className="space-y-6 mt-4 sm:mt-12">
+              <div className="flex items-center justify-between gap-4">
+                <h3 className="text-lg sm:text-xl font-display font-bold flex items-center gap-2">
+                  <FileText size={20} className="text-[#00c4cc]" />
+                  Vos designs
                 </h3>
 
 
@@ -1935,43 +1966,54 @@ export const PDFEditor: React.FC = () => {
               exit={{ opacity: 0 }}
               className="fixed inset-0 z-[100] bg-[#f0f2f5] flex flex-col overflow-hidden animate-in fade-in duration-300"
             >
-              {/* 1. TOP HEADER (Teal) */}
-              <header className="h-[56px] bg-[#00c4cc] flex items-center px-4 justify-between shrink-0 z-[110] shadow-md border-b border-white/10 relative">
-                <div className="flex items-center gap-5">
-                    <div className="w-9 h-9 bg-white/15 rounded-lg flex items-center justify-center hover:bg-white/25 cursor-pointer transition-colors group">
-                        <Menu size={20} className="text-white group-active:scale-95 transition-transform" />
+              <header className="h-[56px] md:bg-gradient-to-r md:from-[#00c4cc] md:to-[#2ce3d3] bg-white flex items-center px-4 justify-between shrink-0 z-[110] shadow-md border-b border-slate-200 md:border-white/10 relative">
+                <div className="flex items-center gap-3 md:gap-5">
+                    <div className="w-9 h-9 bg-slate-100 md:bg-white/15 rounded-lg flex items-center justify-center hover:bg-slate-200 md:hover:bg-white/25 cursor-pointer transition-colors group">
+                        <Menu size={20} className="text-slate-600 md:text-white group-active:scale-95 transition-transform hidden sm:block" />
+                        <Home size={20} className="text-[#00c4cc] md:text-white group-active:scale-95 transition-transform sm:hidden" />
                     </div>
-                    <nav className="flex items-center gap-6 text-white/90 text-[14px] font-bold tracking-tight h-full">
-                        <button onClick={() => setActiveEditMode('text')} className={cn("hover:text-white transition-colors py-4 border-b-2 border-transparent", activeEditMode === 'text' && "border-white text-white")}>Fichier</button>
+                    
+                    <nav className="hidden md:flex items-center gap-6 text-white text-[14px] font-bold tracking-tight h-full">
+                        <button onClick={() => setActiveEditMode('text')} className={cn("hover:text-white transition-colors py-4 border-b-2 border-transparent", activeEditMode === 'text' && "border-white")}>Fichier</button>
                         <button className="hover:text-white transition-colors flex items-center gap-2 group">
                           <Sparkles size={16} className="fill-white/20 group-hover:rotate-12 transition-transform" /> Transformation magique
                         </button>
-                        <button className="hover:text-white transition-colors flex items-center gap-2">
-                          Retouche <RotateCw size={14} className="opacity-80" />
-                        </button>
                     </nav>
+
+                    <div className="flex items-center gap-1.5 sm:hidden bg-black/10 rounded-full px-1 py-0.5 ml-1">
+                        <button onClick={undo} className="p-1 px-2.5 hover:bg-white/10 rounded-full transition-all active:scale-90"><Undo2 size={18}/></button>
+                        <button onClick={redo} className="p-1 px-2.5 hover:bg-white/10 rounded-full transition-all active:scale-90"><RotateCcw size={18} className="rotate-180"/></button>
+                    </div>
                 </div>
                 
                 <div className="absolute left-1/2 -translate-x-1/2 hidden lg:block">
-                    <div className="bg-black/10 px-5 py-1.5 rounded-full text-white/80 text-[12px] font-bold border border-white/10 shadow-inner">
+                    <div className="bg-black/10 px-5 py-1.5 rounded-full text-white/80 text-[12px] font-bold border border-white/10 shadow-inner max-w-[200px] truncate">
                         {rawFiles[editingPage.sourceFileIndex]?.name || "Document en cours"}
                     </div>
                 </div>
 
-                <div className="flex items-center gap-1 sm:gap-4 scrollbar-none">
-                    <div className="flex items-center gap-1 sm:gap-2 mr-4 bg-black/10 p-1 rounded-xl">
+                <div className="flex items-center gap-2 sm:gap-4 scrollbar-none">
+                    <div className="hidden lg:flex items-center gap-2 mr-4 bg-black/10 p-1 rounded-xl">
                         <button onClick={() => setActiveEditMode('text')} className={cn("px-4 py-1.5 rounded-lg text-xs font-black transition-all", activeEditMode === 'text' ? "bg-white text-slate-900 shadow-sm" : "text-white/60 hover:text-white")}>Texte</button>
                         <button onClick={() => setActiveEditMode('visual')} className={cn("px-4 py-1.5 rounded-lg text-xs font-black transition-all", activeEditMode === 'visual' ? "bg-white text-slate-900 shadow-sm" : "text-white/60 hover:text-white")}>Visuel</button>
                     </div>
 
+                    <div className="flex sm:hidden items-center gap-4 mr-1 text-slate-400">
+                        <Undo2 size={22} onClick={undo} className="active:scale-75 transition-transform" />
+                        <RotateCcw size={22} onClick={redo} className="rotate-180 active:scale-75 transition-transform" />
+                        <button onClick={savePageEdits} className="bg-[#00c4cc] text-white px-4 py-1.5 rounded-full text-xs font-black shadow-sm">Terminé</button>
+                    </div>
+
                     <button className="hidden sm:flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-xl text-[13px] font-extrabold transition-all border border-white/10 shadow-lg active:scale-95">
-                        <Star size={16} className="fill-yellow-400 text-yellow-400" /> Tester pour 0 $
+                        <Star size={16} className="fill-yellow-400 text-yellow-400" /> Essai Pro
                     </button>
-                    <button onClick={savePageEdits} className="bg-white text-[#00c4cc] px-6 py-2 rounded-xl text-[13px] font-black shadow-[0_4px_12px_rgba(0,0,0,0.1)] hover:shadow-[0_6px_20px_rgba(0,0,0,0.15)] hover:scale-[1.03] active:scale-95 transition-all">
+                    <button onClick={savePageEdits} className="hidden sm:block bg-white text-[#00c4cc] px-6 py-2 rounded-xl text-[13px] font-black shadow-[0_4px_12px_rgba(0,0,0,0.1)] hover:shadow-[0_6px_20px_rgba(0,0,0,0.15)] hover:scale-[1.03] active:scale-95 transition-all">
                         Enregistrer
                     </button>
                 </div>
               </header>
+
+
 
               <div className="flex flex-1 overflow-hidden relative">
                 {/* 2. LEFT SIDEBAR (Dark) */}
@@ -2010,9 +2052,9 @@ export const PDFEditor: React.FC = () => {
                 </aside>
 
                 {/* 3. CENTER CONTENT */}
-                <main className="flex-1 flex flex-col relative overflow-hidden">
-                    {/* CONTEXTUAL TOOLBAR (White) */}
-                    <div className="h-[56px] bg-white border-b border-slate-200 flex items-center px-8 gap-4 shrink-0 z-50 shadow-[0_2px_8px_rgba(0,0,0,0.04)] overflow-x-auto no-scrollbar scroll-smooth">
+                <main className="flex-1 flex flex-col relative overflow-hidden bg-white">
+                    {/* CONTEXTUAL TOOLBAR (Desktop Only) */}
+                    <div className="hidden md:flex h-[56px] bg-white border-b border-slate-200 items-center px-8 gap-4 shrink-0 z-50 shadow-[0_2px_8px_rgba(0,0,0,0.04)] overflow-x-auto no-scrollbar scroll-smooth">
                         <button 
                             onClick={() => activeEditMode === 'text' ? askAI('fix') : alert('Passez en mode texte pour utiliser l\'écriture magique')} 
                             className="flex items-center gap-2.5 px-4 py-2.5 bg-slate-50 hover:bg-slate-100 rounded-xl text-[13px] font-black text-slate-800 transition-all border border-slate-200/50 shadow-sm"
@@ -2059,7 +2101,7 @@ export const PDFEditor: React.FC = () => {
                     </div>
 
                     {/* WORKSPACE */}
-                    <div className="flex-1 overflow-auto bg-[#e3e5e8] relative scroll-smooth p-8 sm:p-20">
+                    <div className="flex-1 overflow-auto bg-[#f8f9fa] relative scroll-smooth p-2 sm:p-20">
                         <div className="min-h-full min-w-full flex items-center justify-center">
                             <div 
                               className="relative shadow-[0_20px_50px_rgba(0,0,0,0.15)] bg-white transition-all transform-gpu origin-center"
@@ -2163,8 +2205,57 @@ export const PDFEditor: React.FC = () => {
                     </div>
                 </div>
 
-                    {/* BOTTOM STATUS BAR */}
-                    <footer className="h-[44px] bg-white border-t border-slate-200 flex items-center justify-between px-6 shrink-0 z-50 text-[12px] font-bold text-slate-500 shadow-[0_-2px_10px_rgba(0,0,0,0.03)] focus-within:ring-0">
+                    {/* MOBILE FLOATING CONTEXT TOOLS (Above bottom nav) */}
+                    <div className="md:hidden flex overflow-x-auto no-scrollbar px-4 py-3 gap-3 bg-white/80 backdrop-blur-md border-t border-slate-100 z-50">
+                         {visualTool === 'pen' || visualTool === 'eraser' ? (
+                             <div className="flex items-center gap-3 bg-slate-100 rounded-full px-4 py-2 shadow-inner w-full justify-between">
+                                 <div className="flex items-center gap-4">
+                                     <button onClick={() => setBrushSize(prev => Math.max(1, prev - 1))} className="text-slate-400"><Minus size={18}/></button>
+                                     <span className="text-xs font-black text-slate-800 w-6 text-center">{brushSize}</span>
+                                     <button onClick={() => setBrushSize(prev => Math.min(50, prev + 1))} className="text-slate-400"><Plus size={18}/></button>
+                                 </div>
+                                 <div className="w-px h-4 bg-slate-300 mx-1" />
+                                 <label className="flex items-center gap-2">
+                                     <div className="w-6 h-6 rounded-full border-2 border-white shadow-sm" style={{ backgroundColor: tempColor }} />
+                                     <input type="color" className="hidden" value={tempColor} onChange={(e) => setTempColor(e.target.value)} />
+                                 </label>
+                             </div>
+                         ) : activeEditMode === 'text' ? (
+                             <div className="flex items-center gap-2 w-full">
+                                 <button onClick={() => askAI('fix')} className="flex items-center gap-2 bg-indigo-50 text-indigo-600 px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap"><Sparkles size={14}/> Écriture Magique</button>
+                                 <button className="bg-slate-100 p-2 rounded-full text-slate-600"><Bold size={18}/></button>
+                                 <button className="bg-slate-100 p-2 rounded-full text-slate-600"><PlusCircle size={18}/></button>
+                             </div>
+                         ) : (
+                             <button onClick={() => setVisualTool('pen')} className="bg-indigo-600 text-white w-full py-2.5 rounded-full text-xs font-black flex items-center justify-center gap-2 shadow-lg"><Pencil size={16}/> Commencer à dessiner</button>
+                         )}
+                    </div>
+
+                    {/* 4. MOBILE BOTTOM NAV (Canva style) */}
+                    <div className="md:hidden h-[72px] bg-white border-t border-slate-200 flex items-center justify-around px-2 shrink-0 z-[120] shadow-[0_-4px_12px_rgba(0,0,0,0.05)]">
+                        {[
+                            { label: 'Modèles', icon: Layout },
+                            { label: 'Éléments', icon: Shapes },
+                            { label: 'Texte', icon: Type, tool: 'text' },
+                            { label: 'Pinceau', icon: Pencil, tool: 'pen' },
+                            { label: 'Gomme', icon: Eraser, tool: 'eraser' },
+                        ].map(item => (
+                            <button 
+                                key={item.label}
+                                onClick={() => (item as any).tool ? (setVisualTool((item as any).tool as any), (item as any).tool === 'text' ? setActiveEditMode('text') : setActiveEditMode('visual')) : null}
+                                className={cn(
+                                    "flex flex-col items-center gap-1 min-w-[64px] transition-all",
+                                    (item as any).tool && visualTool === (item as any).tool ? "text-[#00c4cc]" : "text-slate-400 hover:text-slate-600"
+                                )}
+                            >
+                                <item.icon size={22} className={cn("transition-transform", (item as any).tool && visualTool === (item as any).tool && "scale-110")} />
+                                <span className="text-[10px] font-bold tracking-tight">{item.label}</span>
+                            </button>
+                        ))}
+                    </div>
+
+                    {/* BOTTOM STATUS BAR (Desktop/Tablet) */}
+                    <footer className="hidden md:flex h-[44px] bg-white border-t border-slate-200 items-center justify-between px-6 shrink-0 z-50 text-[12px] font-bold text-slate-500 shadow-[0_-2px_10px_rgba(0,0,0,0.03)] focus-within:ring-0">
                         <div className="flex items-center gap-8">
                             <button className="flex items-center gap-2 hover:text-slate-900 transition-colors group"><FileText size={16} className="group-hover:scale-110 transition-transform" /> Notes</button>
                             <button className="flex items-center gap-2 hover:text-slate-900 transition-colors group"><Layout size={16} className="group-hover:scale-110 transition-transform"/> Plan</button>
@@ -2310,8 +2401,7 @@ export const PDFEditor: React.FC = () => {
             </>
           )}
         </button>
-      </div>
-      {/* Signature Pad Modal */}
+      {/* Modals & Overlays */}
       <AnimatePresence>
         {isSignaturePadOpen && (
           <motion.div
@@ -2330,12 +2420,7 @@ export const PDFEditor: React.FC = () => {
                   <Pencil className="text-emerald-500" size={24} />
                   Votre Signature
                 </h3>
-                <button
-                  onClick={() => setIsSignaturePadOpen(false)}
-                  className="p-2 hover:bg-slate-100 rounded-full"
-                >
-                  <X size={20} />
-                </button>
+                <button onClick={() => setIsSignaturePadOpen(false)} className="p-2 hover:bg-slate-100 rounded-full"><X size={20} /></button>
               </div>
 
               <div className="aspect-[2/1] bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200 relative overflow-hidden group">
@@ -2347,27 +2432,21 @@ export const PDFEditor: React.FC = () => {
                     const ctx = canvas.getContext('2d');
                     if (!ctx) return;
                     const rect = canvas.getBoundingClientRect();
-                    ctx.beginPath();
-                    ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+                    ctx.beginPath(); ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
                     (canvas as any).isDrawing = true;
                   }}
                   onMouseMove={(e) => {
                     const canvas = e.currentTarget;
                     if (!(canvas as any).isDrawing) return;
                     const ctx = canvas.getContext('2d');
-                    if (!ctx) return;
-                    const rect = canvas.getBoundingClientRect();
-                    ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
-                    ctx.lineWidth = 3;
-                    ctx.lineCap = 'round';
-                    ctx.strokeStyle = '#000000';
-                    ctx.stroke();
+                    if (ctx) {
+                        const rect = canvas.getBoundingClientRect();
+                        ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+                        ctx.lineWidth = 3; ctx.lineCap = 'round'; ctx.strokeStyle = '#000000'; ctx.stroke();
+                    }
                   }}
                   onMouseUp={(e) => { (e.currentTarget as any).isDrawing = false; }}
                 />
-                <div className="absolute inset-0 pointer-events-none flex items-center justify-center opacity-30 group-hover:opacity-10 transition-opacity">
-                  <span className="text-sm font-medium text-slate-400">Signez ici</span>
-                </div>
               </div>
 
               <div className="flex gap-3">
@@ -2378,35 +2457,55 @@ export const PDFEditor: React.FC = () => {
                     if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
                   }}
                   className="flex-1 py-3 bg-slate-100 text-slate-600 rounded-xl font-bold hover:bg-slate-200 transition-all"
-                >
-                  Effacer
-                </button>
+                >Effacer</button>
                 <button
                   onClick={() => {
                     const canvas = document.getElementById('signature-canvas') as HTMLCanvasElement;
                     if (canvas) {
-                      const dataUrl = canvas.toDataURL();
-                      setSignatureData(dataUrl);
-                      // Add signature to drawings
-                      setCurrentDrawings(prev => [...prev, {
-                        points: [{ x: 50, y: 50 }, { x: 200, y: 150 }], // Placeholder rect for signature
-                        color: "#000000",
-                        width: 2,
-                        mode: 'stamp',
-                        text: 'SIGNATURE' // We'll handle dataUrl rendering separately
-                      }]);
+                      setSignatureData(canvas.toDataURL());
                       setIsSignaturePadOpen(false);
                     }
                   }}
                   className="flex-1 py-3 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 shadow-lg shadow-emerald-200 transition-all"
-                >
-                  Enregistrer
-                </button>
+                >Enregistrer</button>
               </div>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* GLOBAL MOBILE BOTTOM NAV (Canva style) */}
+      <div className="sm:hidden fixed bottom-0 left-0 right-0 h-[80px] bg-white border-t border-slate-100 flex items-center justify-around px-2 z-[200] shadow-[0_-8px_30px_rgba(0,0,0,0.08)] pb-2 rounded-t-[1.5rem]">
+          {[
+              { label: 'Accueil', icon: Home, active: !editingPage, action: () => setEditingPage(null) },
+              { label: 'Modèles', icon: Layout },
+          ].map((item, i) => (
+              <React.Fragment key={item.label}>
+                  <button onClick={item.action} className={cn("flex flex-col items-center gap-1 min-w-[56px] transition-all", item.active ? "text-[#00c4cc]" : "text-slate-400")}>
+                      <item.icon size={20} className={cn("transition-transform", item.active && "scale-110")} />
+                      <span className="text-[9px] font-black tracking-tight">{item.label}</span>
+                  </button>
+                  {i === 1 && (
+                      <div className="relative -top-4">
+                          <button onClick={() => (document.getElementById('pdf-upload') as any)?.click()} className="w-14 h-14 bg-gradient-to-tr from-[#7d2ae8] to-[#9d50f5] rounded-full flex items-center justify-center shadow-xl shadow-purple-200 border-4 border-white transition-transform active:scale-90">
+                            <Plus size={28} className="text-white" />
+                          </button>
+                      </div>
+                  )}
+              </React.Fragment>
+          ))}
+          {[
+              { label: 'Projets', icon: Folder },
+              { label: 'Applis', icon: Library },
+          ].map(item => (
+              <button key={item.label} className="flex flex-col items-center gap-1 min-w-[56px] text-slate-400">
+                  <item.icon size={20} />
+                  <span className="text-[9px] font-black tracking-tight">{item.label}</span>
+              </button>
+          ))}
+      </div>
+      </div>
+      </div>
     </div>
   );
 };
