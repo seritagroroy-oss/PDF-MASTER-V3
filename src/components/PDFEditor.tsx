@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { PDFDocument, rgb, StandardFonts, degrees, PDFPage } from 'pdf-lib';
 import { pdfjs } from '../pdfjs-setup';
 import { FileUpload } from './FileUpload';
-import { Scissors, Download, Upload, Loader2, CheckCircle2, AlertCircle, Trash2, GripVertical, RefreshCw, X, Eye, Search, CheckSquare, Square, Check, Minus, Plus, Type, Bold, Italic, Underline, Palette, Eraser, Pencil, Undo2, RotateCcw, FileText, Pipette, RotateCw, Sun, Moon, Square as SquareIcon, Circle, ArrowRight, Highlighter, Stamp, PlusCircle, Lock, Zap, Sparkles, Menu, Languages, ScanLine, Volume2, Layout, Shapes, Folder, Grid, Settings, Star, AlignLeft, List, Home, MoreHorizontal, MessageCircle, Undo, PenTool, LayoutGrid, Library, PlusCircle as AddIcon } from 'lucide-react';
+import { Scissors, Download, Upload, Loader2, CheckCircle2, AlertCircle, Trash2, GripVertical, RefreshCw, X, Eye, Search, CheckSquare, Square, Check, Minus, Plus, Type, Bold, Italic, Underline, Palette, Eraser, Pencil, Undo2, RotateCcw, FileText, Pipette, RotateCw, Sun, Moon, Square as SquareIcon, Circle, ArrowRight, Highlighter, Stamp, PlusCircle, Lock, Zap, Sparkles, Menu, Languages, ScanLine, Volume2, Layout, Shapes, Folder, Grid, Settings, Star, AlignLeft, List, Home, MoreHorizontal, MessageCircle, Undo, PenTool, LayoutGrid, Library, MousePointer2, PlusCircle as AddIcon } from 'lucide-react';
 import { motion, AnimatePresence, Reorder } from 'motion/react';
 import { cn } from '@/src/utils/cn';
 import { GoogleGenerativeAI } from "@google/generative-ai";
@@ -99,6 +99,8 @@ export const PDFEditor: React.FC = () => {
   const [showHelp, setShowHelp] = useState(false);
   const [history, setHistory] = useState<DrawingStroke[][]>([]);
   const [redoStack, setRedoStack] = useState<DrawingStroke[][]>([]);
+  const pinchStartDistRef = useRef<number | null>(null);
+  const initialPinchZoomRef = useRef<number | null>(null);
 
   // Keyboard shortcuts implementation
   const shortcutsRef = useRef({
@@ -2098,10 +2100,38 @@ export const PDFEditor: React.FC = () => {
                     </div>
 
                     {/* WORKSPACE */}
-                    <div className="flex-1 overflow-auto bg-[#f8f9fa] relative scroll-smooth p-2 sm:p-20">
-                        <div className="min-h-full min-w-full flex items-center justify-center">
+                    <div 
+                        className="flex-1 overflow-auto bg-[#f8f9fa] relative scroll-smooth p-2 sm:p-20"
+                        onTouchStart={(e) => {
+                            if (e.touches.length === 2) {
+                                const dist = Math.hypot(
+                                    e.touches[0].pageX - e.touches[1].pageX,
+                                    e.touches[0].pageY - e.touches[1].pageY
+                                );
+                                pinchStartDistRef.current = dist;
+                                initialPinchZoomRef.current = editorZoom;
+                            }
+                        }}
+                        onTouchMove={(e) => {
+                            if (e.touches.length === 2 && pinchStartDistRef.current != null && initialPinchZoomRef.current != null) {
+                                const currentDist = Math.hypot(
+                                    e.touches[0].pageX - e.touches[1].pageX,
+                                    e.touches[0].pageY - e.touches[1].pageY
+                                );
+                                const ratio = currentDist / pinchStartDistRef.current;
+                                const newZoom = Math.min(3, Math.max(0.1, initialPinchZoomRef.current * ratio));
+                                setEditorZoom(newZoom);
+                                e.preventDefault(); // Prevent native browser zoom while pinching workspace
+                            }
+                        }}
+                        onTouchEnd={() => {
+                            pinchStartDistRef.current = null;
+                            initialPinchZoomRef.current = null;
+                        }}
+                    >
+                        <div className="min-h-full min-w-full flex items-center justify-center pointer-events-none">
                             <div 
-                              className="relative shadow-[0_20px_50px_rgba(0,0,0,0.15)] bg-white transition-all transform-gpu origin-center"
+                              className="relative shadow-[0_20px_50px_rgba(0,0,0,0.15)] bg-white transition-shadow duration-300 pointer-events-auto"
                               style={{ transform: `scale(${editorZoom})` }}
                             >
                             {activeEditMode === 'text' ? (
@@ -2461,11 +2491,12 @@ export const PDFEditor: React.FC = () => {
           {editingPage ? (
               // EDITOR STATE NAV (All tools on the white bar)
               [
+                { label: 'Aucun', icon: MousePointer2, action: () => setVisualTool('move') },
                 { label: 'Modèles', icon: Layout },
                 { label: 'Éléments', icon: Shapes },
                 { label: 'Pinceau', icon: Pencil, tool: 'pen' },
                 { label: 'Gomme IA', icon: Sparkles, tool: 'magic-eraser' },
-                { label: 'Assistant', icon: MessageCircle, action: () => setIsAISidebarOpen(!isAISidebarOpen) },
+                { label: 'IA', icon: MessageCircle, action: () => setIsAISidebarOpen(!isAISidebarOpen) },
               ].map(item => (
                 <button 
                     key={item.label}
