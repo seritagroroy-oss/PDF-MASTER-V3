@@ -2129,9 +2129,9 @@ export const PDFEditor: React.FC = () => {
                           {/* Canvas Area  */}
                           <div className="flex-1 flex flex-col h-full relative overflow-hidden bg-[radial-gradient(#334155_1px,transparent_1px)] [background-size:24px_24px] bg-[#0A0A0A]">
                             
-                            {/* Top Premium Properties Bar */}
-                            <div className="absolute top-2 md:top-6 left-2 right-2 md:left-4 md:right-4 z-20 flex justify-center pointer-events-none">
-                              <div className="bg-slate-900/80 backdrop-blur-xl px-4 md:px-6 py-2 md:py-3 rounded-2xl md:rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.5)] border border-white/10 flex flex-wrap md:flex-nowrap items-center justify-center gap-3 md:gap-6 pointer-events-auto transition-all animate-in slide-in-from-top-8 duration-500 w-[95%] md:w-auto">
+                            {/* Floating Bottom Properties Bar */}
+                            <div className="absolute bottom-4 md:bottom-8 left-2 right-2 md:left-4 md:right-4 z-20 flex justify-center pointer-events-none">
+                              <div className="bg-slate-900/80 backdrop-blur-xl px-4 md:px-6 py-2 md:py-3 rounded-2xl md:rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.5)] border border-white/10 flex flex-wrap md:flex-nowrap items-center justify-center gap-3 md:gap-6 pointer-events-auto transition-all animate-in slide-in-from-bottom-8 duration-500 w-[95%] md:w-auto">
                                 
                                 {['pen', 'rect', 'circle', 'arrow', 'text'].includes(visualTool) && (
                                   <div className="flex items-center gap-2 md:gap-4">
