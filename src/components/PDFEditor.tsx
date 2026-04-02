@@ -409,8 +409,8 @@ export const PDFEditor: React.FC = () => {
     setTempIsBold(thumbnail.isBold || false);
     setTempIsItalic(thumbnail.isItalic || false);
     setCurrentDrawings(thumbnail.drawings || []);
-    setActiveEditMode('text');
-    setEditorZoom(1);
+    setActiveEditMode('visual');
+    setEditorZoom(typeof window !== 'undefined' && window.innerWidth < 768 ? 0.6 : 1);
 
     try {
       const arrayBuffer = await rawFiles[thumbnail.sourceFileIndex].arrayBuffer();
