@@ -1975,7 +1975,7 @@ export const PDFEditor: React.FC = () => {
 
               <div className="flex flex-1 overflow-hidden relative">
                 {/* 2. LEFT SIDEBAR (Dark) */}
-                <aside className="w-[82px] bg-[#1d1e21] flex flex-col items-center py-6 gap-8 z-[100] shrink-0 border-r border-white/5 shadow-2xl relative">
+                <aside className="w-[82px] bg-[#1d1e21] flex flex-col items-center py-6 gap-8 z-[100] shrink-0 border-r border-white/5 shadow-2xl relative overflow-y-auto no-scrollbar">
                     {[
                         { label: 'Modèles', icon: Layout },
                         { label: 'Éléments', icon: Shapes },
@@ -2050,11 +2050,12 @@ export const PDFEditor: React.FC = () => {
                     </div>
 
                     {/* WORKSPACE */}
-                    <div className="flex-1 overflow-auto bg-[#e3e5e8] flex items-center justify-center p-8 sm:p-20 relative no-scrollbar scroll-smooth">
-                        <div 
-                          className="relative shadow-[0_20px_50px_rgba(0,0,0,0.15)] bg-white transition-all transform-gpu origin-center max-w-full"
-                          style={{ transform: `scale(${editorZoom})` }}
-                        >
+                    <div className="flex-1 overflow-auto bg-[#e3e5e8] relative scroll-smooth p-8 sm:p-20">
+                        <div className="min-h-full min-w-full flex items-center justify-center">
+                            <div 
+                              className="relative shadow-[0_20px_50px_rgba(0,0,0,0.15)] bg-white transition-all transform-gpu origin-center"
+                              style={{ transform: `scale(${editorZoom})` }}
+                            >
                             {activeEditMode === 'text' ? (
                                 <div className="p-12 w-full max-w-4xl mx-auto">
                                    <div className="flex justify-between items-center mb-6">
@@ -2151,6 +2152,7 @@ export const PDFEditor: React.FC = () => {
                             )}
                         </div>
                     </div>
+                </div>
 
                     {/* BOTTOM STATUS BAR */}
                     <footer className="h-[44px] bg-white border-t border-slate-200 flex items-center justify-between px-6 shrink-0 z-50 text-[12px] font-bold text-slate-500 shadow-[0_-2px_10px_rgba(0,0,0,0.03)] focus-within:ring-0">
