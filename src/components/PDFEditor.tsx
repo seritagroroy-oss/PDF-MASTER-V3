@@ -1980,24 +1980,26 @@ export const PDFEditor: React.FC = () => {
                         { label: 'Modèles', icon: Layout },
                         { label: 'Éléments', icon: Shapes },
                         { label: 'Texte', icon: Type, tool: 'text' },
-                        { label: 'Importer', icon: Upload },
-                        { label: 'Dessin', icon: Pencil, tool: 'pen' },
+                        { label: 'Image', icon: Upload },
+                        { label: 'Pinceau', icon: Pencil, tool: 'pen' },
+                        { label: 'Gomme', icon: Eraser, tool: 'eraser' },
+                        { label: 'Gomme IA', icon: Sparkles, tool: 'magic-eraser' },
                         { label: 'Projets', icon: Folder },
-                        { label: 'AI', icon: Sparkles, color: 'cyan' },
+                        { label: 'Assistant', icon: Sparkles, color: 'cyan' },
                     ].map(item => (
                         <button 
                             key={item.label}
-                            onClick={() => (item as any).tool ? setVisualTool((item as any).tool as any) : ((item as any).label === 'AI' && setIsAISidebarOpen(!isAISidebarOpen))}
+                            onClick={() => (item as any).tool ? (setVisualTool((item as any).tool as any), (item as any).tool === 'text' ? setActiveEditMode('text') : setActiveEditMode('visual')) : (item.label === 'Assistant' && setIsAISidebarOpen(!isAISidebarOpen))}
                             className={cn(
                                 "flex flex-col items-center gap-1.5 w-full transition-all group relative px-1", 
-                                ((item as any).tool && visualTool === (item as any).tool) || (item.label === 'AI' && isAISidebarOpen) ? "text-white" : "text-white/50 hover:text-white/90"
+                                ((item as any).tool && visualTool === (item as any).tool) || (item.label === 'Assistant' && isAISidebarOpen) ? "text-white" : "text-white/50 hover:text-white/90"
                             )}
                         >
                             <div className={cn(
                                 "p-3 rounded-2xl transition-all group-hover:bg-white/10 group-active:scale-90",
-                                (((item as any).tool && visualTool === (item as any).tool) || (item.label === 'AI' && isAISidebarOpen)) && "bg-white/15 text-white shadow-inner"
+                                (((item as any).tool && visualTool === (item as any).tool) || (item.label === 'Assistant' && isAISidebarOpen)) && "bg-white/15 text-white shadow-inner"
                             )}>
-                                <item.icon size={26} className={cn("transition-transform", item.label === 'AI' && "text-cyan-400")} />
+                                <item.icon size={26} className={cn("transition-transform", (item.label === 'Assistant' || item.label === 'Gomme IA') && "text-cyan-400")} />
                             </div>
                             <span className="text-[11px] font-bold tracking-tight opacity-90">{item.label}</span>
                         </button>
@@ -2011,14 +2013,21 @@ export const PDFEditor: React.FC = () => {
                 <main className="flex-1 flex flex-col relative overflow-hidden">
                     {/* CONTEXTUAL TOOLBAR (White) */}
                     <div className="h-[56px] bg-white border-b border-slate-200 flex items-center px-8 gap-4 shrink-0 z-50 shadow-[0_2px_8px_rgba(0,0,0,0.04)] overflow-x-auto no-scrollbar scroll-smooth">
-                        <button className="flex items-center gap-2.5 px-4 py-2.5 bg-slate-50 hover:bg-slate-100 rounded-xl text-[13px] font-black text-slate-800 transition-all border border-slate-200/50 shadow-sm">
-                            <Sparkles size={18} className="text-indigo-600 fill-indigo-100" /> Écriture magique
+                        <button 
+                            onClick={() => activeEditMode === 'text' ? askAI('fix') : alert('Passez en mode texte pour utiliser l\'écriture magique')} 
+                            className="flex items-center gap-2.5 px-4 py-2.5 bg-slate-50 hover:bg-slate-100 rounded-xl text-[13px] font-black text-slate-800 transition-all border border-slate-200/50 shadow-sm"
+                        >
+                            <Sparkles size={18} className="text-indigo-600 fill-indigo-100" /> {isAIProcessing ? 'En cours...' : 'Écriture magique'}
                         </button>
                         <div className="h-6 w-px bg-slate-200 mx-1" />
                         
                         <div className="flex items-center gap-3 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 hover:border-slate-300 cursor-pointer transition-all shadow-sm group">
-                            <span className="text-[13px] font-bold text-slate-800">Open Sans</span>
-                            <Plus size={14} className="text-slate-400 rotate-45 group-hover:text-slate-600 transition-all" />
+                            <span className="text-[13px] font-bold text-slate-800">Inter</span>
+                            <div className="flex items-center gap-1 border-l border-slate-200 pl-2 ml-1">
+                                <button onClick={() => setTempFontSize(prev => Math.max(8, prev - 2))} className="hover:text-[#00c4cc]"><Minus size={12}/></button>
+                                <span className="text-[11px] font-black w-6 text-center">{tempFontSize}</span>
+                                <button onClick={() => setTempFontSize(prev => Math.min(100, prev + 2))} className="hover:text-[#00c4cc]"><Plus size={12}/></button>
+                            </div>
                         </div>
 
                         <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl p-1.5 shadow-sm">
