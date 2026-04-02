@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+﻿import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { PDFDocument, rgb, StandardFonts, degrees, PDFPage } from 'pdf-lib';
 import { pdfjs } from '../pdfjs-setup';
 import { FileUpload } from './FileUpload';
@@ -2078,103 +2078,138 @@ export const PDFEditor: React.FC = () => {
                         </div>
                       ) : (
                         <div className="flex flex-col md:flex-row h-[calc(100vh-140px)] w-full -mx-2 sm:-mx-10 -mt-2 sm:-mt-10 mb-[-10px] sm:rounded-2xl overflow-hidden bg-[#0A0A0A] relative shadow-2xl border border-slate-800/50">
-                          {/* Premium Left Sidebar */}
-                          <aside className="w-full md:w-20 lg:w-24 h-16 md:h-[calc(100vh-140px)] bg-slate-950/80 backdrop-blur-2xl border-b md:border-b-0 md:border-r border-slate-800 flex flex-row md:flex-col items-center justify-start md:py-6 px-2 md:px-0 gap-3 md:gap-4 z-10 shrink-0 shadow-[4px_0_24px_rgba(0,0,0,0.5)] overflow-x-auto md:overflow-y-auto scrollbar-none order-last md:order-first relative">
-                            {/* Decorative glow */}
-                            <div className="absolute top-0 left-0 w-full h-32 bg-indigo-500/10 blur-[30px] rounded-full pointer-events-none" />
-                            
-                            <div className="flex flex-row md:flex-col gap-2 md:gap-4 w-max md:w-full px-2 sm:px-4 items-center h-full md:h-auto z-10">
-                              <button onClick={() => setVisualTool('move')} title="Main (Déplacer)" className={cn("p-2 sm:p-3 rounded-2xl flex flex-col items-center justify-center gap-1 sm:gap-2 transition-all duration-300 group h-10 w-10 md:h-auto md:w-auto shrink-0", visualTool === 'move' ? "bg-slate-800 text-white shadow-lg ring-1 ring-white/10" : "text-slate-500 hover:bg-slate-800/50 hover:text-slate-300")}>
-                                <RefreshCw className={cn(visualTool === 'move' ? "" : "opacity-70 group-hover:opacity-100")} size={20} />
-                              </button>
-                              
-                              <div className="h-full w-px md:w-10 md:h-px bg-slate-800 shrink-0 my-1" />
-                              
-                              <button onClick={() => setVisualTool('pen')} title="Stylo" className={cn("p-2 sm:p-3 rounded-2xl flex flex-col items-center justify-center gap-1.5 transition-all duration-300 group shrink-0", visualTool === 'pen' ? "bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-[0_0_15px_rgba(99,102,241,0.5)]" : "bg-slate-900/50 text-slate-400 hover:bg-slate-800 hover:text-slate-200")}>
-                                <Pencil size={18} />
-                                <span className="text-[9px] font-black tracking-wider uppercase hidden md:block opacity-90">Stylo</span>
-                              </button>
-                              <button onClick={() => setVisualTool('text')} title="Texte" className={cn("p-2 sm:p-3 rounded-2xl flex flex-col items-center justify-center gap-1.5 transition-all duration-300 group shrink-0", visualTool === 'text' ? "bg-gradient-to-br from-blue-500 to-cyan-600 text-white shadow-[0_0_15px_rgba(59,130,246,0.5)]" : "bg-slate-900/50 text-slate-400 hover:bg-slate-800 hover:text-slate-200")}>
-                                <Type size={18} />
-                                <span className="text-[9px] font-black tracking-wider uppercase hidden md:block opacity-90">Texte</span>
-                              </button>
-                              
-                              <div className="h-full w-px md:w-10 md:h-px bg-slate-800 shrink-0 my-1" />
-                              
-                              <button onClick={() => setVisualTool('rect')} title="Rectangle" className={cn("p-2 sm:p-3 rounded-2xl flex flex-col items-center justify-center gap-1.5 transition-all duration-300 group shrink-0", visualTool === 'rect' ? "bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-[0_0_15px_rgba(16,185,129,0.5)]" : "bg-slate-900/50 text-slate-400 hover:bg-slate-800 hover:text-slate-200")}>
-                                <SquareIcon size={18} />
-                                <span className="text-[9px] font-black tracking-wider uppercase hidden md:block opacity-90">Formes</span>
-                              </button>
-                              <button onClick={() => setVisualTool('arrow')} title="Flèche" className={cn("p-2 sm:p-3 rounded-2xl flex flex-col items-center justify-center gap-1.5 transition-all duration-300 group shrink-0", visualTool === 'arrow' ? "bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-[0_0_15px_rgba(16,185,129,0.5)]" : "bg-slate-900/50 text-slate-400 hover:bg-slate-800 hover:text-slate-200")}>
-                                <ArrowRight size={18} />
-                                <span className="text-[9px] font-black tracking-wider uppercase hidden md:block opacity-90">Flèche</span>
-                              </button>
-                              
-                              <div className="h-full w-px md:w-10 md:h-px bg-slate-800 shrink-0 my-1" />
-                              
-                              <button onClick={() => setVisualTool('eraser')} title="Gomme" className={cn("p-2 sm:p-3 rounded-2xl flex flex-col items-center justify-center gap-1.5 transition-all duration-300 group shrink-0", visualTool === 'eraser' ? "bg-gradient-to-br from-rose-500 to-red-600 text-white shadow-[0_0_15px_rgba(244,63,94,0.5)]" : "bg-slate-900/50 text-slate-400 hover:bg-slate-800 hover:text-slate-200")}>
-                                <Eraser size={18} />
-                                <span className="text-[9px] font-black tracking-wider uppercase hidden md:block opacity-90">Gomme</span>
-                              </button>
+                          {/* Modern Floating Glass Dock */}
+                          <div className="absolute left-6 top-1/2 -translate-y-1/2 z-40 hidden md:flex flex-col items-center pointer-events-none group/sidebar">
+                            <aside className="bg-slate-900/60 backdrop-blur-2xl p-3.5 rounded-[3.5rem] border border-white/10 shadow-[0_32px_64px_rgba(0,0,0,0.6)] flex flex-col items-center justify-start gap-4 pointer-events-auto transition-all duration-500 hover:bg-slate-900/80 hover:scale-[1.01] hover:shadow-[0_40px_80px_rgba(0,0,0,0.7)] group-hover/sidebar:border-white/20">
+                              {/* Tool Group */}
+                              <div className="flex flex-col gap-2">
+                                <button 
+                                  onClick={() => setVisualTool('move')} 
+                                  title="Navigation"
+                                  className={cn(
+                                    "w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 relative group/tool",
+                                    visualTool === 'move' ? "bg-white text-slate-900 shadow-[0_0_25px_rgba(255,255,255,0.4)]" : "text-slate-400 hover:text-white hover:bg-white/5"
+                                  )}
+                                >
+                                  <RefreshCw size={20} className={cn("transition-transform group-active/tool:rotate-180 duration-500", visualTool === 'move' ? "scale-110" : "opacity-70 group-hover/tool:opacity-100")} />
+                                </button>
+                                
+                                <div className="h-px w-8 bg-white/5 mx-auto my-1" />
 
-                              <div className="h-full w-px md:w-10 md:h-px bg-slate-800 shrink-0 my-1 md:my-2" />
+                                {[
+                                  { id: 'pen', icon: 'Pencil', color: 'indigo' },
+                                  { id: 'text', icon: 'Type', color: 'blue' },
+                                  { id: 'rect', icon: 'SquareIcon', color: 'emerald' },
+                                  { id: 'arrow', icon: 'ArrowRight', color: 'emerald' },
+                                  { id: 'eraser', icon: 'Eraser', color: 'rose' }
+                                ].map((t) => {
+                                  const IconComponent = t.id === 'pen' ? Pencil : t.id === 'text' ? Type : t.id === 'rect' ? SquareIcon : t.id === 'arrow' ? ArrowRight : Eraser;
+                                  return (
+                                    <button 
+                                      key={t.id}
+                                      onClick={() => setVisualTool(t.id as any)} 
+                                      className={cn(
+                                        "w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 relative group/tool",
+                                        visualTool === t.id ? `bg-${t.color}-500 text-white scale-110 shadow-lg shadow-${t.color}-500/20` : "text-slate-400 hover:text-white hover:bg-white/5"
+                                      )}
+                                      style={visualTool === t.id ? { boxShadow: (t.id === 'pen' ? '0 0 20px #6366f180' : t.id === 'text' ? '0 0 20px #3b82f680' : t.id === 'eraser' ? '0 0 20px #f43f5e80' : '0 0 20px #10b98180') } : {}}
+                                    >
+                                      <IconComponent size={20} />
+                                    </button>
+                                  );
+                                })}
+                              </div>
 
-                               {/* Tool Properties Integrated in Left Sidebar */}
-                               {['pen', 'rect', 'circle', 'arrow', 'text'].includes(visualTool) && (
-                                  <div className="flex flex-row md:flex-col items-center gap-2 md:gap-3 shrink-0">
-                                    <div className="grid grid-cols-2 md:grid-cols-2 gap-1.5">
-                                      {['#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#1a1a1a', '#ffffff'].map(c => (
+                              <div className="h-px w-10 bg-white/10" />
+
+                              {/* Properties Group */}
+                              <div className="flex flex-col items-center gap-4">
+                                {['pen', 'rect', 'circle', 'arrow', 'text'].includes(visualTool) && (
+                                  <div className="flex flex-col items-center gap-3">
+                                    <div className="grid grid-cols-2 gap-1.5 p-1 bg-white/5 rounded-2xl">
+                                      {['#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#ffffff', '#1a1a1a'].map(c => (
                                         <button 
                                           key={c}
                                           onClick={() => setTempColor(c)}
-                                          className={cn("w-5 h-5 md:w-6 md:h-6 rounded-full border-2 shadow-sm transition-transform hover:scale-110 shrink-0", tempColor === c ? "scale-110 ring-2 ring-white/50 border-transparent relative z-10" : "border-white/20")}
+                                          className={cn(
+                                            "w-5 h-5 rounded-full transition-all border border-transparent",
+                                            tempColor === c ? "scale-125 ring-2 ring-white shadow-xl rotate-12" : "hover:scale-110 opacity-60 hover:opacity-100"
+                                          )}
                                           style={{ backgroundColor: c }}
                                         />
                                       ))}
                                     </div>
-                                    <input 
-                                      type="color" 
-                                      value={tempColor} 
-                                      onChange={(e) => setTempColor(e.target.value)} 
-                                      className="w-8 h-8 md:w-10 md:h-10 rounded-full cursor-pointer border-2 border-slate-700 bg-slate-800 shadow-inner overflow-hidden shrink-0" 
-                                      title="Couleur personnalisée"
-                                    />
+                                    <label className="relative cursor-pointer group/color">
+                                      <div className="w-10 h-10 rounded-2xl border border-white/10 p-0.5 bg-slate-900/40 shadow-inner group-hover/color:border-white/30 transition-colors flex items-center justify-center">
+                                        <div className="w-full h-full rounded-[0.8rem]" style={{ backgroundColor: tempColor }} />
+                                      </div>
+                                      <input type="color" value={tempColor} onChange={(e) => setTempColor(e.target.value)} className="absolute inset-0 opacity-0 cursor-pointer" />
+                                    </label>
                                   </div>
                                 )}
 
-                                {['pen', 'eraser', 'magic-eraser', 'rect', 'circle', 'arrow'].includes(visualTool) && (
-                                  <div className="flex flex-row md:flex-col items-center gap-2 md:gap-3 bg-slate-900/50 rounded-2xl p-1.5 md:py-3 shrink-0 hidden md:flex">
-                                    <span className="text-[9px] font-bold text-indigo-300 uppercase tracking-widest leading-none">{brushSize}</span>
+                                {['pen', 'eraser', 'rect', 'arrow'].includes(visualTool) && (
+                                  <div className="flex flex-col items-center gap-3 bg-white/5 rounded-[2rem] p-3 py-4">
                                     <input
                                       type="range"
                                       min="1"
                                       max="50"
                                       value={brushSize}
                                       onChange={(e) => setBrushSize(Number(e.target.value))}
-                                      title="Taille"
-                                      style={{ writingMode: 'vertical-lr', direction: 'rtl', WebkitAppearance: 'slider-vertical' }}
-                                      className="w-3 h-20 bg-slate-700 rounded-lg cursor-pointer accent-indigo-400"
+                                      style={{ writingMode: 'vertical-lr', WebkitAppearance: 'slider-vertical' }}
+                                      className="w-2 h-24 bg-slate-700/50 rounded-full cursor-pointer accent-indigo-500 opacity-60 hover:opacity-100 transition-opacity"
                                     />
                                   </div>
                                 )}
+                              </div>
 
-                                <div className="h-full w-px md:w-10 md:h-px bg-slate-800 shrink-0 my-1 md:my-2" />
+                              <div className="h-px w-10 bg-white/10" />
 
-                                <div className="flex flex-row md:flex-col items-center gap-1 shrink-0 bg-slate-900/50 rounded-2xl p-1 shadow-inner border border-slate-800">
-                                  <button onClick={() => setEditorZoom(prev => Math.min(3, prev + 0.1))} className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"><Plus size={14} /></button>
-                                  <span className="text-[9px] font-bold text-slate-400 min-w-[30px] text-center">{Math.round(editorZoom * 100)}%</span>
-                                  <button onClick={() => setEditorZoom(prev => Math.max(0.5, prev - 0.1))} className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"><Minus size={14} /></button>
+                              {/* View & History Group */}
+                              <div className="flex flex-col items-center gap-3">
+                                <div className="flex flex-col items-center gap-0.5 bg-white/5 rounded-[2.5rem] p-1">
+                                  <button onClick={() => setEditorZoom(prev => Math.min(3, prev + 0.1))} className="w-10 h-10 flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 rounded-full transition-all"><Plus size={16} /></button>
+                                  <span className="text-[9px] font-black text-slate-500 py-1">{Math.round(editorZoom * 100)}%</span>
+                                  <button onClick={() => setEditorZoom(prev => Math.max(0.2, prev - 0.1))} className="w-10 h-10 flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 rounded-full transition-all"><Minus size={16} /></button>
                                 </div>
 
-                                <div className="h-full w-px md:w-10 md:h-px bg-slate-800 shrink-0 my-1 md:my-2" />
-
-                                <div className="flex flex-row md:flex-col items-center justify-center gap-1 w-full shrink-0">
-                                  <button onClick={undo} title="Annuler" className="p-2 text-slate-400 hover:text-white hover:bg-slate-900 rounded-xl transition-all active:scale-95"><Undo2 size={16} /></button>
-                                  <button onClick={redo} title="Rétablir" className="p-2 text-slate-400 hover:text-white hover:bg-slate-900 rounded-xl transition-all active:scale-95"><RotateCcw size={16} className="rotate-180" /></button>
-                                  <button onClick={clearDrawings} title="Tout effacer" className="p-2 text-rose-500/70 hover:text-rose-400 hover:bg-rose-950/20 rounded-xl transition-all active:scale-95"><Trash2 size={16} /></button>
+                                <div className="flex flex-col gap-1.5 mt-2">
+                                  <button onClick={undo} title="Undo" className="w-10 h-10 flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 rounded-full transition-all"><Undo2 size={18} /></button>
+                                  <button onClick={redo} title="Redo" className="w-10 h-10 flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 rounded-full transition-all"><RotateCcw size={18} className="translate-y-px" /></button>
+                                  <button onClick={clearDrawings} title="Clear All" className="w-10 h-10 flex items-center justify-center text-rose-500/50 hover:text-rose-400 hover:bg-rose-500/10 rounded-full transition-all"><Trash2 size={18} /></button>
                                 </div>
+                              </div>
+                            </aside>
+                          </div>
+                          {/* Mobile Modern Navigation Overlay */}
+                          <div className="md:hidden fixed bottom-6 left-4 right-4 z-[70] bg-slate-900/70 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] p-3.5 flex items-center justify-between shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+                            <div className="flex items-center gap-2 overflow-x-auto scrollbar-none px-2 flex-1">
+                               {[
+                                  { t: 'move', i: RefreshCw },
+                                  { t: 'pen', i: Pencil },
+                                  { t: 'text', i: Type },
+                                  { t: 'rect', i: SquareIcon },
+                                  { t: 'arrow', i: ArrowRight },
+                                  { t: 'eraser', i: Eraser }
+                               ].map((tool) => (
+                                 <button
+                                   key={tool.t}
+                                   onClick={() => setVisualTool(tool.t as any)}
+                                   className={cn(
+                                     "w-12 h-12 rounded-2xl flex items-center justify-center transition-all shrink-0",
+                                     visualTool === tool.t ? "bg-white text-slate-900 shadow-xl scale-105" : "bg-white/5 text-slate-400"
+                                   )}
+                                 >
+                                   <tool.i size={20} />
+                                 </button>
+                               ))}
                             </div>
-                          </aside>
+                            <div className="w-px h-10 bg-white/10 mx-3 shrink-0" />
+                            <div className="flex items-center gap-1.5 shrink-0 px-2">
+                              <button onClick={undo} className="w-12 h-12 flex items-center justify-center bg-white/5 text-slate-400 rounded-2xl transition-all active:scale-90"><Undo2 size={20} /></button>
+                              <button onClick={clearDrawings} className="w-12 h-12 flex items-center justify-center bg-rose-500/10 text-rose-500 rounded-2xl transition-all active:scale-90"><Trash2 size={20} /></button>
+                            </div>
+                          </div>
 
                           {/* Canvas Area  */}
                           <div className="flex-1 flex flex-col h-full relative overflow-hidden bg-[radial-gradient(#334155_1px,transparent_1px)] [background-size:24px_24px] bg-[#0A0A0A]">
