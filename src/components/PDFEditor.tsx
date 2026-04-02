@@ -2077,82 +2077,96 @@ export const PDFEditor: React.FC = () => {
                           />
                         </div>
                       ) : (
-                        <div className="flex flex-col md:flex-row h-[calc(100vh-140px)] w-full -mx-2 sm:-mx-10 -mt-2 sm:-mt-10 mb-[-10px] sm:rounded-2xl overflow-hidden bg-slate-100 relative">
-                          {/* Left Sidebar (Tools) - Canva style - Becomes Bottom/Top bar on mobile */}
-                          <aside className="w-full md:w-20 lg:w-24 h-16 md:h-full bg-white border-b md:border-b-0 md:border-r border-slate-200 flex flex-row md:flex-col items-center justify-start md:py-6 px-2 md:px-0 gap-2 md:gap-6 z-10 shrink-0 shadow-sm overflow-x-auto md:overflow-y-auto scrollbar-none order-last md:order-first">
-                            <div className="flex flex-row md:flex-col gap-2 md:gap-4 w-max md:w-full px-2 sm:px-4 items-center h-full md:h-auto">
-                              <button onClick={() => setVisualTool('move')} title="Main (Déplacer)" className={cn("p-2 sm:p-3 rounded-xl flex flex-col items-center justify-center gap-1 sm:gap-2 transition-all group h-10 w-10 md:h-auto md:w-auto shrink-0", visualTool === 'move' ? "bg-indigo-50 text-indigo-600" : "text-slate-500 hover:bg-slate-50 hover:text-slate-900")}>
-                                <RefreshCw className={cn(visualTool === 'move' ? "" : "opacity-70 group-hover:opacity-100")} size={18} />
+                        <div className="flex flex-col md:flex-row h-[calc(100vh-140px)] w-full -mx-2 sm:-mx-10 -mt-2 sm:-mt-10 mb-[-10px] sm:rounded-2xl overflow-hidden bg-[#0A0A0A] relative shadow-2xl border border-slate-800/50">
+                          {/* Premium Left Sidebar */}
+                          <aside className="w-full md:w-20 lg:w-24 h-16 md:h-full bg-slate-950/80 backdrop-blur-2xl border-b md:border-b-0 md:border-r border-slate-800 flex flex-row md:flex-col items-center justify-start md:py-8 px-2 md:px-0 gap-3 md:gap-6 z-10 shrink-0 shadow-[4px_0_24px_rgba(0,0,0,0.5)] overflow-x-auto md:overflow-y-auto scrollbar-none order-last md:order-first relative">
+                            {/* Decorative glow */}
+                            <div className="absolute top-0 left-0 w-full h-32 bg-indigo-500/10 blur-[30px] rounded-full pointer-events-none" />
+                            
+                            <div className="flex flex-row md:flex-col gap-2 md:gap-4 w-max md:w-full px-2 sm:px-4 items-center h-full md:h-auto z-10">
+                              <button onClick={() => setVisualTool('move')} title="Main (Déplacer)" className={cn("p-2 sm:p-3 rounded-2xl flex flex-col items-center justify-center gap-1 sm:gap-2 transition-all duration-300 group h-10 w-10 md:h-auto md:w-auto shrink-0", visualTool === 'move' ? "bg-slate-800 text-white shadow-lg ring-1 ring-white/10" : "text-slate-500 hover:bg-slate-800/50 hover:text-slate-300")}>
+                                <RefreshCw className={cn(visualTool === 'move' ? "" : "opacity-70 group-hover:opacity-100")} size={20} />
                               </button>
                               
-                              <div className="h-full w-px md:w-full md:h-px bg-slate-100 shrink-0" />
+                              <div className="h-full w-px md:w-12 md:h-px bg-slate-800 shrink-0 my-1" />
                               
-                              <button onClick={() => setVisualTool('pen')} title="Stylo" className={cn("p-2 sm:p-3 rounded-xl flex flex-col items-center justify-center gap-1 sm:gap-2 transition-all group shrink-0", visualTool === 'pen' ? "bg-indigo-50 text-indigo-600" : "text-slate-500 hover:bg-slate-50 hover:text-slate-900")}>
+                              <button onClick={() => setVisualTool('pen')} title="Stylo" className={cn("p-2 sm:p-3 rounded-2xl flex flex-col items-center justify-center gap-1.5 transition-all duration-300 group shrink-0", visualTool === 'pen' ? "bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-[0_0_15px_rgba(99,102,241,0.5)]" : "bg-slate-900/50 text-slate-400 hover:bg-slate-800 hover:text-slate-200")}>
                                 <Pencil size={18} />
-                                <span className="text-[9px] font-bold hidden md:block">Stylo</span>
+                                <span className="text-[9px] font-black tracking-wider uppercase hidden md:block opacity-90">Stylo</span>
                               </button>
-                              <button onClick={() => setVisualTool('text')} title="Texte" className={cn("p-2 sm:p-3 rounded-xl flex flex-col items-center justify-center gap-1 sm:gap-2 transition-all group shrink-0", visualTool === 'text' ? "bg-indigo-50 text-indigo-600" : "text-slate-500 hover:bg-slate-50 hover:text-slate-900")}>
+                              <button onClick={() => setVisualTool('text')} title="Texte" className={cn("p-2 sm:p-3 rounded-2xl flex flex-col items-center justify-center gap-1.5 transition-all duration-300 group shrink-0", visualTool === 'text' ? "bg-gradient-to-br from-blue-500 to-cyan-600 text-white shadow-[0_0_15px_rgba(59,130,246,0.5)]" : "bg-slate-900/50 text-slate-400 hover:bg-slate-800 hover:text-slate-200")}>
                                 <Type size={18} />
-                                <span className="text-[9px] font-bold hidden md:block">Texte</span>
+                                <span className="text-[9px] font-black tracking-wider uppercase hidden md:block opacity-90">Texte</span>
                               </button>
                               
-                              <div className="h-full w-px md:w-full md:h-px bg-slate-100 shrink-0" />
+                              <div className="h-full w-px md:w-12 md:h-px bg-slate-800 shrink-0 my-1" />
                               
-                              <button onClick={() => setVisualTool('rect')} title="Rectangle" className={cn("p-2 sm:p-3 rounded-xl flex flex-col items-center justify-center gap-1 sm:gap-2 transition-all group shrink-0", visualTool === 'rect' ? "bg-indigo-50 text-indigo-600" : "text-slate-500 hover:bg-slate-50 hover:text-slate-900")}>
+                              <button onClick={() => setVisualTool('rect')} title="Rectangle" className={cn("p-2 sm:p-3 rounded-2xl flex flex-col items-center justify-center gap-1.5 transition-all duration-300 group shrink-0", visualTool === 'rect' ? "bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-[0_0_15px_rgba(16,185,129,0.5)]" : "bg-slate-900/50 text-slate-400 hover:bg-slate-800 hover:text-slate-200")}>
                                 <SquareIcon size={18} />
-                                <span className="text-[9px] font-bold hidden md:block">Formes</span>
+                                <span className="text-[9px] font-black tracking-wider uppercase hidden md:block opacity-90">Formes</span>
                               </button>
-                              <button onClick={() => setVisualTool('circle')} title="Cercle" className={cn("p-2 sm:p-3 rounded-xl flex-col items-center justify-center gap-1 sm:gap-2 transition-all group shrink-0", visualTool === 'circle' ? "bg-indigo-50 text-indigo-600" : "text-slate-500 hover:bg-slate-50 hover:text-slate-900", visualTool === 'rect' ? "hidden" : "hidden md:flex")}>
+                              <button onClick={() => setVisualTool('circle')} title="Cercle" className={cn("p-2 sm:p-3 rounded-2xl flex-col items-center justify-center gap-1.5 transition-all duration-300 group shrink-0", visualTool === 'circle' ? "bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-[0_0_15px_rgba(16,185,129,0.5)]" : "bg-slate-900/50 text-slate-400 hover:bg-slate-800 hover:text-slate-200", visualTool === 'rect' ? "hidden" : "hidden md:flex")}>
                                 <Circle size={18} />
                               </button>
-                              <button onClick={() => setVisualTool('arrow')} title="Flèche" className={cn("p-2 sm:p-3 rounded-xl flex flex-col items-center justify-center gap-1 sm:gap-2 transition-all group shrink-0", visualTool === 'arrow' ? "bg-indigo-50 text-indigo-600" : "text-slate-500 hover:bg-slate-50 hover:text-slate-900")}>
+                              <button onClick={() => setVisualTool('arrow')} title="Flèche" className={cn("p-2 sm:p-3 rounded-2xl flex flex-col items-center justify-center gap-1.5 transition-all duration-300 group shrink-0", visualTool === 'arrow' ? "bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-[0_0_15px_rgba(16,185,129,0.5)]" : "bg-slate-900/50 text-slate-400 hover:bg-slate-800 hover:text-slate-200")}>
                                 <ArrowRight size={18} />
-                                <span className="text-[9px] font-bold hidden md:block">Flèche</span>
+                                <span className="text-[9px] font-black tracking-wider uppercase hidden md:block opacity-90">Flèche</span>
                               </button>
                               
-                              <div className="h-full w-px md:w-full md:h-px bg-slate-100 shrink-0" />
+                              <div className="h-full w-px md:w-12 md:h-px bg-slate-800 shrink-0 my-1" />
                               
-                              <button onClick={() => setVisualTool('eraser')} title="Gomme" className={cn("p-2 sm:p-3 rounded-xl flex flex-col items-center justify-center gap-1 sm:gap-2 transition-all group shrink-0", visualTool === 'eraser' ? "bg-rose-50 text-rose-600" : "text-slate-500 hover:bg-slate-50 hover:text-slate-900")}>
+                              <button onClick={() => setVisualTool('eraser')} title="Gomme" className={cn("p-2 sm:p-3 rounded-2xl flex flex-col items-center justify-center gap-1.5 transition-all duration-300 group shrink-0", visualTool === 'eraser' ? "bg-gradient-to-br from-rose-500 to-red-600 text-white shadow-[0_0_15px_rgba(244,63,94,0.5)]" : "bg-slate-900/50 text-slate-400 hover:bg-slate-800 hover:text-slate-200")}>
                                 <Eraser size={18} />
-                                <span className="text-[9px] font-bold hidden md:block">Gomme</span>
+                                <span className="text-[9px] font-black tracking-wider uppercase hidden md:block opacity-90">Gomme</span>
                               </button>
-                              <button onClick={() => setVisualTool('magic-eraser')} title="Gomme Magique (IA)" className={cn("p-2 sm:p-3 rounded-xl flex flex-col items-center justify-center gap-1 sm:gap-2 transition-all group shrink-0", visualTool === 'magic-eraser' ? "bg-cyan-50 text-cyan-500" : "text-slate-500 hover:bg-slate-50 hover:text-slate-900")}>
-                                <Zap size={18} />
-                                <span className="text-[9px] font-bold hidden md:block text-center leading-tight">Gomme IA</span>
+                              <button onClick={() => setVisualTool('magic-eraser')} title="Gomme Magique (IA)" className={cn("p-2 sm:p-3 rounded-2xl flex flex-col items-center justify-center gap-1.5 transition-all duration-300 group shrink-0 border", visualTool === 'magic-eraser' ? "bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow-[0_0_15px_rgba(251,191,36,0.5)] border-transparent" : "bg-indigo-950/30 text-indigo-400 border-indigo-500/20 hover:bg-indigo-900/50 hover:text-indigo-300")}>
+                                <Sparkles size={18} />
+                                <span className="text-[9px] font-black tracking-wider uppercase hidden md:block text-center leading-tight">Gomme IA</span>
                               </button>
                             </div>
                           </aside>
 
                           {/* Canvas Area  */}
-                          <div className="flex-1 flex flex-col h-full relative overflow-hidden bg-slate-200/50">
+                          <div className="flex-1 flex flex-col h-full relative overflow-hidden bg-[radial-gradient(#334155_1px,transparent_1px)] [background-size:24px_24px] bg-[#0A0A0A]">
                             
-                            {/* Top Properties Bar */}
-                            <div className="absolute top-2 md:top-4 left-2 right-2 md:left-4 md:right-4 z-20 flex justify-center pointer-events-none">
-                              <div className="bg-white/95 backdrop-blur-md px-3 md:px-6 py-2 md:py-3 rounded-2xl md:rounded-full shadow-lg border border-slate-200/50 flex flex-wrap md:flex-nowrap items-center justify-center gap-3 md:gap-6 pointer-events-auto transition-all animate-in slide-in-from-top-4 w-[95%] md:w-auto">
+                            {/* Top Premium Properties Bar */}
+                            <div className="absolute top-2 md:top-6 left-2 right-2 md:left-4 md:right-4 z-20 flex justify-center pointer-events-none">
+                              <div className="bg-slate-900/80 backdrop-blur-xl px-4 md:px-6 py-2 md:py-3 rounded-2xl md:rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.5)] border border-white/10 flex flex-wrap md:flex-nowrap items-center justify-center gap-3 md:gap-6 pointer-events-auto transition-all animate-in slide-in-from-top-8 duration-500 w-[95%] md:w-auto">
                                 
                                 {['pen', 'rect', 'circle', 'arrow', 'text'].includes(visualTool) && (
-                                  <div className="flex items-center gap-2 md:gap-3">
+                                  <div className="flex items-center gap-2 md:gap-4">
+                                    <div className="flex items-center gap-1.5 mr-2">
+                                      {/* Quick vibrant colors */}
+                                      {['#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#1a1a1a', '#ffffff'].map(c => (
+                                        <button 
+                                          key={c}
+                                          onClick={() => setTempColor(c)}
+                                          className={cn("w-5 h-5 md:w-6 md:h-6 rounded-full border-2 shadow-sm transition-transform hover:scale-110", tempColor === c ? "scale-110 ring-2 ring-white/50 border-transparent relative z-10" : "border-white/20")}
+                                          style={{ backgroundColor: c }}
+                                        />
+                                      ))}
+                                    </div>
                                     <input 
                                       type="color" 
                                       value={tempColor} 
                                       onChange={(e) => setTempColor(e.target.value)} 
-                                      className="w-6 h-6 md:w-8 md:h-8 rounded-full cursor-pointer border-2 border-white shadow-sm overflow-hidden" 
-                                      title="Couleur"
+                                      className="w-6 h-6 md:w-8 md:h-8 rounded-full cursor-pointer border-2 border-slate-700 bg-slate-800 shadow-inner overflow-hidden shrink-0" 
+                                      title="Couleur personnalisée"
                                     />
-                                    <div className="w-px h-4 md:h-6 bg-slate-200" />
+                                    <div className="w-px h-4 md:h-6 bg-slate-700 ml-1" />
                                   </div>
                                 )}
                                 
                                 {['pen', 'eraser', 'magic-eraser', 'rect', 'circle', 'arrow'].includes(visualTool) && (
-                                  <div className="flex items-center gap-2 md:gap-4 w-28 md:w-32 lg:w-48">
-                                    <span className="text-[9px] md:text-[10px] font-bold text-slate-400 uppercase tracking-widest min-w-[3ch]">{brushSize}</span>
+                                  <div className="flex items-center gap-2 md:gap-4 w-28 md:w-32 lg:w-48 bg-slate-800/50 rounded-full px-3 py-1">
+                                    <span className="text-[9px] md:text-[10px] font-bold text-indigo-300 uppercase tracking-widest min-w-[3ch]">{brushSize}</span>
                                     <input
                                       type="range"
                                       min="1"
                                       max="50"
                                       value={brushSize}
                                       onChange={(e) => setBrushSize(Number(e.target.value))}
-                                      className="flex-1 h-1 md:h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
+                                      className="flex-1 h-1 md:h-1.5 bg-slate-600 rounded-lg appearance-none cursor-pointer accent-indigo-400"
                                       title="Taille de l'outil"
                                     />
                                   </div>
@@ -2163,8 +2177,8 @@ export const PDFEditor: React.FC = () => {
                                     onClick={() => setIsTableProtectionEnabled(!isTableProtectionEnabled)} 
                                     title="Protéger les lignes du tableau" 
                                     className={cn(
-                                      "px-3 md:px-4 py-1.5 rounded-full text-[9px] md:text-[10px] font-black uppercase flex items-center gap-1.5 transition-all", 
-                                      isTableProtectionEnabled ? "bg-emerald-500 text-white shadow-sm" : "bg-slate-100 text-slate-500"
+                                      "px-3 md:px-4 py-1.5 rounded-full text-[9px] md:text-[10px] font-black uppercase flex items-center gap-1.5 transition-all outline-none", 
+                                      isTableProtectionEnabled ? "bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-[0_0_15px_rgba(16,185,129,0.3)]" : "bg-slate-800 text-slate-400 hover:text-slate-200 hover:bg-slate-700"
                                     )}
                                   >
                                     {isTableProtectionEnabled ? <Lock size={12} /> : <ScanLine size={12} />}
@@ -2172,20 +2186,20 @@ export const PDFEditor: React.FC = () => {
                                   </button>
                                 )}
 
-                                <div className="hidden md:block w-px h-6 bg-slate-200 ml-2" />
+                                <div className="hidden md:block w-px h-6 bg-slate-700 mx-1 md:mx-3" />
 
-                                <div className="hidden md:block w-px h-6 bg-slate-200 mx-2" />
-
-                                <div className="flex items-center gap-1 shrink-0 bg-slate-50 dark:bg-slate-800 rounded-xl p-1">
-                                  <button onClick={() => setEditorZoom(prev => Math.max(0.5, prev - 0.2))} className="p-1 text-slate-400 hover:text-indigo-600 hover:bg-white rounded-lg shadow-sm"><Minus size={14} /></button>
-                                  <span className="text-[10px] font-bold text-slate-500 min-w-[30px] text-center">{Math.round(editorZoom * 100)}%</span>
-                                  <button onClick={() => setEditorZoom(prev => Math.min(3, prev + 0.2))} className="p-1 text-slate-400 hover:text-indigo-600 hover:bg-white rounded-lg shadow-sm"><Plus size={14} /></button>
+                                <div className="flex items-center gap-1 shrink-0 bg-slate-800 rounded-full md:rounded-xl p-1 shadow-inner border border-slate-700">
+                                  <button onClick={() => setEditorZoom(prev => Math.max(0.5, prev - 0.2))} className="p-1 md:p-1.5 text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg transition-colors"><Minus size={14} /></button>
+                                  <span className="text-[10px] font-bold text-slate-300 min-w-[35px] text-center">{Math.round(editorZoom * 100)}%</span>
+                                  <button onClick={() => setEditorZoom(prev => Math.min(3, prev + 0.2))} className="p-1 md:p-1.5 text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg transition-colors"><Plus size={14} /></button>
                                 </div>
 
-                                <div className="flex items-center justify-center gap-1 mt-1 md:mt-0 w-full md:w-auto border-t md:border-t-0 border-slate-100 pt-1 md:pt-0">
-                                  <button onClick={undo} title="Annuler" className="p-1.5 md:p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition-colors"><Undo2 size={16} /></button>
-                                  <button onClick={redo} title="Rétablir" className="p-1.5 md:p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition-colors"><RotateCcw size={16} className="rotate-180" /></button>
-                                  <button onClick={clearDrawings} title="Tout effacer" className="p-1.5 md:p-2 text-rose-400 hover:text-rose-600 hover:bg-rose-50 rounded-full transition-colors"><Trash2 size={16} /></button>
+                                <div className="hidden md:block w-px h-6 bg-slate-700 mx-1 md:mx-3" />
+
+                                <div className="flex items-center justify-center gap-1 mt-1 md:mt-0 w-full md:w-auto border-t md:border-t-0 border-slate-700 pt-1 md:pt-0">
+                                  <button onClick={undo} title="Annuler" className="p-1.5 md:p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-full transition-all active:scale-95"><Undo2 size={16} /></button>
+                                  <button onClick={redo} title="Rétablir" className="p-1.5 md:p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-full transition-all active:scale-95"><RotateCcw size={16} className="rotate-180" /></button>
+                                  <button onClick={clearDrawings} title="Tout effacer" className="p-1.5 md:p-2 text-rose-400 hover:text-rose-200 hover:bg-rose-950/50 rounded-full transition-all active:scale-95"><Trash2 size={16} /></button>
                                 </div>
                               </div>
                             </div>
@@ -2205,7 +2219,7 @@ export const PDFEditor: React.FC = () => {
                                     touchAction: visualTool === 'move' ? 'auto' : 'none',
                                     cursor: visualTool === 'move' ? 'grab' : 'crosshair'
                                   }}
-                                  className="bg-white touch-none shadow-md rounded-sm"
+                                  className="bg-white touch-none shadow-[0_0_40px_rgba(0,0,0,0.5)] rounded-sm"
                                 />
 
                             {textInput && (
