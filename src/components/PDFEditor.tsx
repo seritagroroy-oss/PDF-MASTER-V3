@@ -60,6 +60,7 @@ export const PDFEditor: React.FC = () => {
   const [tempIsItalic, setTempIsItalic] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(1); // 0: Small, 1: Medium, 2: Large
   const [searchQuery, setSearchQuery] = useState("");
+  const [editorZoom, setEditorZoom] = useState(1);
 
   const deselectAll = () => {
     setSelectedIds(new Set());
@@ -409,6 +410,7 @@ export const PDFEditor: React.FC = () => {
     setTempIsItalic(thumbnail.isItalic || false);
     setCurrentDrawings(thumbnail.drawings || []);
     setActiveEditMode('text');
+    setEditorZoom(1);
 
     try {
       const arrayBuffer = await rawFiles[thumbnail.sourceFileIndex].arrayBuffer();
@@ -2172,6 +2174,14 @@ export const PDFEditor: React.FC = () => {
 
                                 <div className="hidden md:block w-px h-6 bg-slate-200 ml-2" />
 
+                                <div className="hidden md:block w-px h-6 bg-slate-200 mx-2" />
+
+                                <div className="flex items-center gap-1 shrink-0 bg-slate-50 dark:bg-slate-800 rounded-xl p-1">
+                                  <button onClick={() => setEditorZoom(prev => Math.max(0.5, prev - 0.2))} className="p-1 text-slate-400 hover:text-indigo-600 hover:bg-white rounded-lg shadow-sm"><Minus size={14} /></button>
+                                  <span className="text-[10px] font-bold text-slate-500 min-w-[30px] text-center">{Math.round(editorZoom * 100)}%</span>
+                                  <button onClick={() => setEditorZoom(prev => Math.min(3, prev + 0.2))} className="p-1 text-slate-400 hover:text-indigo-600 hover:bg-white rounded-lg shadow-sm"><Plus size={14} /></button>
+                                </div>
+
                                 <div className="flex items-center justify-center gap-1 mt-1 md:mt-0 w-full md:w-auto border-t md:border-t-0 border-slate-100 pt-1 md:pt-0">
                                   <button onClick={undo} title="Annuler" className="p-1.5 md:p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition-colors"><Undo2 size={16} /></button>
                                   <button onClick={redo} title="Rétablir" className="p-1.5 md:p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition-colors"><RotateCcw size={16} className="rotate-180" /></button>
@@ -2180,8 +2190,8 @@ export const PDFEditor: React.FC = () => {
                               </div>
                             </div>
 
-                            <div className="flex-1 flex justify-center items-center overflow-auto p-4 sm:p-12 scrollbar-none">
-                              <div className="relative shadow-2xl transition-all w-fit">
+                            <div className="flex-1 flex overflow-auto p-4 sm:p-12 scrollbar-none items-start justify-center">
+                              <div className="relative shadow-xl transition-all w-fit my-auto mx-auto">
                                 <canvas
                                   ref={canvasRef}
                                   onPointerDown={startDrawing}
@@ -2189,11 +2199,13 @@ export const PDFEditor: React.FC = () => {
                                   onPointerUp={stopDrawing}
                                   onPointerLeave={stopDrawing}
                                   style={{
+                                    width: canvasDimensions.width ? `${canvasDimensions.width * editorZoom}px` : 'auto',
+                                    height: canvasDimensions.height ? `${canvasDimensions.height * editorZoom}px` : 'auto',
                                     filter: isEyeSaverMode ? "invert(1) hue-rotate(180deg)" : "none",
                                     touchAction: visualTool === 'move' ? 'auto' : 'none',
                                     cursor: visualTool === 'move' ? 'grab' : 'crosshair'
                                   }}
-                                  className="bg-white touch-none"
+                                  className="bg-white touch-none shadow-md rounded-sm"
                                 />
 
                             {textInput && (
