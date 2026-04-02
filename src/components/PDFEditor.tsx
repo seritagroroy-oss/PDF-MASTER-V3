@@ -2013,8 +2013,8 @@ export const PDFEditor: React.FC = () => {
 
 
               <div className="flex flex-1 overflow-hidden relative">
-                {/* 2. LEFT SIDEBAR (Dark) */}
-                <aside className="w-[82px] bg-[#1d1e21] flex flex-col items-center py-6 gap-8 z-[100] shrink-0 border-r border-white/5 shadow-2xl relative overflow-y-auto no-scrollbar">
+                {/* 2. LEFT SIDEBAR (Dark - Hidden on mobile) */}
+                <aside className="hidden md:flex w-[82px] bg-[#1d1e21] flex-col items-center py-6 gap-8 z-[100] shrink-0 border-r border-white/5 shadow-2xl relative overflow-y-auto no-scrollbar">
                     {[
                         { label: 'Modèles', icon: Layout },
                         { label: 'Éléments', icon: Shapes },
@@ -2451,24 +2451,25 @@ export const PDFEditor: React.FC = () => {
       {/* GLOBAL MOBILE BOTTOM NAV (Smart State-aware) */}
       <div className="sm:hidden fixed bottom-0 left-0 right-0 h-[80px] bg-white border-t border-slate-100 flex items-center justify-around px-2 z-[200] shadow-[0_-8px_30px_rgba(0,0,0,0.08)] pb-2 rounded-t-[1.5rem]">
           {editingPage ? (
-              // EDITOR STATE NAV
+              // EDITOR STATE NAV (All tools on the white bar)
               [
                 { label: 'Modèles', icon: Layout },
                 { label: 'Éléments', icon: Shapes },
                 { label: 'Texte', icon: Type, tool: 'text' },
                 { label: 'Pinceau', icon: Pencil, tool: 'pen' },
-                { label: 'Gomme', icon: Eraser, tool: 'eraser' },
+                { label: 'Gomme IA', icon: Sparkles, tool: 'magic-eraser' },
+                { label: 'Assistant', icon: MessageCircle, action: () => setIsAISidebarOpen(!isAISidebarOpen) },
               ].map(item => (
                 <button 
                     key={item.label}
-                    onClick={() => (item as any).tool ? (setVisualTool((item as any).tool as any), (item as any).tool === 'text' ? setActiveEditMode('text') : setActiveEditMode('visual')) : null}
+                    onClick={() => (item as any).action ? (item as any).action() : ((item as any).tool ? (setVisualTool((item as any).tool as any), (item as any).tool === 'text' ? setActiveEditMode('text') : setActiveEditMode('visual')) : null)}
                     className={cn(
-                        "flex flex-col items-center gap-1 min-w-[64px] transition-all",
-                        (item as any).tool && visualTool === (item as any).tool ? "text-[#00c4cc]" : "text-slate-400"
+                        "flex flex-col items-center gap-1 min-w-[56px] transition-all",
+                        ((item as any).tool && visualTool === (item as any).tool) || (item.label === 'Assistant' && isAISidebarOpen) ? "text-[#00c4cc]" : "text-slate-400"
                     )}
                 >
-                    <item.icon size={22} className={cn("transition-transform", (item as any).tool && visualTool === (item as any).tool && "scale-110")} />
-                    <span className="text-[10px] font-bold tracking-tight">{item.label}</span>
+                    <item.icon size={22} className={cn("transition-transform", (((item as any).tool && visualTool === (item as any).tool) || (item.label === 'Assistant' && isAISidebarOpen)) && "scale-110")} />
+                    <span className="text-[10px] font-black tracking-tight">{item.label}</span>
                 </button>
               ))
           ) : (
