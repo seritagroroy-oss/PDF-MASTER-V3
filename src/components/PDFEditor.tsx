@@ -2480,6 +2480,8 @@ export const PDFEditor: React.FC = () => {
                       </div>
                     </motion.div>
                   )}
+                </AnimatePresence>
+
                 {/* Sidebar Éléments */}
                 <AnimatePresence>
                   {isElementsSidebarOpen && (
