@@ -2184,7 +2184,7 @@ export const PDFEditor: React.FC = () => {
 
               <div className="flex flex-1 overflow-hidden relative">
                 {/* 2. LEFT SIDEBAR (Dark - Hidden on mobile) */}
-                <aside className="hidden md:flex w-[82px] bg-[#1d1e21] flex-col items-center py-6 gap-8 z-[100] shrink-0 border-r border-white/5 shadow-2xl relative overflow-y-auto no-scrollbar">
+                <aside className="hidden sm:flex w-[82px] bg-[#1d1e21] flex-col items-center py-6 gap-8 z-[100] shrink-0 border-r border-white/5 shadow-2xl relative overflow-y-auto no-scrollbar">
                     {[
                         { label: 'Modèles', icon: Layout },
                         { label: 'Éléments', icon: Shapes, action: toggleElementsSidebar },
@@ -2741,7 +2741,7 @@ export const PDFEditor: React.FC = () => {
       </AnimatePresence>
 
       {editingPage && (
-        <div className="sm:hidden fixed bottom-0 left-0 right-0 h-[80px] bg-white border-t border-slate-100 flex items-center justify-around px-2 z-[200] shadow-[0_-8px_30px_rgba(0,0,0,0.08)] pb-2 rounded-t-[1.5rem]">
+        <div className="flex sm:hidden fixed bottom-0 left-0 right-0 h-[80px] bg-white border-t border-slate-100 items-center justify-around px-2 z-[200] shadow-[0_-8px_30px_rgba(0,0,0,0.08)] pb-2 rounded-t-[1.5rem]">
           {[
             { label: 'Aucun', icon: MousePointer2, action: () => setVisualTool('move') },
             { label: 'Modèles', icon: Layout },
