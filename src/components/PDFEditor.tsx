@@ -76,24 +76,32 @@ export const PDFEditor: React.FC = () => {
   const [stampType, setStampType] = useState<'check' | 'x' | 'approved' | 'sign' | 'confidential' | 'star' | 'heart' | 'warning'>('check');
   const [isAISidebarOpen, setIsAISidebarOpen] = useState(false);
   const [isElementsSidebarOpen, setIsElementsSidebarOpen] = useState(false);
+  const [isTextSidebarOpen, setIsTextSidebarOpen] = useState(false);
   const [aiResponse, setAiResponse] = useState("");
   const [isAIProcessing, setIsAIProcessing] = useState(false);
   
   const toggleElementsSidebar = useCallback(() => {
-    console.log("Toggling Elements Sidebar. Current state:", isElementsSidebarOpen);
     setIsElementsSidebarOpen(prev => !prev);
     setIsAISidebarOpen(false);
+    setIsTextSidebarOpen(false);
   }, [isElementsSidebarOpen]);
 
+  const toggleTextSidebar = useCallback(() => {
+    setIsTextSidebarOpen(prev => !prev);
+    setIsAISidebarOpen(false);
+    setIsElementsSidebarOpen(false);
+  }, [isTextSidebarOpen]);
+
   const toggleAISidebar = useCallback(() => {
-    console.log("Toggling AI Sidebar. Current state:", isAISidebarOpen);
     setIsAISidebarOpen(prev => !prev);
     setIsElementsSidebarOpen(false);
+    setIsTextSidebarOpen(false);
   }, [isAISidebarOpen]);
 
   const [brushSize, setBrushSize] = useState(5);
   const [currentDrawings, setCurrentDrawings] = useState<DrawingStroke[]>([]);
   const [textInput, setTextInput] = useState<{ x: number, y: number, text: string, isBold?: boolean, isItalic?: boolean, isHighlighted?: boolean, fontSize?: number } | null>(null);
+  const [selectedTextModel, setSelectedTextModel] = useState<{ text: string, fontSize: number, isBold: boolean, isItalic: boolean, isHighlighted: boolean } | null>(null);
   const [initialText, setInitialText] = useState("");
   const [draggingStrokeIdx, setDraggingStrokeIdx] = useState<number | null>(null);
   const [dragOffset, setDragOffset] = useState<{ x: number, y: number } | null>(null);
@@ -924,7 +932,17 @@ export const PDFEditor: React.FC = () => {
 
     if (visualTool === 'text') {
       setIsDrawing(false);
-      setTextInput({ x: pos.x, y: pos.y, text: '' });
+      const textToUse = selectedTextModel?.text || '';
+      setTextInput({ 
+        x: pos.x, 
+        y: pos.y, 
+        text: textToUse,
+        fontSize: selectedTextModel?.fontSize || 20,
+        isBold: selectedTextModel?.isBold || false,
+        isItalic: selectedTextModel?.isItalic || false,
+        isHighlighted: selectedTextModel?.isHighlighted || false
+      });
+      setSelectedTextModel(null);
       return;
     }
 
@@ -2186,9 +2204,9 @@ export const PDFEditor: React.FC = () => {
                 {/* 2. LEFT SIDEBAR (Dark - Hidden on mobile) */}
                 <aside className="hidden sm:flex w-[82px] bg-[#1d1e21] flex-col items-center py-6 gap-8 z-[100] shrink-0 border-r border-white/5 shadow-2xl relative overflow-y-auto no-scrollbar">
                     {[
-                        { label: 'Modèles', icon: Layout },
+                        { label: 'Modèles', icon: LayoutGrid, action: () => alert("Fonctionnalité Modèles de page bientôt disponible !") },
                         { label: 'Éléments', icon: Shapes, action: toggleElementsSidebar },
-                        { label: 'Texte', icon: Type, tool: 'text' },
+                        { label: 'Texte', icon: Type, action: toggleTextSidebar },
                         { label: 'Image', icon: Upload },
                         { label: 'Pinceau', icon: Pencil, tool: 'pen' },
                         { label: 'Gomme', icon: Eraser, tool: 'eraser' },
@@ -2213,12 +2231,12 @@ export const PDFEditor: React.FC = () => {
                             }}
                             className={cn(
                                 "flex flex-col items-center gap-1.5 w-full transition-all group relative px-1", 
-                                (((item as any).tool && visualTool === (item as any).tool) || (item.label === 'Assistant' && isAISidebarOpen) || (item.label === 'Éléments' && isElementsSidebarOpen)) ? "text-white" : "text-white/50 hover:text-white/90"
+                                (((item as any).tool && visualTool === (item as any).tool) || (item.label === 'Assistant' && isAISidebarOpen) || (item.label === 'Éléments' && isElementsSidebarOpen) || (item.label === 'Texte' && isTextSidebarOpen)) ? "text-white" : "text-white/50 hover:text-white/90"
                             )}
                         >
                             <div className={cn(
                                 "p-3 rounded-2xl transition-all group-hover:bg-white/10 group-active:scale-90",
-                                (((item as any).tool && visualTool === (item as any).tool) || (item.label === 'Assistant' && isAISidebarOpen) || (item.label === 'Éléments' && isElementsSidebarOpen)) && "bg-white/15 text-white shadow-inner"
+                                (((item as any).tool && visualTool === (item as any).tool) || (item.label === 'Assistant' && isAISidebarOpen) || (item.label === 'Éléments' && isElementsSidebarOpen) || (item.label === 'Texte' && isTextSidebarOpen)) && "bg-white/15 text-white shadow-inner"
                             )}>
                                 <item.icon size={26} className={cn("transition-transform", (item.label === 'Assistant' || item.label === 'Gomme IA') && "text-cyan-400")} />
                             </div>
@@ -2476,6 +2494,125 @@ export const PDFEditor: React.FC = () => {
                         </div>
                         <div className="mt-4 p-4 bg-cyan-900 rounded-2xl text-white text-[11px] font-bold flex items-center gap-2 overflow-hidden">
                             <Zap size={14} className="fill-white shrink-0" /> Propulsé par Google Gemini
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* Sidebar Texte Modèles */}
+                <AnimatePresence>
+                  {isTextSidebarOpen && (
+                    <motion.div
+                      initial={{ x: '100%' }}
+                      animate={{ x: 0 }}
+                      exit={{ x: '100%' }}
+                      className="absolute inset-y-0 right-0 w-80 lg:w-96 border-l border-slate-200 bg-white flex flex-col z-[105] shadow-2xl"
+                    >
+                      <div className="p-6 space-y-6 flex flex-col h-full bg-white overflow-y-auto no-scrollbar">
+                        <div className="flex justify-between items-center border-b border-slate-200 pb-4">
+                          <h4 className="font-black flex items-center gap-2 text-slate-900 tracking-tight"><Type size={20} className="text-indigo-600" /> Modèles de Texte</h4>
+                          <button onClick={() => setIsTextSidebarOpen(false)} className="p-2 hover:bg-slate-100 rounded-xl transition-all"><X size={20} /></button>
+                        </div>
+
+                        <div className="space-y-8">
+                            <div className="space-y-4">
+                                <h5 className="text-[11px] font-black uppercase tracking-widest text-slate-400">Styles de base</h5>
+                                <p className="text-[10px] text-slate-500 font-medium bg-slate-50 p-3 rounded-xl">Choisissez un style puis cliquez sur le document pour l'ajouter.</p>
+                                <div className="flex flex-col gap-3">
+                                    {[
+                                        { id: 'h1', label: 'Grand Titre', style: 'font-black text-2xl', size: 36, bold: true, text: 'Nouveau Titre' },
+                                        { id: 'h2', label: 'Sous-titre', style: 'font-bold text-xl', size: 24, bold: true, text: 'Sous-titre' },
+                                        { id: 'p', label: 'Corps de texte', style: 'font-medium text-sm', size: 16, text: 'Saisissez votre texte ici...' },
+                                        { id: 'small', label: 'Petite légende', style: 'font-medium text-[10px] text-slate-500', size: 12, text: 'Notes de bas de page' },
+                                    ].map(model => (
+                                        <button 
+                                            key={model.id}
+                                            onClick={() => {
+                                                setVisualTool('text');
+                                                setActiveEditMode('visual');
+                                                setSelectedTextModel({
+                                                    text: model.text,
+                                                    fontSize: model.size,
+                                                    isBold: !!model.bold,
+                                                    isItalic: false,
+                                                    isHighlighted: false
+                                                });
+                                                setIsTextSidebarOpen(false);
+                                            }}
+                                            className="w-full text-left p-4 rounded-2xl border border-slate-100 hover:border-indigo-200 hover:bg-slate-50 transition-all group"
+                                        >
+                                          <div className="flex justify-between items-center">
+                                            <span className={cn("block text-slate-900", model.style)}>{model.label}</span>
+                                            <AddIcon size={16} className="text-slate-300 group-hover:text-indigo-500 transition-colors" />
+                                          </div>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="space-y-4">
+                                <h5 className="text-[11px] font-black uppercase tracking-widest text-slate-400">Modèles avancés</h5>
+                                <div className="grid grid-cols-1 gap-3">
+                                     <button 
+                                        onClick={() => {
+                                            setVisualTool('text');
+                                            setActiveEditMode('visual');
+                                            setSelectedTextModel({
+                                                text: 'Note importante...',
+                                                fontSize: 14,
+                                                isBold: true,
+                                                isItalic: false,
+                                                isHighlighted: true
+                                            });
+                                            setIsTextSidebarOpen(false);
+                                        }}
+                                        className="flex items-center gap-3 p-4 bg-amber-50 border border-amber-100 rounded-2xl hover:bg-amber-100 transition-all group"
+                                     >
+                                         <div className="w-10 h-10 bg-amber-200 rounded-xl flex items-center justify-center text-amber-700 shadow-sm">
+                                             <FileText size={20} />
+                                         </div>
+                                         <div className="flex flex-col text-left">
+                                             <span className="text-xs font-black text-amber-900">Note surlignée</span>
+                                             <span className="text-[9px] font-bold text-amber-600">Texte avec fond jaune</span>
+                                         </div>
+                                     </button>
+                                     
+                                     <button 
+                                        onClick={() => {
+                                            setVisualTool('text');
+                                            setActiveEditMode('visual');
+                                            setIsTextSidebarOpen(false);
+                                            // Trigger signature flow if needed
+                                            // For now just cursive text
+                                            setSelectedTextModel({
+                                                text: 'Signature ici',
+                                                fontSize: 18,
+                                                isBold: false,
+                                                isItalic: true,
+                                                isHighlighted: false
+                                            });
+                                        }}
+                                        className="flex items-center gap-3 p-4 bg-indigo-50 border border-indigo-100 rounded-2xl hover:bg-indigo-100 transition-all group"
+                                    >
+                                         <div className="w-10 h-10 bg-indigo-200 rounded-xl flex items-center justify-center text-indigo-700 shadow-sm">
+                                             <PenTool size={20} />
+                                         </div>
+                                         <div className="flex flex-col text-left">
+                                             <span className="text-xs font-black text-indigo-900">Zone de signature</span>
+                                             <span className="text-[9px] font-bold text-indigo-600">Style cursif</span>
+                                         </div>
+                                     </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="mt-auto p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                             <div className="flex items-center gap-3 mb-2">
+                                <div className="p-2 bg-indigo-600 text-white rounded-lg"><MousePointer2 size={16}/></div>
+                                <span className="text-[11px] font-black text-slate-900">Astuce</span>
+                             </div>
+                             <p className="text-[10px] text-slate-500 leading-relaxed font-medium">Une fois l'élément placé, vous pourrez encore modifier son contenu en tapant directement.</p>
                         </div>
                       </div>
                     </motion.div>
@@ -2746,8 +2883,8 @@ export const PDFEditor: React.FC = () => {
         <div className="flex sm:hidden fixed bottom-0 left-0 right-0 h-[80px] bg-white border-t border-slate-100 items-center justify-around px-2 z-[200] shadow-[0_-8px_30px_rgba(0,0,0,0.08)] pb-2 rounded-t-[1.5rem]">
           {[
             { label: 'Aucun', icon: MousePointer2, action: () => setVisualTool('move') },
-            { label: 'Modèles', icon: Layout },
             { label: 'Éléments', icon: Shapes, action: toggleElementsSidebar },
+            { label: 'Texte', icon: Type, action: toggleTextSidebar },
             { label: 'Pinceau', icon: Pencil, tool: 'pen' },
             { label: 'Gomme IA', icon: Sparkles, tool: 'magic-eraser' },
             { label: 'IA', icon: MessageCircle, action: toggleAISidebar },
@@ -2757,10 +2894,10 @@ export const PDFEditor: React.FC = () => {
               onClick={() => (item as any).action ? (item as any).action() : ((item as any).tool ? (setVisualTool((item as any).tool as any), setActiveEditMode('visual')) : null)}
               className={cn(
                 "flex flex-col items-center gap-1 min-w-[56px] transition-all",
-                ((item as any).tool && visualTool === (item as any).tool) || (item.label === 'IA' && isAISidebarOpen) || (item.label === 'Éléments' && isElementsSidebarOpen) ? "text-[#00c4cc]" : "text-slate-400"
+                ((item as any).tool && visualTool === (item as any).tool) || (item.label === 'IA' && isAISidebarOpen) || (item.label === 'Éléments' && isElementsSidebarOpen) || (item.label === 'Texte' && isTextSidebarOpen) ? "text-[#00c4cc]" : "text-slate-400"
               )}
             >
-              <item.icon size={22} className={cn("transition-transform", (((item as any).tool && visualTool === (item as any).tool) || (item.label === 'IA' && isAISidebarOpen) || (item.label === 'Éléments' && isElementsSidebarOpen)) && "scale-110")} />
+              <item.icon size={22} className={cn("transition-transform", (((item as any).tool && visualTool === (item as any).tool) || (item.label === 'IA' && isAISidebarOpen) || (item.label === 'Éléments' && isElementsSidebarOpen) || (item.label === 'Texte' && isTextSidebarOpen)) && "scale-110")} />
               <span className="text-[10px] font-black tracking-tight">{item.label}</span>
             </button>
           ))}
