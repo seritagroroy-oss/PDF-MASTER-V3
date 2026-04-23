@@ -2181,20 +2181,21 @@ export const PDFEditor: React.FC = () => {
                         { label: 'Gomme', icon: Eraser, tool: 'eraser' },
                         { label: 'Gomme IA', icon: Sparkles, tool: 'magic-eraser' },
                         { label: 'Projets', icon: Folder },
-                        { label: 'Assistant', icon: Sparkles, color: 'cyan' },
+                        { label: 'Assistant', icon: Sparkles, color: 'cyan', action: () => { setIsAISidebarOpen(!isAISidebarOpen); setIsElementsSidebarOpen(false); } },
                     ].map(item => (
                         <button 
                             key={item.label}
                             onClick={() => {
-                                if ((item as any).tool) {
+                                if ((item as any).action) {
+                                  (item as any).action();
+                                } else if ((item as any).tool) {
                                   setVisualTool((item as any).tool as any); 
                                   (item as any).tool === 'text' ? setActiveEditMode('text') : setActiveEditMode('visual');
+                                  setIsElementsSidebarOpen(false);
+                                  setIsAISidebarOpen(false);
                                 } else if (item.label === 'Assistant') {
                                   setIsAISidebarOpen(!isAISidebarOpen);
                                   setIsElementsSidebarOpen(false);
-                                } else if (item.label === 'Éléments') {
-                                  setIsElementsSidebarOpen(!isElementsSidebarOpen);
-                                  setIsAISidebarOpen(false);
                                 }
                             }}
                             className={cn(
