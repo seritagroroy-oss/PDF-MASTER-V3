@@ -2203,7 +2203,7 @@ export const PDFEditor: React.FC = () => {
                                   (item as any).action();
                                 } else if ((item as any).tool) {
                                   setVisualTool((item as any).tool as any); 
-                                  (item as any).tool === 'text' ? setActiveEditMode('text') : setActiveEditMode('visual');
+                                  setActiveEditMode('visual');
                                   setIsElementsSidebarOpen(false);
                                   setIsAISidebarOpen(false);
                                 } else if (item.label === 'Assistant') {
@@ -2320,9 +2320,9 @@ export const PDFEditor: React.FC = () => {
                                         height: canvasDimensions.height ? `${canvasDimensions.height}px` : 'auto',
                                         filter: isEyeSaverMode ? "invert(1) hue-rotate(180deg)" : "none",
                                         touchAction: visualTool === 'move' ? 'auto' : 'none',
-                                        cursor: visualTool === 'move' ? 'grab' : 'crosshair'
+                                        cursor: visualTool === 'text' ? 'text' : (visualTool === 'move' ? 'grab' : 'crosshair')
                                     }}
-                                    className={cn("bg-white transition-shadow duration-300", visualTool === 'move' ? "touch-auto cursor-grab" : "touch-none cursor-crosshair")}
+                                    className={cn("bg-white transition-shadow duration-300", visualTool === 'text' ? "cursor-text" : (visualTool === 'move' ? "touch-auto cursor-grab" : "touch-none cursor-crosshair"))}
                                 />
                             )}
                             
