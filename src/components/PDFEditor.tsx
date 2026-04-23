@@ -2345,8 +2345,10 @@ export const PDFEditor: React.FC = () => {
                             )}
                             
                             {textInput && (
-                              <div
-                                className="absolute bg-white/95 backdrop-blur-md p-4 rounded-2xl shadow-2xl border border-indigo-200 z-[120] flex items-center gap-4 animate-in fade-in zoom-in-95 duration-200 ring-4 ring-indigo-500/10 min-w-[300px]"
+                              <motion.div
+                                drag
+                                dragMomentum={false}
+                                className="absolute bg-white/95 backdrop-blur-md p-4 rounded-2xl shadow-2xl border border-indigo-200 z-[120] flex items-center gap-4 animate-in fade-in zoom-in-95 duration-200 ring-4 ring-indigo-500/10 min-w-[300px] cursor-move"
                                 style={{
                                   left: `${(textInput.x / canvasDimensions.width) * 100}%`,
                                   top: `${(textInput.y / canvasDimensions.height) * 100}%`,
@@ -2355,7 +2357,10 @@ export const PDFEditor: React.FC = () => {
                               >
                                 <div className="flex flex-col gap-3 w-full">
                                   <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                                     <span className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Édition de texte</span>
+                                     <div className="flex items-center gap-2">
+                                         <GripVertical size={14} className="text-slate-300 cursor-grab active:cursor-grabbing" />
+                                         <span className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Édition de texte</span>
+                                     </div>
                                      <div className="flex items-center gap-1 bg-slate-50 rounded-lg p-0.5">
                                          <button onClick={() => setTextInput({ ...textInput, isBold: !textInput.isBold })} className={cn("w-7 h-7 rounded-md flex items-center justify-center transition-all", textInput.isBold ? "bg-indigo-600 text-white" : "text-slate-400 hover:bg-slate-200")}><Bold size={14} /></button>
                                          <button onClick={() => setTextInput({ ...textInput, isItalic: !textInput.isItalic })} className={cn("w-7 h-7 rounded-md flex items-center justify-center transition-all", textInput.isItalic ? "bg-indigo-600 text-white" : "text-slate-400 hover:bg-slate-200")}><Italic size={14} /></button>
@@ -2400,7 +2405,7 @@ export const PDFEditor: React.FC = () => {
                                     <button onClick={() => setTextInput(null)} className="w-10 h-10 flex items-center justify-center hover:bg-rose-50 text-rose-500 rounded-xl transition-all shrink-0"><X size={20}/></button>
                                   </div>
                                 </div>
-                              </div>
+                              </motion.div>
                             )}
                         </div>
                     </div>
