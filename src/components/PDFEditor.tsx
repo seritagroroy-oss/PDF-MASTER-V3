@@ -106,6 +106,7 @@ export const PDFEditor: React.FC = () => {
   const [draggingStrokeIdx, setDraggingStrokeIdx] = useState<number | null>(null);
   const [dragOffset, setDragOffset] = useState<{ x: number, y: number } | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
+  const [isSidebarHidden, setIsSidebarHidden] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [canvasDimensions, setCanvasDimensions] = useState({ width: 0, height: 0 });
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -2178,6 +2179,15 @@ export const PDFEditor: React.FC = () => {
                 </div>
 
                 <div className="flex items-center gap-2 sm:gap-4 scrollbar-none">
+                    <button 
+                        onClick={() => setIsSidebarHidden(!isSidebarHidden)} 
+                        className={cn("p-2 rounded-xl transition-all hidden md:flex items-center gap-2 px-3", isSidebarHidden ? "bg-white text-indigo-600 shadow-lg" : "text-white/60 hover:text-white hover:bg-white/10")}
+                        title={isSidebarHidden ? "Afficher les menus" : "Masquer les menus (Mode Zen)"}
+                    >
+                        {isSidebarHidden ? <Eye size={18} /> : <Eye size={18} className="opacity-50" />}
+                        <span className="text-[11px] font-black uppercase tracking-tight">{isSidebarHidden ? "Voir Outils" : "Mode Zen"}</span>
+                    </button>
+
                     <div className="hidden lg:flex items-center gap-2 mr-4 bg-black/10 p-1 rounded-xl">
                         <button onClick={() => setActiveEditMode('text')} className={cn("px-4 py-1.5 rounded-lg text-xs font-black transition-all", activeEditMode === 'text' ? "bg-white text-slate-900 shadow-sm" : "text-white/60 hover:text-white")}>Texte</button>
                         <button onClick={() => setActiveEditMode('visual')} className={cn("px-4 py-1.5 rounded-lg text-xs font-black transition-all", activeEditMode === 'visual' ? "bg-white text-slate-900 shadow-sm" : "text-white/60 hover:text-white")}>Visuel</button>
@@ -2201,8 +2211,11 @@ export const PDFEditor: React.FC = () => {
 
 
               <div className="flex flex-1 overflow-hidden relative">
-                {/* 2. LEFT SIDEBAR (Dark - Hidden on mobile) */}
-                <aside className="hidden sm:flex w-[82px] bg-[#1d1e21] flex-col items-center py-6 gap-8 z-[100] shrink-0 border-r border-white/5 shadow-2xl relative overflow-y-auto no-scrollbar">
+                {/* 2. LEFT SIDEBAR (Dark - Hidden on mobile or in Zen mode) */}
+                <aside className={cn(
+                  "hidden sm:flex w-[82px] bg-[#1d1e21] flex-col items-center py-6 gap-8 z-[100] shrink-0 border-r border-white/5 shadow-2xl relative overflow-y-auto no-scrollbar transition-all duration-300",
+                  isSidebarHidden && "sm:hidden"
+                )}>
                     {[
                         { label: 'Modèles', icon: LayoutGrid, action: () => alert("Fonctionnalité Modèles de page bientôt disponible !") },
                         { label: 'Éléments', icon: Shapes, action: toggleElementsSidebar },
