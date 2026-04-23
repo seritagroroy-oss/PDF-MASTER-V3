@@ -73,8 +73,9 @@ export const PDFEditor: React.FC = () => {
   const [isPickingColor, setIsPickingColor] = useState(false);
   const [lastNonEraserColor, setLastNonEraserColor] = useState("#1a1a1a");
   const [visualTool, setVisualTool] = useState<'pen' | 'eraser' | 'magic-eraser' | 'highlighter' | 'rect' | 'circle' | 'arrow' | 'stamp' | 'text' | 'move'>('pen');
-  const [stampType, setStampType] = useState<'check' | 'x' | 'approved' | 'sign' | 'confidential'>('check');
+  const [stampType, setStampType] = useState<'check' | 'x' | 'approved' | 'sign' | 'confidential' | 'star' | 'heart' | 'warning'>('check');
   const [isAISidebarOpen, setIsAISidebarOpen] = useState(false);
+  const [isElementsSidebarOpen, setIsElementsSidebarOpen] = useState(false);
   const [aiResponse, setAiResponse] = useState("");
   const [isAIProcessing, setIsAIProcessing] = useState(false);
   const [brushSize, setBrushSize] = useState(5);
@@ -1132,13 +1133,22 @@ export const PDFEditor: React.FC = () => {
               sigImg.src = signatureData;
               ctx.drawImage(sigImg, start.x, start.y, w, h);
             } else {
+              const symMap: { [key: string]: string } = {
+                'check': '✅', 'x': '❌', 'star': '⭐', 'heart': '❤️', 
+                'approved': 'OK', 'sign': '✒️', 'confidential': '🔒', 'warning': '⚠️'
+              };
+              const symbol = symMap[stroke.text || 'check'] || (stroke.text || 'CHECK').toUpperCase();
+              
               ctx.fillStyle = stroke.color;
-              ctx.fillRect(start.x, start.y, w, h);
-              ctx.fillStyle = 'white';
-              ctx.font = `bold ${Math.abs(h) * 0.5}px Outfit, Inter`;
+              if (!['✅', '❌', '⭐', '❤️', '⚠️', '✒️', '🔒'].includes(symbol)) {
+                ctx.fillRect(start.x, start.y, w, h);
+                ctx.fillStyle = 'white';
+              }
+              
+              ctx.font = `bold ${Math.abs(h) * 0.6}px Outfit, Inter, "Apple Color Emoji", "Segoe UI Emoji"`;
               ctx.textAlign = 'center';
               ctx.textBaseline = 'middle';
-              ctx.fillText((stroke.text || 'CHECK').toUpperCase(), start.x + w / 2, start.y + h / 2);
+              ctx.fillText(symbol, start.x + w / 2, start.y + h / 2);
             }
           } else if (stroke.mode === 'circle' && stroke.points.length >= 2) {
             const start = stroke.points[0];
@@ -1367,15 +1377,27 @@ export const PDFEditor: React.FC = () => {
                   width: w, height: h
                 });
               } else {
-                copiedPage.drawRectangle({
-                  x: Math.min(start.x, end.x) * scaleX,
-                  y: height - (Math.max(start.y, end.y) * scaleY),
-                  width: w, height: h, color: strokeColor,
-                });
-                copiedPage.drawText((stroke.text || 'CHECK').toUpperCase(), {
-                  x: (Math.min(start.x, end.x) * scaleX) + (w * 0.1),
-                  y: height - (Math.max(start.y, end.y) * scaleY) + (h * 0.35),
-                  size: h * 0.4, font: helveticaBold, color: rgb(1, 1, 1),
+                const symMap: { [key: string]: string } = {
+                  'check': '✅', 'x': '❌', 'star': '⭐', 'heart': '❤️', 
+                  'approved': 'OK', 'sign': '✒️', 'confidential': '🔒', 'warning': '⚠️'
+                };
+                const symbol = symMap[stroke.text || 'check'] || (stroke.text || 'CHECK').toUpperCase();
+                const isEmoji = ['✅', '❌', '⭐', '❤️', '⚠️', '✒️', '🔒'].includes(symbol);
+
+                if (!isEmoji) {
+                  copiedPage.drawRectangle({
+                    x: Math.min(start.x, end.x) * scaleX,
+                    y: height - (Math.max(start.y, end.y) * scaleY),
+                    width: w, height: h, color: strokeColor,
+                  });
+                }
+                
+                copiedPage.drawText(symbol, {
+                  x: (Math.min(start.x, end.x) * scaleX) + (w * (isEmoji ? 0.2 : 0.1)),
+                  y: height - (Math.max(start.y, end.y) * scaleY) + (h * 0.3),
+                  size: h * 0.5, 
+                  font: helveticaBold, 
+                  color: isEmoji ? undefined : rgb(1, 1, 1),
                 });
               }
             } else if (stroke.mode === 'text' && stroke.text) {
@@ -2152,7 +2174,7 @@ export const PDFEditor: React.FC = () => {
                 <aside className="hidden md:flex w-[82px] bg-[#1d1e21] flex-col items-center py-6 gap-8 z-[100] shrink-0 border-r border-white/5 shadow-2xl relative overflow-y-auto no-scrollbar">
                     {[
                         { label: 'Modèles', icon: Layout },
-                        { label: 'Éléments', icon: Shapes },
+                       { label: 'Éléments', icon: Shapes, action: () => { setIsElementsSidebarOpen(!isElementsSidebarOpen); setIsAISidebarOpen(false); } },
                         { label: 'Texte', icon: Type, tool: 'text' },
                         { label: 'Image', icon: Upload },
                         { label: 'Pinceau', icon: Pencil, tool: 'pen' },
@@ -2163,15 +2185,26 @@ export const PDFEditor: React.FC = () => {
                     ].map(item => (
                         <button 
                             key={item.label}
-                            onClick={() => (item as any).tool ? (setVisualTool((item as any).tool as any), (item as any).tool === 'text' ? setActiveEditMode('text') : setActiveEditMode('visual')) : (item.label === 'Assistant' && setIsAISidebarOpen(!isAISidebarOpen))}
+                            onClick={() => {
+                                if ((item as any).tool) {
+                                  setVisualTool((item as any).tool as any); 
+                                  (item as any).tool === 'text' ? setActiveEditMode('text') : setActiveEditMode('visual');
+                                } else if (item.label === 'Assistant') {
+                                  setIsAISidebarOpen(!isAISidebarOpen);
+                                  setIsElementsSidebarOpen(false);
+                                } else if (item.label === 'Éléments') {
+                                  setIsElementsSidebarOpen(!isElementsSidebarOpen);
+                                  setIsAISidebarOpen(false);
+                                }
+                            }}
                             className={cn(
                                 "flex flex-col items-center gap-1.5 w-full transition-all group relative px-1", 
-                                ((item as any).tool && visualTool === (item as any).tool) || (item.label === 'Assistant' && isAISidebarOpen) ? "text-white" : "text-white/50 hover:text-white/90"
+                                (((item as any).tool && visualTool === (item as any).tool) || (item.label === 'Assistant' && isAISidebarOpen) || (item.label === 'Éléments' && isElementsSidebarOpen)) ? "text-white" : "text-white/50 hover:text-white/90"
                             )}
                         >
                             <div className={cn(
                                 "p-3 rounded-2xl transition-all group-hover:bg-white/10 group-active:scale-90",
-                                (((item as any).tool && visualTool === (item as any).tool) || (item.label === 'Assistant' && isAISidebarOpen)) && "bg-white/15 text-white shadow-inner"
+                                (((item as any).tool && visualTool === (item as any).tool) || (item.label === 'Assistant' && isAISidebarOpen) || (item.label === 'Éléments' && isElementsSidebarOpen)) && "bg-white/15 text-white shadow-inner"
                             )}>
                                 <item.icon size={26} className={cn("transition-transform", (item.label === 'Assistant' || item.label === 'Gomme IA') && "text-cyan-400")} />
                             </div>
@@ -2433,7 +2466,105 @@ export const PDFEditor: React.FC = () => {
                       </div>
                     </motion.div>
                   )}
+                {/* Sidebar Éléments */}
+                <AnimatePresence>
+                  {isElementsSidebarOpen && (
+                    <motion.div
+                      initial={{ x: '100%' }}
+                      animate={{ x: 0 }}
+                      exit={{ x: '100%' }}
+                      className="absolute inset-y-0 right-0 w-80 lg:w-96 border-l border-slate-200 bg-white flex flex-col z-[105] shadow-2xl"
+                    >
+                      <div className="p-6 space-y-6 flex flex-col h-full bg-white overflow-y-auto no-scrollbar">
+                        <div className="flex justify-between items-center border-b border-slate-200 pb-4">
+                          <h4 className="font-black flex items-center gap-2 text-slate-900 tracking-tight"><Shapes size={20} className="text-indigo-600" /> Éléments & Symboles</h4>
+                          <button onClick={() => setIsElementsSidebarOpen(false)} className="p-2 hover:bg-slate-100 rounded-xl transition-all"><X size={20} /></button>
+                        </div>
+
+                        <div className="space-y-6">
+                            {/* Shapes Section */}
+                            <div className="space-y-4">
+                                <h5 className="text-[11px] font-black uppercase tracking-widest text-slate-400">Formes</h5>
+                                <div className="grid grid-cols-3 gap-3">
+                                    {[
+                                        { id: 'rect', label: 'Carré', icon: SquareIcon },
+                                        { id: 'circle', label: 'Cercle', icon: Circle },
+                                        { id: 'arrow', label: 'Flèche', icon: ArrowRight },
+                                    ].map(shape => (
+                                        <button 
+                                            key={shape.id}
+                                            onClick={() => { setVisualTool(shape.id as any); setActiveEditMode('visual'); setIsElementsSidebarOpen(false); }}
+                                            className={cn(
+                                                "flex flex-col items-center gap-2 p-4 rounded-2xl border transition-all active:scale-95",
+                                                visualTool === shape.id ? "bg-indigo-50 border-indigo-200 text-indigo-600" : "bg-slate-50 border-transparent hover:border-slate-200 text-slate-600"
+                                            )}
+                                        >
+                                            <shape.icon size={24} />
+                                            <span className="text-[10px] font-bold">{shape.label}</span>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Symbols Section */}
+                            <div className="space-y-4">
+                                <h5 className="text-[11px] font-black uppercase tracking-widest text-slate-400">Symboles</h5>
+                                <div className="grid grid-cols-4 gap-2">
+                                    {[
+                                        { id: 'check', label: 'Valider', icon: CheckCircle2, color: 'text-emerald-500' },
+                                        { id: 'x', label: 'Refuser', icon: X, color: 'text-rose-500' },
+                                        { id: 'star', label: 'Étoile', icon: Star, color: 'text-amber-500' },
+                                        { id: 'heart', label: 'Cœur', icon: Heart, color: 'text-pink-500' },
+                                        { id: 'approved', label: 'Approuvé', icon: Check, color: 'text-indigo-500' },
+                                        { id: 'sign', label: 'Signature', icon: PenTool, color: 'text-slate-700' },
+                                        { id: 'confidential', label: 'Privé', icon: Lock, color: 'text-red-600' },
+                                        { id: 'warning', label: 'Alerte', icon: AlertCircle, color: 'text-orange-500' },
+                                    ].map(sym => (
+                                        <button 
+                                            key={sym.id}
+                                            onClick={() => { 
+                                                setVisualTool('stamp'); 
+                                                setStampType(sym.id as any); 
+                                                setActiveEditMode('visual'); 
+                                                setIsElementsSidebarOpen(false); 
+                                            }}
+                                            className={cn(
+                                                "flex flex-col items-center justify-center aspect-square rounded-xl border transition-all active:scale-95 group",
+                                                (visualTool === 'stamp' && stampType === sym.id) ? "bg-indigo-50 border-indigo-200 text-indigo-600" : "bg-slate-50 border-transparent hover:border-slate-200 text-slate-400 hover:text-slate-600"
+                                            )}
+                                            title={sym.label}
+                                        >
+                                            <sym.icon size={20} className={cn("transition-transform group-hover:scale-110", sym.color)} />
+                                            <span className="text-[10px] font-bold mt-1 truncate w-full text-center">{sym.label}</span>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                             {/* Utilities Section */}
+                             <div className="space-y-4">
+                                <h5 className="text-[11px] font-black uppercase tracking-widest text-slate-400">Outils de sélection</h5>
+                                <button 
+                                    onClick={() => { setVisualTool('move'); setIsElementsSidebarOpen(false); }}
+                                    className={cn(
+                                        "w-full flex items-center gap-3 p-4 rounded-2xl border transition-all",
+                                        visualTool === 'move' ? "bg-indigo-50 border-indigo-200 text-indigo-600" : "bg-slate-50 border-transparent hover:border-slate-200 text-slate-600"
+                                    )}
+                                >
+                                    <MousePointer2 size={20} />
+                                    <span className="text-xs font-bold">Sélectionner / Déplacer</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="mt-auto p-4 bg-indigo-50 rounded-2xl text-indigo-600 text-[10px] font-bold leading-tight">
+                            Cliquez sur un élément puis tracez une zone sur le document pour l'ajouter.
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
                 </AnimatePresence>
+
               </div>
             </motion.div>
           )}
@@ -2600,7 +2731,7 @@ export const PDFEditor: React.FC = () => {
           {[
             { label: 'Aucun', icon: MousePointer2, action: () => setVisualTool('move') },
             { label: 'Modèles', icon: Layout },
-            { label: 'Éléments', icon: Shapes },
+            { label: 'Éléments', icon: Shapes, action: () => { setIsElementsSidebarOpen(!isElementsSidebarOpen); setIsAISidebarOpen(false); } },
             { label: 'Pinceau', icon: Pencil, tool: 'pen' },
             { label: 'Gomme IA', icon: Sparkles, tool: 'magic-eraser' },
             { label: 'IA', icon: MessageCircle, action: () => setIsAISidebarOpen(!isAISidebarOpen) },
@@ -2610,10 +2741,10 @@ export const PDFEditor: React.FC = () => {
               onClick={() => (item as any).action ? (item as any).action() : ((item as any).tool ? (setVisualTool((item as any).tool as any), setActiveEditMode('visual')) : null)}
               className={cn(
                 "flex flex-col items-center gap-1 min-w-[56px] transition-all",
-                ((item as any).tool && visualTool === (item as any).tool) || (item.label === 'IA' && isAISidebarOpen) ? "text-[#00c4cc]" : "text-slate-400"
+                ((item as any).tool && visualTool === (item as any).tool) || (item.label === 'IA' && isAISidebarOpen) || (item.label === 'Éléments' && isElementsSidebarOpen) ? "text-[#00c4cc]" : "text-slate-400"
               )}
             >
-              <item.icon size={22} className={cn("transition-transform", (((item as any).tool && visualTool === (item as any).tool) || (item.label === 'IA' && isAISidebarOpen)) && "scale-110")} />
+              <item.icon size={22} className={cn("transition-transform", (((item as any).tool && visualTool === (item as any).tool) || (item.label === 'IA' && isAISidebarOpen) || (item.label === 'Éléments' && isElementsSidebarOpen)) && "scale-110")} />
               <span className="text-[10px] font-black tracking-tight">{item.label}</span>
             </button>
           ))}
