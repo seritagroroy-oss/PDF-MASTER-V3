@@ -2412,7 +2412,7 @@ export const PDFEditor: React.FC = () => {
                                           setTextInput(null);
                                         }
                                       }}
-                                      className="bg-slate-50 rounded-xl px-4 py-3 text-slate-900 outline-none w-full border border-slate-200 focus:border-indigo-400 focus:ring-2 ring-indigo-100 transition-all"
+                                      className="bg-slate-50 rounded-xl px-4 py-3 text-slate-900 outline-none flex-1 border border-slate-200 focus:border-indigo-400 focus:ring-2 ring-indigo-100 transition-all"
                                       placeholder="Appuyez sur Entrée pour valider..."
                                     />
                                     <div className="flex items-center gap-2">
