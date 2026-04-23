@@ -2415,8 +2415,33 @@ export const PDFEditor: React.FC = () => {
                                       className="bg-slate-50 rounded-xl px-4 py-3 text-slate-900 outline-none w-full border border-slate-200 focus:border-indigo-400 focus:ring-2 ring-indigo-100 transition-all"
                                       placeholder="Appuyez sur Entrée pour valider..."
                                     />
-                                    <button onClick={() => setTextInput(null)} className="w-10 h-10 flex items-center justify-center hover:bg-rose-50 text-rose-500 rounded-xl transition-all shrink-0"><X size={20}/></button>
-                                  </div>
+                                    <div className="flex items-center gap-2">
+                                      <button 
+                                        onClick={() => {
+                                          if (textInput.text.trim()) {
+                                            setCurrentDrawings(prev => [...prev, {
+                                              points: [{ x: textInput.x, y: textInput.y }],
+                                              color: tempColor,
+                                              width: 0,
+                                              mode: 'text',
+                                              text: textInput.text,
+                                              fontSize: (textInput.fontSize || 20),
+                                              isBold: textInput.isBold,
+                                              isItalic: textInput.isItalic,
+                                              isHighlighted: textInput.isHighlighted,
+                                              canvasWidth: canvasDimensions.width,
+                                              canvasHeight: canvasDimensions.height
+                                            }]);
+                                            setTextInput(null);
+                                          }
+                                        }}
+                                        className="w-10 h-10 flex items-center justify-center bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 shadow-lg shadow-indigo-200 transition-all shrink-0"
+                                        title="Valider et ajouter au document"
+                                      >
+                                        <Check size={20} />
+                                      </button>
+                                      <button onClick={() => setTextInput(null)} className="w-10 h-10 flex items-center justify-center hover:bg-rose-50 text-rose-500 rounded-xl transition-all shrink-0" title="Annuler"><X size={20}/></button>
+                                    </div>
                                 </div>
                               </motion.div>
                             )}
