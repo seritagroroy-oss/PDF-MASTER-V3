@@ -78,6 +78,19 @@ export const PDFEditor: React.FC = () => {
   const [isElementsSidebarOpen, setIsElementsSidebarOpen] = useState(false);
   const [aiResponse, setAiResponse] = useState("");
   const [isAIProcessing, setIsAIProcessing] = useState(false);
+  
+  const toggleElementsSidebar = useCallback(() => {
+    console.log("Toggling Elements Sidebar. Current state:", isElementsSidebarOpen);
+    setIsElementsSidebarOpen(prev => !prev);
+    setIsAISidebarOpen(false);
+  }, [isElementsSidebarOpen]);
+
+  const toggleAISidebar = useCallback(() => {
+    console.log("Toggling AI Sidebar. Current state:", isAISidebarOpen);
+    setIsAISidebarOpen(prev => !prev);
+    setIsElementsSidebarOpen(false);
+  }, [isAISidebarOpen]);
+
   const [brushSize, setBrushSize] = useState(5);
   const [currentDrawings, setCurrentDrawings] = useState<DrawingStroke[]>([]);
   const [textInput, setTextInput] = useState<{ x: number, y: number, text: string, isBold?: boolean, isItalic?: boolean, isHighlighted?: boolean, fontSize?: number } | null>(null);
@@ -2174,14 +2187,14 @@ export const PDFEditor: React.FC = () => {
                 <aside className="hidden md:flex w-[82px] bg-[#1d1e21] flex-col items-center py-6 gap-8 z-[100] shrink-0 border-r border-white/5 shadow-2xl relative overflow-y-auto no-scrollbar">
                     {[
                         { label: 'Modèles', icon: Layout },
-                       { label: 'Éléments', icon: Shapes, action: () => { setIsElementsSidebarOpen(!isElementsSidebarOpen); setIsAISidebarOpen(false); } },
+                        { label: 'Éléments', icon: Shapes, action: toggleElementsSidebar },
                         { label: 'Texte', icon: Type, tool: 'text' },
                         { label: 'Image', icon: Upload },
                         { label: 'Pinceau', icon: Pencil, tool: 'pen' },
                         { label: 'Gomme', icon: Eraser, tool: 'eraser' },
                         { label: 'Gomme IA', icon: Sparkles, tool: 'magic-eraser' },
                         { label: 'Projets', icon: Folder },
-                        { label: 'Assistant', icon: Sparkles, color: 'cyan', action: () => { setIsAISidebarOpen(!isAISidebarOpen); setIsElementsSidebarOpen(false); } },
+                        { label: 'Assistant', icon: Sparkles, color: 'cyan', action: toggleAISidebar },
                     ].map(item => (
                         <button 
                             key={item.label}
@@ -2732,10 +2745,10 @@ export const PDFEditor: React.FC = () => {
           {[
             { label: 'Aucun', icon: MousePointer2, action: () => setVisualTool('move') },
             { label: 'Modèles', icon: Layout },
-            { label: 'Éléments', icon: Shapes, action: () => { setIsElementsSidebarOpen(!isElementsSidebarOpen); setIsAISidebarOpen(false); } },
+            { label: 'Éléments', icon: Shapes, action: toggleElementsSidebar },
             { label: 'Pinceau', icon: Pencil, tool: 'pen' },
             { label: 'Gomme IA', icon: Sparkles, tool: 'magic-eraser' },
-            { label: 'IA', icon: MessageCircle, action: () => setIsAISidebarOpen(!isAISidebarOpen) },
+            { label: 'IA', icon: MessageCircle, action: toggleAISidebar },
           ].map(item => (
             <button
               key={item.label}
