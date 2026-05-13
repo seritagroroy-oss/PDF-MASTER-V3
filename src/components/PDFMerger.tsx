@@ -2,12 +2,25 @@ import React, { useState, useEffect } from 'react';
 import { PDFDocument } from 'pdf-lib';
 import { pdfjs } from '../pdfjs-setup';
 import { FileUpload } from './FileUpload';
-import { Combine, Download, Loader2, CheckCircle2, AlertCircle, FileText, Edit3, Eye, X, ZoomIn, ZoomOut, Maximize2, Minimize2, Filter, Search, Calendar, HardDrive, ChevronDown, ChevronUp, Share2 } from 'lucide-react';
+import { Combine, Download, Loader2, CheckCircle2, AlertCircle, FileText, Edit3, Eye, X, ZoomIn, ZoomOut, Maximize2, Minimize2, Filter, Search, Calendar, HardDrive, ChevronDown, ChevronUp, Share2, ArrowLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '../utils/cn';
 
 
-export const PDFMerger: React.FC = () => {
+interface PDFMergerProps {
+  projectId: string;
+  onBack: () => void;
+  addProject: (name: string, pageCount: number, thumbnailUrl?: string) => string;
+  updateProject: (id: string, updates: any) => void;
+}
+
+export const PDFMerger: React.FC<PDFMergerProps> = ({
+  projectId: initialProjectId,
+  onBack,
+  addProject,
+  updateProject
+}) => {
+  const [projectId, setProjectId] = useState(initialProjectId);
   const [files, setFiles] = useState<any[]>([]);
   const [rawFiles, setRawFiles] = useState<File[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -53,6 +66,16 @@ export const PDFMerger: React.FC = () => {
   });
 
   const mergeCandidates = reverseOrder ? [...filteredFiles].reverse() : filteredFiles;
+
+  // Auto-register project when files are uploaded
+  useEffect(() => {
+    if (projectId === 'new' && rawFiles.length > 0) {
+      console.log('[PDFMerger] Registering new project...');
+      const name = rawFiles.length > 1 ? `Fusion (${rawFiles.length} fichiers)` : rawFiles[0].name;
+      const newId = addProject(name, rawFiles.length, ''); 
+      setProjectId(newId);
+    }
+  }, [rawFiles, projectId, addProject]);
 
   useEffect(() => {
     if (showPreview && resultUrl && previewImages.length === 0) {
@@ -237,7 +260,14 @@ export const PDFMerger: React.FC = () => {
         )}
       </AnimatePresence>
 
-      <div className="text-center space-y-2">
+      <div className="text-center space-y-2 relative">
+        <button
+          onClick={onBack}
+          className="absolute left-0 top-0 p-3 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-all text-slate-500 hover:text-indigo-600 hidden md:block"
+          title="Retour au dashboard"
+        >
+          <ArrowLeft size={24} />
+        </button>
         <h2 className="text-3xl font-display font-bold text-slate-900">Fusionner des PDFs</h2>
         <p className="text-slate-500">Combinez plusieurs fichiers PDF en un seul document professionnel en quelques secondes.</p>
       </div>

@@ -1,10 +1,23 @@
 import React, { useState } from 'react';
 import { PDFDocument } from 'pdf-lib';
 import { FileUpload } from './FileUpload';
-import { Minimize2, Download, Loader2, CheckCircle2, AlertCircle, Share2 } from 'lucide-react';
+import { Minimize2, Download, Loader2, CheckCircle2, AlertCircle, Share2, ArrowLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-export const PDFCompressor: React.FC = () => {
+interface PDFCompressorProps {
+  projectId: string;
+  onBack: () => void;
+  addProject: (name: string, pageCount: number, thumbnailUrl?: string) => string;
+  updateProject: (id: string, updates: any) => void;
+}
+
+export const PDFCompressor: React.FC<PDFCompressorProps> = ({
+  projectId: initialProjectId,
+  onBack,
+  addProject,
+  updateProject
+}) => {
+  const [projectId, setProjectId] = useState(initialProjectId);
   const [files, setFiles] = useState<any[]>([]);
   const [rawFiles, setRawFiles] = useState<File[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -15,6 +28,15 @@ export const PDFCompressor: React.FC = () => {
   const [compressionLevel, setCompressionLevel] = useState<'low' | 'medium' | 'high'>('medium');
   const [stats, setStats] = useState<{ original: string; compressed: string; reduction: string } | null>(null);
   const [isSharing, setIsSharing] = useState(false);
+
+  // Auto-register project when files are uploaded
+  React.useEffect(() => {
+    if (projectId === 'new' && rawFiles.length > 0) {
+      console.log('[PDFCompressor] Registering new project...');
+      const newId = addProject(rawFiles[0].name, 1, ''); 
+      setProjectId(newId);
+    }
+  }, [rawFiles, projectId, addProject]);
 
 
   const formatSize = (bytes: number) => {
@@ -119,7 +141,14 @@ export const PDFCompressor: React.FC = () => {
 
   return (
     <div className="max-w-3xl mx-auto space-y-8">
-      <div className="text-center space-y-2">
+      <div className="text-center space-y-2 relative">
+        <button
+          onClick={onBack}
+          className="absolute left-0 top-0 p-3 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-all text-slate-500 hover:text-indigo-600 hidden md:block"
+          title="Retour au dashboard"
+        >
+          <ArrowLeft size={24} />
+        </button>
         <h2 className="text-3xl font-display font-bold text-slate-900">Compresser un PDF</h2>
         <p className="text-slate-500">
           Réduisez la taille de vos fichiers PDF tout en conservant une qualité optimale.

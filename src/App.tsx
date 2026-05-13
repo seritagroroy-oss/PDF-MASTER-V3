@@ -431,14 +431,20 @@ export default function App() {
       return <UserDashboard user={currentUser} onNavigate={t => handleToolChange(t as Tool)} onLogout={handleLogout} />;
     }
     switch (activeTool) {
-      case 'merge': return <PDFMerger />;
+      case 'merge': return <PDFMerger projectId={activeProjectId || 'new'} onBack={() => setActiveProjectId(null)} addProject={addProject} updateProject={updateProject} />;
       case 'edit': 
         if (!activeProjectId) {
           return (
             <ProjectDashboard 
               projects={projects} 
-              onOpenProject={(id) => setActiveProjectId(id)}
-              onNewProject={() => setActiveProjectId('new')}
+              onOpenProject={(id) => {
+                setActiveProjectId(id);
+                setActiveTool('edit');
+              }}
+              onNewProject={() => {
+                setActiveProjectId('new');
+                setActiveTool('edit');
+              }}
               onDeleteProject={deleteProject}
             />
           );
@@ -449,18 +455,18 @@ export default function App() {
           addProject={addProject}
           updateProject={updateProject}
         />;
-      case 'compress': return <PDFCompressor />;
-      case 'watermark': return <PDFWatermark />;
-      case 'convert': return <PDFConverter />;
-      case 'split': return <PDFSplitter />;
-      case 'protect': return <PDFProtector />;
-      case 'chat': return <PDFChat />;
-      case 'ocr': return <PDFOCR />;
-      case 'numbering': return <PDFNumbering />;
-      case 'batch': return <PDFBatch />;
-      case 'scanner': return <PDFScanner />;
-      case 'sign': return <PDFSign />;
-      case 'purify': return <PDFPurifier />;
+      case 'compress': return <PDFCompressor projectId={activeProjectId || 'new'} onBack={() => setActiveProjectId(null)} addProject={addProject} updateProject={updateProject} />;
+      case 'watermark': return <PDFWatermark projectId={activeProjectId || 'new'} onBack={() => setActiveProjectId(null)} addProject={addProject} updateProject={updateProject} />;
+      case 'convert': return <PDFConverter projectId={activeProjectId || 'new'} onBack={() => setActiveProjectId(null)} addProject={addProject} updateProject={updateProject} />;
+      case 'split': return <PDFSplitter projectId={activeProjectId || 'new'} onBack={() => setActiveProjectId(null)} addProject={addProject} updateProject={updateProject} />;
+      case 'protect': return <PDFProtector projectId={activeProjectId || 'new'} onBack={() => setActiveProjectId(null)} addProject={addProject} updateProject={updateProject} />;
+      case 'chat': return <PDFChat projectId={activeProjectId || 'new'} onBack={() => setActiveProjectId(null)} addProject={addProject} updateProject={updateProject} />;
+      case 'ocr': return <PDFOCR projectId={activeProjectId || 'new'} onBack={() => setActiveProjectId(null)} addProject={addProject} updateProject={updateProject} />;
+      case 'numbering': return <PDFNumbering projectId={activeProjectId || 'new'} onBack={() => setActiveProjectId(null)} addProject={addProject} updateProject={updateProject} />;
+      case 'batch': return <PDFBatch projectId={activeProjectId || 'new'} onBack={() => setActiveProjectId(null)} addProject={addProject} updateProject={updateProject} />;
+      case 'scanner': return <PDFScanner projectId={activeProjectId || 'new'} onBack={() => setActiveProjectId(null)} addProject={addProject} updateProject={updateProject} />;
+      case 'sign': return <PDFSign projectId={activeProjectId || 'new'} onBack={() => setActiveProjectId(null)} addProject={addProject} updateProject={updateProject} />;
+      case 'purify': return <PDFPurifier projectId={activeProjectId || 'new'} onBack={() => setActiveProjectId(null)} addProject={addProject} updateProject={updateProject} />;
       case 'about': return <About />;
       case 'projects':
         return (

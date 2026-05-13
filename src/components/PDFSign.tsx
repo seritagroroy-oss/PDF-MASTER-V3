@@ -1,16 +1,38 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import { FileUpload } from './FileUpload';
-import { PenTool, Download, Loader2, CheckCircle2, AlertCircle, RefreshCw, Type, Calendar, Share2 } from 'lucide-react';
+import { PenTool, Download, Loader2, CheckCircle2, AlertCircle, RefreshCw, Type, Calendar, Share2, ArrowLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import SignaturePad from 'signature_pad';
 
-export const PDFSign: React.FC = () => {
+interface PDFSignProps {
+  projectId: string;
+  onBack: () => void;
+  addProject: (name: string, pageCount: number, thumbnailUrl?: string) => string;
+  updateProject: (id: string, updates: any) => void;
+}
+
+export const PDFSign: React.FC<PDFSignProps> = ({
+  projectId: initialProjectId,
+  onBack,
+  addProject,
+  updateProject
+}) => {
+  const [projectId, setProjectId] = useState(initialProjectId);
   const [files, setFiles] = useState<any[]>([]);
   const [rawFiles, setRawFiles] = useState<File[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [resultUrl, setResultUrl] = useState<string | null>(null);
   const [isSharing, setIsSharing] = useState(false);
+
+  // Auto-register project when files are uploaded
+  useEffect(() => {
+    if (projectId === 'new' && rawFiles.length > 0) {
+      console.log('[PDFSign] Registering new project...');
+      const newId = addProject(rawFiles[0].name, 1, ''); 
+      setProjectId(newId);
+    }
+  }, [rawFiles, projectId, addProject]);
   const [error, setError] = useState<string | null>(null);
 
   // Form states
@@ -163,7 +185,14 @@ export const PDFSign: React.FC = () => {
 
   return (
     <div className="max-w-4xl mx-auto space-y-8">
-      <div className="text-center space-y-2">
+      <div className="text-center space-y-2 relative">
+        <button
+          onClick={onBack}
+          className="absolute left-0 top-0 p-3 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-all text-slate-500 hover:text-indigo-600 hidden md:block"
+          title="Retour au dashboard"
+        >
+          <ArrowLeft size={24} />
+        </button>
         <h2 className="text-3xl font-display font-bold text-slate-900 dark:text-white flex items-center justify-center gap-3">
           <PenTool size={32} className="text-indigo-600 dark:text-indigo-400" />
           Signer un PDF

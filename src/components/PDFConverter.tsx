@@ -2,19 +2,41 @@ import React, { useState } from 'react';
 import { pdfjs } from '../pdfjs-setup';
 import JSZip from 'jszip';
 import { FileUpload } from './FileUpload';
-import { FileImage, Download, Loader2, CheckCircle2, AlertCircle, Image as ImageIcon, Type, Share2 } from 'lucide-react';
+import { FileImage, Download, Loader2, CheckCircle2, AlertCircle, Image as ImageIcon, Type, Share2, ArrowLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/src/utils/cn';
 
 
 type ConversionFormat = 'jpg' | 'png' | 'txt';
 
-export const PDFConverter: React.FC = () => {
+interface PDFConverterProps {
+  projectId: string;
+  onBack: () => void;
+  addProject: (name: string, pageCount: number, thumbnailUrl?: string) => string;
+  updateProject: (id: string, updates: any) => void;
+}
+
+export const PDFConverter: React.FC<PDFConverterProps> = ({
+  projectId: initialProjectId,
+  onBack,
+  addProject,
+  updateProject
+}) => {
+  const [projectId, setProjectId] = useState(initialProjectId);
   const [files, setFiles] = useState<any[]>([]);
   const [rawFiles, setRawFiles] = useState<File[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [resultUrl, setResultUrl] = useState<string | null>(null);
   const [isSharing, setIsSharing] = useState(false);
+  
+  // Auto-register project when files are uploaded
+  React.useEffect(() => {
+    if (projectId === 'new' && rawFiles.length > 0) {
+      console.log('[PDFConverter] Registering new project...');
+      const newId = addProject(rawFiles[0].name, 1, ''); 
+      setProjectId(newId);
+    }
+  }, [rawFiles, projectId, addProject]);
   const [error, setError] = useState<string | null>(null);
   const [format, setFormat] = useState<ConversionFormat>('jpg');
   const [progress, setProgress] = useState(0);
@@ -191,7 +213,14 @@ export const PDFConverter: React.FC = () => {
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-3xl mx-auto space-y-8">
-      <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="text-center space-y-2">
+      <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="text-center space-y-2 relative">
+        <button
+          onClick={onBack}
+          className="absolute left-0 top-0 p-3 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-all text-slate-500 hover:text-indigo-600 hidden md:block"
+          title="Retour au dashboard"
+        >
+          <ArrowLeft size={24} />
+        </button>
         <h2 className="text-3xl font-display font-bold text-slate-900">Convertir un PDF</h2>
         <p className="text-slate-500">Transformez vos documents PDF en images haute résolution ou en texte brut.</p>
       </motion.div>
