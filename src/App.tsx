@@ -52,7 +52,7 @@ interface AppUser {
   email: string;
 }
 
-type Tool = 'merge' | 'edit' | 'compress' | 'watermark' | 'convert' | 'split' | 'protect' | 'chat' | 'ocr' | 'numbering' | 'batch' | 'scanner' | 'sign' | 'purify' | 'dashboard' | 'home' | 'about';
+type Tool = 'merge' | 'edit' | 'compress' | 'watermark' | 'convert' | 'split' | 'protect' | 'chat' | 'ocr' | 'numbering' | 'batch' | 'scanner' | 'sign' | 'purify' | 'dashboard' | 'home' | 'about' | 'projects';
 
 type BeforeInstallPromptEvent = Event & {
   prompt: () => Promise<void>;
@@ -106,6 +106,17 @@ const About = lazy(() =>
 );
 
 const tools = [
+  {
+    id: 'projects' as const,
+    name: 'Mes Projets',
+    shortName: 'Projets',
+    description: 'Retrouvez tous vos documents sauvegardés et vos brouillons.',
+    detail: 'Accédez à votre bibliothèque locale sécurisée.',
+    icon: Library,
+    color: 'bg-blue-600',
+    soft: 'from-blue-600/15 to-indigo-600/10',
+    textColor: 'text-blue-600',
+  },
   {
     id: 'merge' as const,
     name: 'Fusionner PDF',
@@ -445,6 +456,21 @@ export default function App() {
       case 'sign': return <PDFSign />;
       case 'purify': return <PDFPurifier />;
       case 'about': return <About />;
+      case 'projects':
+        return (
+          <ProjectDashboard 
+            projects={projects} 
+            onOpenProject={(id) => {
+              setActiveProjectId(id);
+              setActiveTool('edit');
+            }}
+            onNewProject={() => {
+              setActiveProjectId('new');
+              setActiveTool('edit');
+            }}
+            onDeleteProject={deleteProject}
+          />
+        );
       default: return null;
     }
   };
@@ -551,17 +577,17 @@ export default function App() {
 
             <div className="hidden lg:flex flex-1 min-w-0 items-center justify-start xl:justify-center mr-6">
               <div className="flex w-full items-center justify-start xl:justify-center gap-1 xl:gap-2">
-                {tools.slice(0, 3).map((tool) => (
+                {tools.slice(0, 4).map((tool) => (
                   <button
                     key={tool.id}
                     type="button"
                     onClick={() => handleToolChange(tool.id)}
-                    onMouseEnter={() => preloadTool(tool.id)}
-                    onFocus={() => preloadTool(tool.id)}
+                    onMouseEnter={() => preloadTool(tool.id as any)}
+                    onFocus={() => preloadTool(tool.id as any)}
                     className={cn(
                       'whitespace-nowrap shrink-0 rounded-full px-3 py-1.5 xl:px-4 xl:py-2 text-xs xl:text-sm font-semibold transition-colors',
                       activeTool === tool.id
-                        ? 'bg-cyan-400 text-slate-950'
+                        ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20'
                         : 'text-slate-300 hover:bg-slate-900 hover:text-white',
                     )}
                   >
@@ -594,7 +620,7 @@ export default function App() {
                           exit={{ opacity: 0, y: 10, scale: 0.95 }}
                           className="absolute top-full right-0 mt-3 w-64 max-h-[70vh] overflow-y-auto bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-slate-100 dark:border-slate-800 shadow-2xl shadow-slate-900/10 rounded-[1.5rem] z-50 p-2 grid gap-1 scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-700 scrollbar-track-transparent"
                         >
-                          {tools.slice(3).map(tool => {
+                          {tools.slice(4).map(tool => {
                             const Icon = tool.icon;
                             return (
                               <button
