@@ -100,6 +100,9 @@ export const PDFEditor: React.FC = () => {
     rawFiles,
     editorZoom,
     activeMode: activeEditMode, 
+    editingPageId: editingPage?.id || null,
+    draftText: tempText,
+    draftDrawings: currentDrawings,
     enabled: true,
   });
   
@@ -198,6 +201,22 @@ export const PDFEditor: React.FC = () => {
       // Restaurer le zoom
       if (snapshot.meta.editorState?.zoom) {
         setEditorZoom(snapshot.meta.editorState.zoom);
+      }
+
+      // ── RESTAURATION DU BROUILLON (DRAFT) ──
+      if (snapshot.draft && snapshot.meta.editorState?.editingPageId) {
+        const pageId = snapshot.meta.editorState.editingPageId;
+        // Trouver la page correspondante dans les thumbnails restaurés
+        const targetPage = snapshot.thumbnailsMeta.find(t => t.id === pageId);
+        
+        if (targetPage) {
+          setTimeout(() => {
+            setEditingPage(targetPage);
+            setTempText(snapshot.draft?.text || "");
+            setCurrentDrawings(snapshot.draft?.drawings || []);
+            setActiveEditMode(snapshot.meta.editorState?.activeMode as any || 'visual');
+          }, 400);
+        }
       }
 
       setShowRecoveryBanner(false);

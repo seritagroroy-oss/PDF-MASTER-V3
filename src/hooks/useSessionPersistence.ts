@@ -20,6 +20,7 @@ const DB_NAME = 'pdfmaster_sessions';
 const DB_VERSION = 1;
 const STORE_NAME = 'sessions';
 const META_KEY = 'pdfmaster_session_meta';
+const DRAFT_KEY = 'pdfmaster_session_draft';
 const AUTO_SAVE_INTERVAL = 30_000; // 30 secondes
 const MAX_FILE_SIZE_WARN = 50 * 1024 * 1024; // 50 Mo
 
@@ -34,14 +35,18 @@ export interface SessionMeta {
   editorState?: {
     zoom: number;
     activeMode: string;
+    editingPageId: string | null;
   };
 }
 
 export interface SessionSnapshot {
   meta: SessionMeta;
-  rawFilesBuffers: ArrayBuffer[];
   thumbnailsMeta: PageThumbnail[];
-  thumbnailUrls: string[];
+  rawFilesBuffers: ArrayBuffer[];
+  draft?: {
+    text: string;
+    drawings: any[];
+  };
 }
 
 export interface UseSessionPersistenceOptions {
@@ -50,6 +55,9 @@ export interface UseSessionPersistenceOptions {
   rawFiles: File[];
   editorZoom?: number;
   activeMode?: string;
+  editingPageId?: string | null;
+  draftText?: string;
+  draftDrawings?: any[];
   enabled?: boolean;
 }
 
@@ -144,34 +152,35 @@ function loadMeta(): SessionMeta | null {
 function clearMeta(): void {
   try {
     localStorage.removeItem(META_KEY);
+    localStorage.removeItem(DRAFT_KEY);
   } catch {/* noop */}
 }
 
 // ─── Hook ─────────────────────────────────────────────────────────────────────
 
-export function useSessionPersistence({
-  toolId,
-  thumbnails,
-  rawFiles,
-  editorZoom = 1,
-  activeMode = 'visual',
-  enabled = true,
-}: UseSessionPersistenceOptions): UseSessionPersistenceReturn {
+export function useSessionPersistence(options: UseSessionPersistenceOptions): UseSessionPersistenceReturn {
+  const { toolId, enabled = true } = options;
   const [isSaving, setIsSaving] = useState(false);
   const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
   const [hasRecoverableSession, setHasRecoverableSession] = useState(false);
   const [sessionMeta, setSessionMeta] = useState<SessionMeta | null>(null);
 
   // Refs to always have latest values in callbacks
-  const thumbnailsRef = useRef(thumbnails);
-  const rawFilesRef = useRef(rawFiles);
-  const editorZoomRef = useRef(editorZoom);
-  const activeModeRef = useRef(activeMode);
+  const thumbnailsRef = useRef(options.thumbnails);
+  const rawFilesRef = useRef(options.rawFiles);
+  const editorZoomRef = useRef(options.editorZoom ?? 1);
+  const activeModeRef = useRef(options.activeMode ?? 'visual');
+  const editingPageIdRef = useRef(options.editingPageId);
+  const draftTextRef = useRef(options.draftText);
+  const draftDrawingsRef = useRef(options.draftDrawings);
 
-  useEffect(() => { thumbnailsRef.current = thumbnails; }, [thumbnails]);
-  useEffect(() => { rawFilesRef.current = rawFiles; }, [rawFiles]);
-  useEffect(() => { editorZoomRef.current = editorZoom; }, [editorZoom]);
-  useEffect(() => { activeModeRef.current = activeMode; }, [activeMode]);
+  useEffect(() => { thumbnailsRef.current = options.thumbnails; }, [options.thumbnails]);
+  useEffect(() => { rawFilesRef.current = options.rawFiles; }, [options.rawFiles]);
+  useEffect(() => { editorZoomRef.current = options.editorZoom ?? 1; }, [options.editorZoom]);
+  useEffect(() => { activeModeRef.current = options.activeMode ?? 'visual'; }, [options.activeMode]);
+  useEffect(() => { editingPageIdRef.current = options.editingPageId; }, [options.editingPageId]);
+  useEffect(() => { draftTextRef.current = options.draftText; }, [options.draftText]);
+  useEffect(() => { draftDrawingsRef.current = options.draftDrawings; }, [options.draftDrawings]);
 
   // ── Check for existing session on mount ──────────────────────────────────
   useEffect(() => {
@@ -184,7 +193,6 @@ export function useSessionPersistence({
         setHasRecoverableSession(true);
         setSessionMeta(meta);
       } else {
-        // Session trop ancienne, on la nettoie
         clearMeta();
         deleteFromIDB(toolId);
       }
@@ -197,41 +205,29 @@ export function useSessionPersistence({
     const currentThumbnails = thumbnailsRef.current;
     const currentFiles = rawFilesRef.current;
 
-    // Ne pas sauvegarder si rien n'est chargé
     if (currentThumbnails.length === 0 && currentFiles.length === 0) return;
 
     setIsSaving(true);
     try {
-      // Avertissement taille
-      const totalSize = currentFiles.reduce((sum, f) => sum + f.size, 0);
-      if (totalSize > MAX_FILE_SIZE_WARN) {
-        console.warn('[SessionPersistence] Large files detected (>50MB), save may be slow.');
-      }
-
-      // 1. Sauvegarder les fichiers PDF en ArrayBuffer
       const rawFilesBuffers: ArrayBuffer[] = await Promise.all(
         currentFiles.map(f => f.arrayBuffer())
       );
 
-      // 2. Extraire les URLs thumbnail et les metadata séparément
-      const thumbnailUrls: string[] = currentThumbnails.map(t => t.url);
       const thumbnailsMeta: PageThumbnail[] = currentThumbnails.map(t => ({
         ...t,
-        url: '', // On ne duplique pas l'URL dans les meta
+        url: '', 
       }));
 
-      // 3. Écrire dans IndexedDB
       await writeToIDB(toolId, {
         rawFilesBuffers,
-        thumbnailUrls,
         thumbnailsMeta,
         editorState: {
           zoom: editorZoomRef.current,
           activeMode: activeModeRef.current,
+          editingPageId: editingPageIdRef.current,
         },
       });
 
-      // 4. Mettre à jour la meta légère dans localStorage
       const meta: SessionMeta = {
         toolId,
         timestamp: Date.now(),
@@ -244,13 +240,18 @@ export function useSessionPersistence({
         editorState: {
           zoom: editorZoomRef.current,
           activeMode: activeModeRef.current,
+          editingPageId: editingPageIdRef.current,
         },
       };
+      
       saveMeta(meta);
+      localStorage.setItem(DRAFT_KEY, JSON.stringify({ 
+        text: draftTextRef.current, 
+        drawings: draftDrawingsRef.current 
+      }));
+      
       setSessionMeta(meta);
-
-      const now = new Date();
-      setLastSavedAt(now);
+      setLastSavedAt(new Date());
     } catch (e) {
       console.error('[SessionPersistence] Save failed:', e);
     } finally {
@@ -266,19 +267,15 @@ export function useSessionPersistence({
       const meta = loadMeta();
       if (!idbData || !meta) return null;
 
-      // Reconstruire les thumbnails avec leurs URLs
       const thumbnailsMeta: PageThumbnail[] = idbData.thumbnailsMeta || [];
-      const thumbnailUrls: string[] = idbData.thumbnailUrls || [];
-      const reconstructedThumbnails = thumbnailsMeta.map((t: PageThumbnail, idx: number) => ({
-        ...t,
-        url: thumbnailUrls[idx] || t.url || '',
-      }));
+      const draftJson = localStorage.getItem(DRAFT_KEY);
+      const draft = draftJson ? JSON.parse(draftJson) : undefined;
 
       return {
         meta,
+        thumbnailsMeta,
         rawFilesBuffers: idbData.rawFilesBuffers || [],
-        thumbnailsMeta: reconstructedThumbnails,
-        thumbnailUrls,
+        draft
       };
     } catch (e) {
       console.error('[SessionPersistence] Restore failed:', e);
@@ -329,6 +326,7 @@ export function useSessionPersistence({
         editorState: {
           zoom: editorZoomRef.current,
           activeMode: activeModeRef.current,
+          editingPageId: editingPageIdRef.current || null,
         },
       };
       saveMeta(meta);
