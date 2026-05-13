@@ -178,6 +178,8 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({
                         <Clock className="w-3 h-3" />
                         {formatDate(project.updatedAt)}
                       </div>
+                      <div className="flex items-center gap-1.5">
+                        <Layers className="w-3 h-3" />
                         {project.pageCount} page{project.pageCount > 1 ? 's' : ''}
                       </div>
                       

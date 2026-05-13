@@ -99,7 +99,7 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
   const [isTextSidebarOpen, setIsTextSidebarOpen] = useState(false);
   const [aiResponse, setAiResponse] = useState("");
   const [isAIProcessing, setIsAIProcessing] = useState(false);
-  const [projectStorageType, setProjectStorageType] = useState<'local' | 'filesystem' | 'cloud'>('local');
+  const [projectStorageType, setProjectStorageType] = useState<Project['storageType']>('local');
   const [projectFileHandle, setProjectFileHandle] = useState<FileSystemFileHandle | null>(null);
   const [projectCloudId, setProjectCloudId] = useState<string | null>(null);
   const [isLinking, setIsLinking] = useState(false);
@@ -150,7 +150,7 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
         const driveId = await uploadToDrive(rawFiles[0]?.name || 'Document.pdf', result.blob, projectCloudId || undefined);
         if (driveId) {
           setProjectCloudId(driveId);
-          setProjectStorageType('cloud');
+          setProjectStorageType('cloud-gdrive');
           updateProject(projectId, {
             storageType: 'cloud-gdrive',
             cloudId: driveId
@@ -1766,7 +1766,7 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
       }
 
       // --- CLOUD MODE: Sync to Google Drive ---
-      if (projectStorageType === 'cloud' && projectCloudId) {
+      if (projectStorageType?.startsWith('cloud') && projectCloudId) {
         console.log('[PDFEditor] CLOUD MODE: Syncing to Google Drive...');
         uploadToDrive(rawFiles[0]?.name || 'Document.pdf', blob, projectCloudId);
       }
@@ -2069,14 +2069,14 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
                   disabled={thumbnails.length === 0 || isProcessing || isLinking}
                   className={cn(
                     "flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 sm:px-6 py-2 sm:py-3 rounded-2xl transition-all text-xs sm:text-sm font-bold shadow-lg",
-                    projectStorageType === 'cloud' 
+                    projectStorageType?.startsWith('cloud') 
                       ? "bg-blue-500 text-white shadow-blue-200" 
                       : "bg-white dark:bg-slate-800 text-slate-700 dark:text-white hover:bg-slate-50 border border-slate-100 dark:border-slate-700"
                   )}
-                  title={projectStorageType === 'cloud' ? "Mode Cloud activé (Google Drive)" : "Activer le Mode Cloud (Google Drive)"}
+                  title={projectStorageType?.startsWith('cloud') ? "Mode Cloud activé (Google Drive)" : "Activer le Mode Cloud (Google Drive)"}
                 >
                   {isLinking ? <Loader2 className="animate-spin" size={16} /> : <Globe size={16} />}
-                  <span className="hidden sm:inline">{projectStorageType === 'cloud' ? "Mode Cloud Actif" : "Mode Cloud"}</span>
+                  <span className="hidden sm:inline">{projectStorageType?.startsWith('cloud') ? "Mode Cloud Actif" : "Mode Cloud"}</span>
                 </button>
               )}
 
