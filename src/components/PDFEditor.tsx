@@ -349,7 +349,15 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
       isRestoringRef.current = false;
       setIsRestoring(false);
     }
-  }, [restoreSession]);
+  }, [restoreSession, loadThumbnails, renderHighResPage]);
+
+  // ── Auto-restore for existing projects ────────────────────────────────────
+  useEffect(() => {
+    if (projectId !== 'new' && rawFiles.length === 0 && hasRecoverableSession && !isRestoringRef.current) {
+      console.log('[PDFEditor] Auto-restoring existing project:', projectId);
+      handleRestoreSession();
+    }
+  }, [projectId, rawFiles.length, hasRecoverableSession, handleRestoreSession]);
 
   useEffect(() => {
     editorZoomRef.current = editorZoom;
@@ -1729,8 +1737,8 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
 
   return (
     <div className={cn("min-h-screen transition-colors duration-500 overflow-x-hidden", isDarkMode ? "bg-slate-950 text-slate-100" : "bg-slate-50 text-slate-900")}>
-      {/* Session Recovery Banner */}
-      {hasRecoverableSession && showRecoveryBanner && sessionMeta && (
+      {/* Session Recovery Banner - Ne s'affiche que pour les nouveaux projets ou crash inattendu */}
+      {projectId === 'new' && hasRecoverableSession && showRecoveryBanner && sessionMeta && (
         <SessionRecoveryBanner
           meta={sessionMeta}
           onRestore={handleRestoreSession}
