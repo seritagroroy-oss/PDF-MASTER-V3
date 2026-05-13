@@ -159,19 +159,103 @@ export const PDFEditor: React.FC = () => {
   const isRestoringRef = useRef(false);
   const [showRecoveryBanner, setShowRecoveryBanner] = useState(true);
 
+  // ── Thumbnail loading ─────────────────────────────────────────────────────
+  const loadThumbnails = async (files: File[], existingThumbnails?: PageThumbnail[]) => {
+    console.log('[PDFEditor] loadThumbnails started', { filesCount: files.length, existingCount: existingThumbnails?.length });
+    setIsLoadingPages(true);
+    setLoadingProgress(0);
+    setError(null);
+    try {
+      const allThumbnails: PageThumbnail[] = [];
+      let totalPagesProcessed = 0;
+
+      let totalPagesCount = 0;
+      for (const file of files) {
+        const arrayBuffer = await file.arrayBuffer();
+        const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise;
+        totalPagesCount += pdf.numPages;
+      }
+
+      for (let fileIdx = 0; fileIdx < files.length; fileIdx++) {
+        const file = files[fileIdx];
+        const arrayBuffer = await file.arrayBuffer();
+        const loadingTask = pdfjs.getDocument({ data: arrayBuffer });
+        const pdf = await loadingTask.promise;
+        const numPages = pdf.numPages;
+
+        for (let i = 1; i <= numPages; i++) {
+          const page = await pdf.getPage(i);
+          const viewport = page.getViewport({ scale: 0.3 });
+          const canvas = document.createElement('canvas');
+          const context = canvas.getContext('2d');
+
+          if (!context) continue;
+
+          canvas.height = viewport.height;
+          canvas.width = viewport.width;
+
+          await page.render({
+            canvasContext: context,
+            viewport: viewport,
+            canvas: canvas
+          }).promise;
+
+          const dataUrl = canvas.toDataURL();
+          const existing = existingThumbnails?.find(t => t.sourceFileIndex === fileIdx && t.index === i - 1);
+
+          if (existing) {
+            allThumbnails.push({ ...existing, url: dataUrl });
+          } else {
+            allThumbnails.push({
+              id: `page-${fileIdx}-${i}-${Math.random()}`,
+              sourceFileIndex: fileIdx,
+              index: i - 1,
+              url: dataUrl
+            });
+          }
+
+          totalPagesProcessed++;
+          setLoadingProgress(Math.round((totalPagesProcessed / totalPagesCount) * 100));
+        }
+      }
+      setThumbnails(allThumbnails);
+      console.log('[PDFEditor] loadThumbnails finished', { count: allThumbnails.length });
+      return allThumbnails;
+    } catch (err: any) {
+      console.error("[PDFEditor] loadThumbnails Error:", err);
+      setError(`Erreur lors du chargement : ${err.message}`);
+      throw err;
+    } finally {
+      setIsLoadingPages(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isRestoringRef.current) return;
+    if (rawFiles.length > 0) {
+      loadThumbnails(rawFiles);
+    } else {
+      setThumbnails([]);
+    }
+  }, [rawFiles]);
+
   // ── Restore session handler ───────────────────────────────────────────────
   const handleRestoreSession = useCallback(async () => {
+    console.log('[PDFEditor] handleRestoreSession triggered');
     setIsRestoring(true);
     isRestoringRef.current = true;
     try {
       const snapshot = await restoreSession();
       if (!snapshot) {
+        console.warn('[PDFEditor] No snapshot found');
+        alert("Désolé, aucune donnée de session n'a pu être récupérée.");
         isRestoringRef.current = false;
         setIsRestoring(false);
         return;
       }
 
-      // Reconstruire les fichiers File depuis les ArrayBuffer
+      console.log('[PDFEditor] Snapshot restored, re-building files...', { files: snapshot.meta.fileNames });
+
       const restoredFiles: File[] = snapshot.rawFilesBuffers.map((buf, i) => {
         const name = snapshot.meta.fileNames[i] || `document_${i + 1}.pdf`;
         return new File([buf], name, { type: 'application/pdf' });
@@ -180,15 +264,15 @@ export const PDFEditor: React.FC = () => {
       if (restoredFiles.length > 0) {
         setRawFiles(restoredFiles);
         
-        // RE-HYDRATATION : On régénère les images tout en fusionnant les données (dessins, texte)
+        console.log('[PDFEditor] Re-hydrating thumbnails...');
         const rehydratedThumbnails = await loadThumbnails(restoredFiles, snapshot.thumbnailsMeta);
 
-        // ── RESTAURATION DU BROUILLON (DRAFT) ──
         if (snapshot.draft && snapshot.meta.editorState?.editingPageId && rehydratedThumbnails) {
           const pageId = snapshot.meta.editorState.editingPageId;
           const targetPage = rehydratedThumbnails.find(t => t.id === pageId);
           
           if (targetPage) {
+            console.log('[PDFEditor] Restoring draft state for page:', pageId);
             setEditingPage(targetPage);
             setTempText(snapshot.draft?.text || "");
             setCurrentDrawings(snapshot.draft?.drawings || []);
@@ -201,16 +285,16 @@ export const PDFEditor: React.FC = () => {
         }
       }
 
-      // Restaurer le zoom
       if (snapshot.meta.editorState?.zoom) {
         setEditorZoom(snapshot.meta.editorState.zoom);
       }
 
-      isRestoringRef.current = false;
-      setIsRestoring(false);
+      console.log('[PDFEditor] Restoration complete');
       setShowRecoveryBanner(false);
     } catch (e) {
-      console.error('[PDFEditor] Restore failed:', e);
+      console.error('[PDFEditor] handleRestoreSession FAILED:', e);
+      alert("Une erreur est survenue lors de la récupération de la session.");
+    } finally {
       isRestoringRef.current = false;
       setIsRestoring(false);
     }
@@ -412,85 +496,6 @@ export const PDFEditor: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  useEffect(() => {
-    if (isRestoringRef.current) return;
-    if (rawFiles.length > 0) {
-      loadThumbnails(rawFiles);
-    } else {
-      setThumbnails([]);
-    }
-  }, [rawFiles]);
-
-  const loadThumbnails = async (files: File[], existingThumbnails?: PageThumbnail[]) => {
-    setIsLoadingPages(true);
-    setLoadingProgress(0);
-    setError(null);
-    try {
-      const allThumbnails: PageThumbnail[] = [];
-      let totalPagesProcessed = 0;
-
-      // Calculate total pages first for progress bar
-      let totalPagesCount = 0;
-      for (const file of files) {
-        const arrayBuffer = await file.arrayBuffer();
-        const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise;
-        totalPagesCount += pdf.numPages;
-      }
-
-      for (let fileIdx = 0; fileIdx < files.length; fileIdx++) {
-        const file = files[fileIdx];
-        const arrayBuffer = await file.arrayBuffer();
-        const loadingTask = pdfjs.getDocument({ data: arrayBuffer });
-        const pdf = await loadingTask.promise;
-        const numPages = pdf.numPages;
-
-        for (let i = 1; i <= numPages; i++) {
-          const page = await pdf.getPage(i);
-          const viewport = page.getViewport({ scale: 0.3 });
-          const canvas = document.createElement('canvas');
-          const context = canvas.getContext('2d');
-
-          if (!context) continue;
-
-          canvas.height = viewport.height;
-          canvas.width = viewport.width;
-
-          await page.render({
-            canvasContext: context,
-            viewport: viewport,
-            canvas: canvas
-          }).promise;
-
-          const dataUrl = canvas.toDataURL();
-          const existing = existingThumbnails?.find(t => t.sourceFileIndex === fileIdx && t.index === i - 1);
-
-          if (existing) {
-            allThumbnails.push({
-              ...existing,
-              url: dataUrl
-            });
-          } else {
-            allThumbnails.push({
-              id: `page-${fileIdx}-${i}-${Math.random()}`,
-              sourceFileIndex: fileIdx,
-              index: i - 1,
-              url: dataUrl
-            });
-          }
-
-          totalPagesProcessed++;
-          setLoadingProgress(Math.round((totalPagesProcessed / totalPagesCount) * 100));
-        }
-      }
-      setThumbnails(allThumbnails);
-      return allThumbnails;
-    } catch (err: any) {
-      console.error("PDF Loading Error:", err);
-      setError(`Erreur lors du chargement des pages du PDF : ${err.message || "Erreur inconnue"}. Vérifiez que le fichier n'est pas protégé par un mot de passe.`);
-    } finally {
-      setIsLoadingPages(false);
-    }
-  };
 
   const removeThumbnail = (id: string) => {
     setThumbnails(prev => {
