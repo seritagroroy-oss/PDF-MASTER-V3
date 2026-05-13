@@ -82,7 +82,7 @@ export const PDFEditor: React.FC = () => {
     thumbnails,
     rawFiles,
     editorZoom,
-    activeMode: 'visual', // Initial value, will be updated by refs
+    activeMode: activeEditMode, 
     enabled: true,
   });
 
@@ -152,14 +152,20 @@ export const PDFEditor: React.FC = () => {
 
   const [isSharing, setIsSharing] = useState(false);
   const [isRestoring, setIsRestoring] = useState(false);
+  const isRestoringRef = useRef(false);
   const [showRecoveryBanner, setShowRecoveryBanner] = useState(true);
 
   // ── Restore session handler ───────────────────────────────────────────────
   const handleRestoreSession = useCallback(async () => {
     setIsRestoring(true);
+    isRestoringRef.current = true;
     try {
       const snapshot = await restoreSession();
-      if (!snapshot) return;
+      if (!snapshot) {
+        isRestoringRef.current = false;
+        setIsRestoring(false);
+        return;
+      }
 
       // Reconstruire les fichiers File depuis les ArrayBuffer
       const restoredFiles: File[] = snapshot.rawFilesBuffers.map((buf, i) => {
@@ -168,15 +174,24 @@ export const PDFEditor: React.FC = () => {
       });
 
       if (restoredFiles.length > 0) {
+        // IMPORTANT: On met à jour les fichiers d'abord
         setRawFiles(restoredFiles);
-        // Les thumbnails seront rechargés via le useEffect[rawFiles]
-        // mais on peut aussi restaurer directement depuis le snapshot
+        
+        // On attend un court instant pour que le state se stabilise
+        // puis on injecte les thumbnails restaurés (avec annotations)
+        setTimeout(() => {
+          if (snapshot.thumbnailsMeta.length > 0) {
+            setThumbnails(snapshot.thumbnailsMeta);
+          }
+          isRestoringRef.current = false;
+          setIsRestoring(false);
+        }, 300);
+      } else {
         if (snapshot.thumbnailsMeta.length > 0) {
           setThumbnails(snapshot.thumbnailsMeta);
         }
-      } else if (snapshot.thumbnailsMeta.length > 0) {
-        // Pas de fichiers source mais des thumbnails (ex: pages vierges)
-        setThumbnails(snapshot.thumbnailsMeta);
+        isRestoringRef.current = false;
+        setIsRestoring(false);
       }
 
       // Restaurer le zoom
@@ -187,7 +202,7 @@ export const PDFEditor: React.FC = () => {
       setShowRecoveryBanner(false);
     } catch (e) {
       console.error('[PDFEditor] Restore failed:', e);
-    } finally {
+      isRestoringRef.current = false;
       setIsRestoring(false);
     }
   }, [restoreSession]);
@@ -389,6 +404,7 @@ export const PDFEditor: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    if (isRestoringRef.current) return;
     if (rawFiles.length > 0) {
       loadThumbnails(rawFiles);
     } else {
