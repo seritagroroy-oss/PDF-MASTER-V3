@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FileText, Plus, Search, Trash2, Calendar, Layers, ExternalLink, Clock, FilePlus2, MoreVertical, LayoutGrid, List as ListIcon } from 'lucide-react';
+import { FileText, Plus, Search, Trash2, Calendar, Layers, ExternalLink, Clock, FilePlus2, MoreVertical, LayoutGrid, List as ListIcon, HardDrive, Globe, Laptop } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Project } from '../types';
 import { cn } from '../utils/cn';
@@ -178,9 +178,23 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({
                         <Clock className="w-3 h-3" />
                         {formatDate(project.updatedAt)}
                       </div>
-                      <div className="flex items-center gap-1.5">
-                        <Layers className="w-3 h-3" />
                         {project.pageCount} page{project.pageCount > 1 ? 's' : ''}
+                      </div>
+                      
+                      <div className="flex items-center gap-1.5 ml-auto">
+                         {project.storageType === 'filesystem' ? (
+                           <span className="flex items-center gap-1 text-[10px] font-black uppercase tracking-tighter px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                             <HardDrive size={10} /> Mode Pro
+                           </span>
+                         ) : project.storageType?.startsWith('cloud') ? (
+                           <span className="flex items-center gap-1 text-[10px] font-black uppercase tracking-tighter px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                             <Globe size={10} /> Cloud
+                           </span>
+                         ) : (
+                           <span className="flex items-center gap-1 text-[10px] font-black uppercase tracking-tighter px-1.5 py-0.5 rounded bg-gray-500/10 text-gray-500 dark:text-gray-400 border border-gray-500/20">
+                             <Laptop size={10} /> Local
+                           </span>
+                         )}
                       </div>
                     </div>
                   </div>

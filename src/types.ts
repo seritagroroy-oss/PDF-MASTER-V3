@@ -8,6 +8,9 @@ export interface Project {
   updatedAt: number;
   pageCount: number;
   thumbnailUrl?: string; 
+  storageType?: 'local' | 'filesystem' | 'cloud-gdrive' | 'cloud-dropbox' | 'cloud-onedrive';
+  fileHandle?: FileSystemFileHandle; // For native Pro mode
+  cloudId?: string; // For Google Drive / Dropbox IDs
 }
 
 export interface SessionMeta {

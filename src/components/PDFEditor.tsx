@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { PDFDocument, rgb, StandardFonts, degrees, PDFPage } from 'pdf-lib';
 import { pdfjs } from '../pdfjs-setup';
 import { FileUpload } from './FileUpload';
-import { Scissors, Download, Upload, Loader2, CheckCircle2, AlertCircle, Trash2, GripVertical, RefreshCw, X, Eye, Search, CheckSquare, Square, Check, Minus, Plus, Type, Bold, Italic, Underline, Palette, Eraser, Pencil, Undo2, RotateCcw, FileText, Pipette, RotateCw, Sun, Moon, Square as SquareIcon, Circle, ArrowRight, Highlighter, Stamp, PlusCircle, Lock, Zap, Sparkles, Menu, Languages, ScanLine, Volume2, Layout, Shapes, Folder, Grid, Settings, Star, AlignLeft, List, Home, MoreHorizontal, MessageCircle, Undo, PenTool, LayoutGrid, Library, MousePointer2, PlusCircle as AddIcon, ArrowUp, ArrowDown, Maximize, Minimize, Share2, ArrowLeft } from 'lucide-react';
+import { Scissors, Download, Upload, Loader2, CheckCircle2, AlertCircle, Trash2, GripVertical, RefreshCw, X, Eye, Search, CheckSquare, Square, Check, Minus, Plus, Type, Bold, Italic, Underline, Palette, Eraser, Pencil, Undo2, RotateCcw, FileText, Pipette, RotateCw, Sun, Moon, Square as SquareIcon, Circle, ArrowRight, Highlighter, Stamp, PlusCircle, Lock, Zap, Sparkles, Menu, Languages, ScanLine, Volume2, Layout, Shapes, Folder, Grid, Settings, Star, AlignLeft, List, Home, MoreHorizontal, MessageCircle, Undo, PenTool, LayoutGrid, Library, MousePointer2, PlusCircle as AddIcon, ArrowUp, ArrowDown, Maximize, Minimize, Share2, ArrowLeft, HardDrive } from 'lucide-react';
 import { motion, AnimatePresence, Reorder } from 'framer-motion';
 import { cn } from '../utils/cn';
 import { GoogleGenerativeAI } from "@google/generative-ai";
@@ -33,6 +33,8 @@ const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY || "");
 
 import { PageThumbnail, DrawingStroke } from '../types';
 import { usePDFCanvas } from '../hooks/usePDFCanvas';
+import { isFileSystemApiSupported, saveFileDirectly, verifyPermission, storeHandle, getStoredHandle } from '../utils/fileSystem';
+import { loadGoogleScripts, authenticateGoogle, uploadToDrive } from '../utils/googleDrive';
 
 interface PDFEditorProps {
   projectId: string;
@@ -97,6 +99,111 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
   const [isTextSidebarOpen, setIsTextSidebarOpen] = useState(false);
   const [aiResponse, setAiResponse] = useState("");
   const [isAIProcessing, setIsAIProcessing] = useState(false);
+  const [projectStorageType, setProjectStorageType] = useState<'local' | 'filesystem' | 'cloud'>('local');
+  const [projectFileHandle, setProjectFileHandle] = useState<FileSystemFileHandle | null>(null);
+  const [projectCloudId, setProjectCloudId] = useState<string | null>(null);
+  const [isLinking, setIsLinking] = useState(false);
+  const [isCloudInited, setIsCloudInited] = useState(false);
+
+  // Sync storage metadata from project
+  useEffect(() => {
+    const loadMetadata = async () => {
+      if (projectId !== 'new') {
+        const projectsRaw = localStorage.getItem('pdfmaster_projects_manifest');
+        if (projectsRaw) {
+          const projects = JSON.parse(projectsRaw);
+          const current = projects.find((p: any) => p.id === projectId);
+          if (current) {
+            if (current.storageType) setProjectStorageType(current.storageType);
+            if (current.cloudId) setProjectCloudId(current.cloudId);
+            
+            // Filesystem handles MUST be retrieved from IndexedDB
+            if (current.storageType === 'filesystem') {
+              const handle = await getStoredHandle(projectId);
+              if (handle) {
+                setProjectFileHandle(handle);
+                console.log('[PDFEditor] Restored local file handle for Pro mode.');
+              }
+            }
+          }
+        }
+      }
+    };
+    loadMetadata();
+  }, [projectId]);
+
+  // Load Google Drive scripts on mount
+  useEffect(() => {
+    loadGoogleScripts().then(() => {
+      setIsCloudInited(true);
+    });
+  }, []);
+
+  const handleLinkToCloud = async () => {
+    setIsLinking(true);
+    try {
+      await authenticateGoogle();
+      
+      // Generate current PDF to upload
+      const result = await editPDF();
+      if (result) {
+        const driveId = await uploadToDrive(rawFiles[0]?.name || 'Document.pdf', result.blob, projectCloudId || undefined);
+        if (driveId) {
+          setProjectCloudId(driveId);
+          setProjectStorageType('cloud');
+          updateProject(projectId, {
+            storageType: 'cloud-gdrive',
+            cloudId: driveId
+          });
+          alert("Succès ! Votre projet est maintenant synchronisé avec Google Drive.");
+        }
+      }
+    } catch (e: any) {
+      console.error('Cloud linking failed', e);
+      alert("Erreur de connexion Google. Vérifiez votre Client ID et API Key.");
+    } finally {
+      setIsLinking(false);
+    }
+  };
+
+  const handleLinkToLocalDisk = async () => {
+    if (!isFileSystemApiSupported()) {
+      alert("Votre navigateur ne supporte pas encore l'accès direct au disque. Utilisez Chrome ou Edge sur PC.");
+      return;
+    }
+
+    setIsLinking(true);
+    try {
+      // Pick a file to link to
+      const [handle] = await (window as any).showOpenFilePicker({
+        types: [{ description: 'Fichiers PDF', accept: { 'application/pdf': ['.pdf'] } }],
+        multiple: false
+      });
+
+      if (handle) {
+        // Verify permission
+        const canWrite = await verifyPermission(handle, true);
+        if (canWrite) {
+          // Store handle in IndexedDB (cannot go to localStorage)
+          await storeHandle(projectId, handle);
+          
+          setProjectFileHandle(handle);
+          setProjectStorageType('filesystem');
+          
+          // Update manifest (without the handle object itself)
+          updateProject(projectId, { 
+            storageType: 'filesystem'
+          });
+          
+          alert("Succès ! Ce projet est maintenant lié à votre fichier local. Chaque modification sera enregistrée directement.");
+        }
+      }
+    } catch (e) {
+      console.error('Linking failed', e);
+    } finally {
+      setIsLinking(false);
+    }
+  };
   
   // ── Session persistence hook ─────────────────────────────────────────────
   const {
@@ -1646,6 +1753,24 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
       });
       const url = URL.createObjectURL(blob);
       setResultUrl(url);
+
+      // --- PRO MODE: Direct Disk Save ---
+      if (projectStorageType === 'filesystem' && projectFileHandle) {
+        console.log('[PDFEditor] PRO MODE: Saving directly to disk...');
+        const success = await saveFileDirectly(projectFileHandle, blob);
+        if (success) {
+          console.log('[PDFEditor] Successfully saved to local file.');
+        } else {
+          console.warn('[PDFEditor] Failed to save to local file. Maybe permission was revoked.');
+        }
+      }
+
+      // --- CLOUD MODE: Sync to Google Drive ---
+      if (projectStorageType === 'cloud' && projectCloudId) {
+        console.log('[PDFEditor] CLOUD MODE: Syncing to Google Drive...');
+        uploadToDrive(rawFiles[0]?.name || 'Document.pdf', blob, projectCloudId);
+      }
+
       // Effacer la session après un export réussi
       clearSession();
       return { blob, url };
@@ -1920,6 +2045,41 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
                   <Lock size={14} className="text-slate-400" />
                 </div>
               </div>
+              
+              {isFileSystemApiSupported() && (
+                <button
+                  onClick={handleLinkToLocalDisk}
+                  disabled={thumbnails.length === 0 || isProcessing || isLinking}
+                  className={cn(
+                    "flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 sm:px-6 py-2 sm:py-3 rounded-2xl transition-all text-xs sm:text-sm font-bold shadow-lg",
+                    projectStorageType === 'filesystem' 
+                      ? "bg-emerald-500 text-white shadow-emerald-200" 
+                      : "bg-white dark:bg-slate-800 text-slate-700 dark:text-white hover:bg-slate-50 border border-slate-100 dark:border-slate-700"
+                  )}
+                  title={projectStorageType === 'filesystem' ? "Mode Pro activé (Lien direct au disque)" : "Activer le Mode Pro (Lien direct au disque)"}
+                >
+                  {isLinking ? <Loader2 className="animate-spin" size={16} /> : <HardDrive size={16} />}
+                  <span className="hidden sm:inline">{projectStorageType === 'filesystem' ? "Mode Pro Actif" : "Mode Pro"}</span>
+                </button>
+              )}
+
+              {isCloudInited && (
+                <button
+                  onClick={handleLinkToCloud}
+                  disabled={thumbnails.length === 0 || isProcessing || isLinking}
+                  className={cn(
+                    "flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 sm:px-6 py-2 sm:py-3 rounded-2xl transition-all text-xs sm:text-sm font-bold shadow-lg",
+                    projectStorageType === 'cloud' 
+                      ? "bg-blue-500 text-white shadow-blue-200" 
+                      : "bg-white dark:bg-slate-800 text-slate-700 dark:text-white hover:bg-slate-50 border border-slate-100 dark:border-slate-700"
+                  )}
+                  title={projectStorageType === 'cloud' ? "Mode Cloud activé (Google Drive)" : "Activer le Mode Cloud (Google Drive)"}
+                >
+                  {isLinking ? <Loader2 className="animate-spin" size={16} /> : <Globe size={16} />}
+                  <span className="hidden sm:inline">{projectStorageType === 'cloud' ? "Mode Cloud Actif" : "Mode Cloud"}</span>
+                </button>
+              )}
+
               <button
                 onClick={editPDF}
                 disabled={thumbnails.length === 0 || isProcessing}

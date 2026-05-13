@@ -24,13 +24,15 @@ export function useProjectManager() {
     localStorage.setItem(PROJECTS_KEY, JSON.stringify(updatedProjects));
   }, []);
 
-  const addProject = useCallback((name: string, pageCount: number, thumbnailUrl?: string) => {
+  const addProject = useCallback((name: string, pageCount: number, thumbnailUrl?: string, storageType: Project['storageType'] = 'local', fileHandle?: FileSystemFileHandle) => {
     const newProject: Project = {
       id: crypto.randomUUID(),
       name,
       updatedAt: Date.now(),
       pageCount,
       thumbnailUrl,
+      storageType,
+      fileHandle
     };
     const updated = [newProject, ...projects];
     saveProjects(updated);
