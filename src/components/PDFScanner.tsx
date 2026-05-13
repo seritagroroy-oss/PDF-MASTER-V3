@@ -1,11 +1,24 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Camera, FileDown, Trash2, X, RefreshCw, Plus, Settings2, RotateCw, Contrast, Image as ImageIcon, Crop as CropIcon, FileText, GripVertical, CreditCard, Square, Maximize2, Share2, Download, CheckCircle2, Loader2 } from 'lucide-react';
+import { Camera, FileDown, Trash2, X, RefreshCw, Plus, Settings2, RotateCw, Contrast, Image as ImageIcon, Crop as CropIcon, FileText, GripVertical, CreditCard, Square, Maximize2, Share2, Download, CheckCircle2, Loader2, ArrowLeft } from 'lucide-react';
 import { motion, AnimatePresence, Reorder } from 'framer-motion';
 import { PDFDocument } from 'pdf-lib';
 import ReactCrop, { type Crop, type PercentCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 
-export const PDFScanner: React.FC = () => {
+interface PDFScannerProps {
+  projectId: string;
+  onBack: () => void;
+  addProject: (name: string, pageCount: number, thumbnailUrl?: string) => string;
+  updateProject: (id: string, updates: any) => void;
+}
+
+export const PDFScanner: React.FC<PDFScannerProps> = ({
+  projectId: initialProjectId,
+  onBack,
+  addProject,
+  updateProject
+}) => {
+  const [projectId, setProjectId] = useState(initialProjectId);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [scannedImages, setScannedImages] = useState<{id: string, url: string}[]>([]);
   const [isScanning, setIsScanning] = useState(false);
@@ -15,6 +28,17 @@ export const PDFScanner: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [facingMode, setFacingMode] = useState<'environment' | 'user'>('environment');
   const [showFlash, setShowFlash] = useState(false);
+
+  // Auto-register project when first image is scanned
+  useEffect(() => {
+    if (projectId === 'new' && scannedImages.length > 0) {
+      console.log('[PDFScanner] Registering new scan project...');
+      const newId = addProject(`Scan_${new Date().toLocaleDateString()}`, scannedImages.length, scannedImages[0].url); 
+      setProjectId(newId);
+    } else if (projectId !== 'new' && scannedImages.length > 0) {
+      updateProject(projectId, { pageCount: scannedImages.length, thumbnailUrl: scannedImages[0].url });
+    }
+  }, [scannedImages.length, projectId, addProject, updateProject]);
   
   // Edit mode states
   const [editingImageIdx, setEditingImageIdx] = useState<number | null>(null);
@@ -342,7 +366,14 @@ export const PDFScanner: React.FC = () => {
 
   return (
     <div className="flex flex-col gap-8 max-w-5xl mx-auto w-full">
-      <div className="text-center space-y-4">
+      <div className="text-center space-y-4 relative">
+        <button
+          onClick={onBack}
+          className="absolute left-0 top-0 p-3 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-all text-slate-500 hover:text-indigo-600 hidden md:block"
+          title="Retour au dashboard"
+        >
+          <ArrowLeft size={24} />
+        </button>
         <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-[2rem] bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rotate-3">
           <Camera size={40} />
         </div>

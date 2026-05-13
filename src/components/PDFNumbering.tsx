@@ -1,10 +1,24 @@
 import { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
-import { Layers, FilePlus, Download, CheckCircle2, ChevronRight, Hash, Eye, Settings, Share2, Loader2 } from 'lucide-react';
+import { Layers, FilePlus, Download, CheckCircle2, ChevronRight, Hash, Eye, Settings, Share2, Loader2, ArrowLeft } from 'lucide-react';
+import React from 'react';
 import { cn } from '../utils/cn';
 
-export const PDFNumbering = () => {
+interface PDFNumberingProps {
+  projectId: string;
+  onBack: () => void;
+  addProject: (name: string, pageCount: number, thumbnailUrl?: string) => string;
+  updateProject: (id: string, updates: any) => void;
+}
+
+export const PDFNumbering: React.FC<PDFNumberingProps> = ({
+  projectId: initialProjectId,
+  onBack,
+  addProject,
+  updateProject
+}) => {
+  const [projectId, setProjectId] = useState(initialProjectId);
   const [file, setFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [resultUrl, setResultUrl] = useState<string | null>(null);
@@ -19,8 +33,15 @@ export const PDFNumbering = () => {
 
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const handleFile = (f: File) => {
+  const handleFile = async (f: File) => {
     setFile(f); setResultUrl(null);
+
+    // Auto-register project when files are uploaded
+    if (projectId === 'new') {
+      console.log('[PDFNumbering] Registering new project...');
+      const newId = addProject(f.name, 1, ''); 
+      setProjectId(newId);
+    }
   };
 
   const processNumbering = async () => {
@@ -110,6 +131,18 @@ export const PDFNumbering = () => {
 
   return (
     <div className="space-y-6">
+      <div className="flex items-center gap-4 mb-2">
+        <button
+          onClick={onBack}
+          className="p-3 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-all text-slate-500 hover:text-indigo-600 hidden md:block"
+          title="Retour au dashboard"
+        >
+          <ArrowLeft size={24} />
+        </button>
+        <div className="text-center flex-1 pr-12 hidden md:block">
+           <h2 className="text-xl font-bold text-slate-900">Numéroter votre PDF</h2>
+        </div>
+      </div>
       {!file ? (
         <motion.div
           initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}

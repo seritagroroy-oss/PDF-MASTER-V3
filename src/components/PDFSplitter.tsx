@@ -1,18 +1,26 @@
 import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PDFDocument } from 'pdf-lib';
-import { Scissors, Upload, Download, Loader2, FileText, X, ChevronRight, CheckCircle2, Layers, Share2 } from 'lucide-react';
+import { Scissors, Upload, Download, Loader2, FileText, X, ChevronRight, CheckCircle2, Layers, Share2, ArrowLeft } from 'lucide-react';
+import React from 'react';
 import { cn } from '../utils/cn';
 
 type SplitMode = 'range' | 'all' | 'extract';
 
-interface PageRange {
-  id: string;
-  from: number;
-  to: number;
+interface PDFSplitterProps {
+  projectId: string;
+  onBack: () => void;
+  addProject: (name: string, pageCount: number, thumbnailUrl?: string) => string;
+  updateProject: (id: string, updates: any) => void;
 }
 
-export const PDFSplitter = () => {
+export const PDFSplitter: React.FC<PDFSplitterProps> = ({
+  projectId: initialProjectId,
+  onBack,
+  addProject,
+  updateProject
+}) => {
+  const [projectId, setProjectId] = useState(initialProjectId);
   const [file, setFile] = useState<File | null>(null);
   const [pageCount, setPageCount] = useState(0);
   const [mode, setMode] = useState<SplitMode>('range');
@@ -33,6 +41,13 @@ export const PDFSplitter = () => {
     setPageCount(count);
     setRanges([{ id: '1', from: 1, to: count }]);
     setSelectedPages([]);
+
+    // Auto-register project when files are uploaded
+    if (projectId === 'new') {
+      console.log('[PDFSplitter] Registering new project...');
+      const newId = addProject(f.name, count, ''); 
+      setProjectId(newId);
+    }
   };
 
   const addRange = () =>
@@ -128,6 +143,18 @@ export const PDFSplitter = () => {
 
   return (
     <div className="space-y-6">
+      <div className="flex items-center gap-4 mb-2">
+        <button
+          onClick={onBack}
+          className="p-3 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-all text-slate-500 hover:text-indigo-600 hidden md:block"
+          title="Retour au dashboard"
+        >
+          <ArrowLeft size={24} />
+        </button>
+        <div className="text-center flex-1 pr-12 hidden md:block">
+           {/* Placeholder to keep symmetry */}
+        </div>
+      </div>
       {/* Upload zone */}
       {!file ? (
         <motion.div

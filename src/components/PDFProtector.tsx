@@ -1,10 +1,24 @@
 import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PDFDocument, StandardFonts, rgb, degrees } from 'pdf-lib';
-import { Shield, Upload, Download, Lock, Loader2, FileText, X, Eye, EyeOff, CheckCircle2, Share2 } from 'lucide-react';
+import { Shield, Upload, Download, Lock, Loader2, FileText, X, Eye, EyeOff, CheckCircle2, Share2, ArrowLeft } from 'lucide-react';
+import React from 'react';
 import { cn } from '../utils/cn';
 
-export const PDFProtector = () => {
+interface PDFProtectorProps {
+  projectId: string;
+  onBack: () => void;
+  addProject: (name: string, pageCount: number, thumbnailUrl?: string) => string;
+  updateProject: (id: string, updates: any) => void;
+}
+
+export const PDFProtector: React.FC<PDFProtectorProps> = ({
+  projectId: initialProjectId,
+  onBack,
+  addProject,
+  updateProject
+}) => {
+  const [projectId, setProjectId] = useState(initialProjectId);
   const [file, setFile] = useState<File | null>(null);
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -19,8 +33,15 @@ export const PDFProtector = () => {
   const [isDragging, setIsDragging] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const handleFile = (f: File) => {
+  const handleFile = async (f: File) => {
     setFile(f); setResultUrl(null); setError('');
+
+    // Auto-register project when files are uploaded
+    if (projectId === 'new') {
+      console.log('[PDFProtector] Registering new project...');
+      const newId = addProject(f.name, 1, ''); 
+      setProjectId(newId);
+    }
   };
 
   const protect = async () => {
@@ -105,6 +126,18 @@ export const PDFProtector = () => {
 
   return (
     <div className="space-y-6">
+      <div className="flex items-center gap-4 mb-2">
+        <button
+          onClick={onBack}
+          className="p-3 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-all text-slate-500 hover:text-indigo-600 hidden md:block"
+          title="Retour au dashboard"
+        >
+          <ArrowLeft size={24} />
+        </button>
+        <div className="text-center flex-1 pr-12 hidden md:block">
+           <h2 className="text-xl font-bold text-slate-900">Protéger votre PDF</h2>
+        </div>
+      </div>
       {/* Notice */}
       <div className="flex items-start gap-3 p-4 rounded-2xl bg-amber-50 border border-amber-100">
         <Shield size={18} className="text-amber-600 mt-0.5 shrink-0" />

@@ -2,10 +2,24 @@ import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { pdfjs } from '../pdfjs-setup';
 import Tesseract from 'tesseract.js';
-import { ScanText, Upload, FileText, Copy, Loader2, CheckCircle2, Languages, X, Activity, Share2 } from 'lucide-react';
+import { ScanText, Upload, FileText, Copy, Loader2, CheckCircle2, Languages, X, Activity, Share2, ArrowLeft } from 'lucide-react';
+import React, { useEffect } from 'react';
 import { cn } from '../utils/cn';
 
-export const PDFOCR = () => {
+interface PDFOCRProps {
+  projectId: string;
+  onBack: () => void;
+  addProject: (name: string, pageCount: number, thumbnailUrl?: string) => string;
+  updateProject: (id: string, updates: any) => void;
+}
+
+export const PDFOCR: React.FC<PDFOCRProps> = ({
+  projectId: initialProjectId,
+  onBack,
+  addProject,
+  updateProject
+}) => {
+  const [projectId, setProjectId] = useState(initialProjectId);
   const [file, setFile] = useState<File | null>(null);
   const [language, setLanguage] = useState('fra'); // Default to French
   const [isProcessing, setIsProcessing] = useState(false);
@@ -15,6 +29,15 @@ export const PDFOCR = () => {
   const [copied, setCopied] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+
+  // Auto-register project when files are uploaded
+  useEffect(() => {
+    if (projectId === 'new' && file) {
+      console.log('[PDFOCR] Registering new project...');
+      const newId = addProject(file.name, 1, ''); 
+      setProjectId(newId);
+    }
+  }, [file, projectId, addProject]);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleFile = (f: File) => {
@@ -83,6 +106,18 @@ export const PDFOCR = () => {
 
   return (
     <div className="space-y-6">
+      <div className="flex items-center gap-4 mb-2">
+        <button
+          onClick={onBack}
+          className="p-3 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-all text-slate-500 hover:text-indigo-600 hidden md:block"
+          title="Retour au dashboard"
+        >
+          <ArrowLeft size={24} />
+        </button>
+        <div className="text-center flex-1 pr-12 hidden md:block">
+           <h2 className="text-xl font-bold text-slate-900">OCR : Reconnaissance de Texte</h2>
+        </div>
+      </div>
       {!file ? (
         <motion.div
           initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}

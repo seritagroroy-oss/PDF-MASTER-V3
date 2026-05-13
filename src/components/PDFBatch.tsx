@@ -2,10 +2,24 @@ import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PDFDocument, rgb, degrees } from 'pdf-lib';
 import JSZip from 'jszip';
-import { Package, Upload, Download, CheckCircle2, Shield, Layout, X, Loader2, Share2 } from 'lucide-react';
+import { Package, Upload, Download, CheckCircle2, Shield, Layout, X, Loader2, Share2, ArrowLeft } from 'lucide-react';
+import React from 'react';
 import { cn } from '../utils/cn';
 
-export const PDFBatch = () => {
+interface PDFBatchProps {
+  projectId: string;
+  onBack: () => void;
+  addProject: (name: string, pageCount: number, thumbnailUrl?: string) => string;
+  updateProject: (id: string, updates: any) => void;
+}
+
+export const PDFBatch: React.FC<PDFBatchProps> = ({
+  projectId: initialProjectId,
+  onBack,
+  addProject,
+  updateProject
+}) => {
+  const [projectId, setProjectId] = useState(initialProjectId);
   const [files, setFiles] = useState<File[]>([]);
   const [action, setAction] = useState<'watermark' | 'protect'>('watermark');
   
@@ -24,6 +38,14 @@ export const PDFBatch = () => {
     const pdfs = Array.from(newFiles).filter(f => f.type === 'application/pdf');
     setFiles(prev => [...prev, ...pdfs]);
     setResultUrl(null);
+
+    // Auto-register project when files are uploaded
+    if (projectId === 'new' && pdfs.length > 0) {
+      console.log('[PDFBatch] Registering new batch project...');
+      const name = pdfs.length > 1 ? `Lot (${pdfs.length} fichiers)` : pdfs[0].name;
+      const newId = addProject(name, pdfs.length, ''); 
+      setProjectId(newId);
+    }
   };
 
   const removeFile = (idx: number) => {
@@ -119,6 +141,18 @@ export const PDFBatch = () => {
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
+      <div className="flex items-center gap-4 mb-2">
+        <button
+          onClick={onBack}
+          className="p-3 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-all text-slate-500 hover:text-indigo-600 hidden md:block"
+          title="Retour au dashboard"
+        >
+          <ArrowLeft size={24} />
+        </button>
+        <div className="text-center flex-1 pr-12 hidden md:block">
+           <h2 className="text-xl font-bold text-slate-900">Traitement de PDF par Lots</h2>
+        </div>
+      </div>
       {/* DROPEZONE */}
       <motion.div
         initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}

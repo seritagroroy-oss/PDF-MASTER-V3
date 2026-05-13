@@ -1,11 +1,24 @@
 import React, { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Upload, FileText, Download, Loader2, Sparkles, CheckCircle2, Shield, AlertCircle, Share2 } from 'lucide-react';
+import { Upload, FileText, Download, Loader2, Sparkles, CheckCircle2, Shield, AlertCircle, Share2, ArrowLeft } from 'lucide-react';
 import { pdfjs } from '../pdfjs-setup';
 import { PDFDocument } from 'pdf-lib';
 import { cn } from '../utils/cn';
 
-export const PDFPurifier = () => {
+interface PDFPurifierProps {
+  projectId: string;
+  onBack: () => void;
+  addProject: (name: string, pageCount: number, thumbnailUrl?: string) => string;
+  updateProject: (id: string, updates: any) => void;
+}
+
+export const PDFPurifier: React.FC<PDFPurifierProps> = ({
+  projectId: initialProjectId,
+  onBack,
+  addProject,
+  updateProject
+}) => {
+  const [projectId, setProjectId] = useState(initialProjectId);
   const [file, setFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -14,6 +27,15 @@ export const PDFPurifier = () => {
   const [brightness, setBrightness] = useState(1.1);
   const [resultUrl, setResultUrl] = useState<string | null>(null);
   const [isSharing, setIsSharing] = useState(false);
+
+  // Auto-register project when files are uploaded
+  React.useEffect(() => {
+    if (projectId === 'new' && file) {
+      console.log('[PDFPurifier] Registering new project...');
+      const newId = addProject(file.name, 1, ''); 
+      setProjectId(newId);
+    }
+  }, [file, projectId, addProject]);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -108,7 +130,14 @@ export const PDFPurifier = () => {
   return (
     <div className="max-w-4xl mx-auto p-6">
       <div className="bg-white rounded-[2.5rem] shadow-2xl p-8 border border-indigo-50">
-        <div className="flex items-center gap-4 mb-8">
+        <div className="flex items-center gap-4 mb-8 relative">
+          <button
+            onClick={onBack}
+            className="absolute -left-12 top-0 p-3 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-all text-slate-500 hover:text-indigo-600 hidden md:block"
+            title="Retour au dashboard"
+          >
+            <ArrowLeft size={24} />
+          </button>
           <div className="h-14 w-14 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-indigo-200">
             <Sparkles size={28} />
           </div>

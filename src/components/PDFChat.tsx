@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { pdfjs } from '../pdfjs-setup';
-import { MessageSquare, Upload, FileText, Send, Loader2, Sparkles, X, AlertCircle, Share2 } from 'lucide-react';
+import { MessageSquare, Upload, FileText, Send, Loader2, Sparkles, X, AlertCircle, Share2, ArrowLeft } from 'lucide-react';
 import { cn } from '../utils/cn';
 
 
@@ -11,7 +11,20 @@ interface ChatMessage {
   content: string;
 }
 
-export const PDFChat = () => {
+interface PDFChatProps {
+  projectId: string;
+  onBack: () => void;
+  addProject: (name: string, pageCount: number, thumbnailUrl?: string) => string;
+  updateProject: (id: string, updates: any) => void;
+}
+
+export const PDFChat: React.FC<PDFChatProps> = ({
+  projectId: initialProjectId,
+  onBack,
+  addProject,
+  updateProject
+}) => {
+  const [projectId, setProjectId] = useState(initialProjectId);
   const [file, setFile] = useState<File | null>(null);
   const [pdfText, setPdfText] = useState('');
   const [isExtracting, setIsExtracting] = useState(false);
@@ -62,6 +75,13 @@ export const PDFChat = () => {
       setFile(null);
     } finally {
       setIsExtracting(false);
+      
+      // Auto-register project when files are uploaded and extracted
+      if (projectId === 'new' && f) {
+        console.log('[PDFChat] Registering new project...');
+        const newId = addProject(f.name, numPages, ''); 
+        setProjectId(newId);
+      }
     }
   };
 
@@ -209,6 +229,13 @@ export const PDFChat = () => {
       {/* HEADER */}
       <div className="shrink-0 flex items-center justify-between p-5 bg-gradient-to-br from-indigo-900 to-violet-900 text-white">
         <div className="flex items-center gap-3">
+          <button
+            onClick={onBack}
+            className="p-2 hover:bg-white/10 rounded-full transition-all text-white/70"
+            title="Retour au dashboard"
+          >
+            <ArrowLeft size={20} />
+          </button>
           <div className="h-10 w-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
             <Sparkles size={20} className="text-indigo-200" />
           </div>
