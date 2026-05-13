@@ -297,7 +297,14 @@ const preloadTool = (tool: Exclude<Tool, 'home' | 'dashboard'>) => {
 };
 
 export default function App() {
-  const [activeTool, setActiveTool] = useState<Tool>('home');
+  const [activeTool, setActiveTool] = useState<Tool>(() => {
+    const saved = localStorage.getItem('pdfmaster_active_tool');
+    return (saved as Tool) || 'home';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('pdfmaster_active_tool', activeTool);
+  }, [activeTool]);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isInstallable, setIsInstallable] = useState(false);

@@ -68,6 +68,24 @@ export const PDFEditor: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [editorZoom, setEditorZoom] = useState(typeof window !== 'undefined' && window.innerWidth < 768 ? 0.4 : 1);
 
+  // ── Session persistence hook ─────────────────────────────────────────────
+  const {
+    saveSession,
+    restoreSession,
+    clearSession,
+    hasRecoverableSession,
+    sessionMeta,
+    lastSavedAt,
+    isSaving,
+  } = useSessionPersistence({
+    toolId: 'edit',
+    thumbnails,
+    rawFiles,
+    editorZoom,
+    activeMode: 'visual', // Initial value, will be updated by refs
+    enabled: true,
+  });
+
   const deselectAll = () => {
     setSelectedIds(new Set());
   };
@@ -135,6 +153,44 @@ export const PDFEditor: React.FC = () => {
   const [isSharing, setIsSharing] = useState(false);
   const [isRestoring, setIsRestoring] = useState(false);
   const [showRecoveryBanner, setShowRecoveryBanner] = useState(true);
+
+  // ── Restore session handler ───────────────────────────────────────────────
+  const handleRestoreSession = useCallback(async () => {
+    setIsRestoring(true);
+    try {
+      const snapshot = await restoreSession();
+      if (!snapshot) return;
+
+      // Reconstruire les fichiers File depuis les ArrayBuffer
+      const restoredFiles: File[] = snapshot.rawFilesBuffers.map((buf, i) => {
+        const name = snapshot.meta.fileNames[i] || `document_${i + 1}.pdf`;
+        return new File([buf], name, { type: 'application/pdf' });
+      });
+
+      if (restoredFiles.length > 0) {
+        setRawFiles(restoredFiles);
+        // Les thumbnails seront rechargés via le useEffect[rawFiles]
+        // mais on peut aussi restaurer directement depuis le snapshot
+        if (snapshot.thumbnailsMeta.length > 0) {
+          setThumbnails(snapshot.thumbnailsMeta);
+        }
+      } else if (snapshot.thumbnailsMeta.length > 0) {
+        // Pas de fichiers source mais des thumbnails (ex: pages vierges)
+        setThumbnails(snapshot.thumbnailsMeta);
+      }
+
+      // Restaurer le zoom
+      if (snapshot.meta.editorState?.zoom) {
+        setEditorZoom(snapshot.meta.editorState.zoom);
+      }
+
+      setShowRecoveryBanner(false);
+    } catch (e) {
+      console.error('[PDFEditor] Restore failed:', e);
+    } finally {
+      setIsRestoring(false);
+    }
+  }, [restoreSession]);
 
   useEffect(() => {
     editorZoomRef.current = editorZoom;
@@ -1579,61 +1635,7 @@ export const PDFEditor: React.FC = () => {
     }
   };
 
-  // ── Session persistence hook ─────────────────────────────────────────────
-  const {
-    saveSession,
-    restoreSession,
-    clearSession,
-    hasRecoverableSession,
-    sessionMeta,
-    lastSavedAt,
-    isSaving,
-  } = useSessionPersistence({
-    toolId: 'edit',
-    thumbnails,
-    rawFiles,
-    editorZoom,
-    activeMode: activeEditMode,
-    enabled: true,
-  });
-
-  // ── Restore session handler ───────────────────────────────────────────────
-  const handleRestoreSession = useCallback(async () => {
-    setIsRestoring(true);
-    try {
-      const snapshot = await restoreSession();
-      if (!snapshot) return;
-
-      // Reconstruire les fichiers File depuis les ArrayBuffer
-      const restoredFiles: File[] = snapshot.rawFilesBuffers.map((buf, i) => {
-        const name = snapshot.meta.fileNames[i] || `document_${i + 1}.pdf`;
-        return new File([buf], name, { type: 'application/pdf' });
-      });
-
-      if (restoredFiles.length > 0) {
-        setRawFiles(restoredFiles);
-        // Les thumbnails seront rechargés via le useEffect[rawFiles]
-        // mais on peut aussi restaurer directement depuis le snapshot
-        if (snapshot.thumbnailsMeta.length > 0) {
-          setThumbnails(snapshot.thumbnailsMeta);
-        }
-      } else if (snapshot.thumbnailsMeta.length > 0) {
-        // Pas de fichiers source mais des thumbnails (ex: pages vierges)
-        setThumbnails(snapshot.thumbnailsMeta);
-      }
-
-      // Restaurer le zoom
-      if (snapshot.meta.editorState?.zoom) {
-        setEditorZoom(snapshot.meta.editorState.zoom);
-      }
-
-      setShowRecoveryBanner(false);
-    } catch (e) {
-      console.error('[PDFEditor] Restore failed:', e);
-    } finally {
-      setIsRestoring(false);
-    }
-  }, [restoreSession]);
+  };
 
   return (
     <div className={cn("min-h-screen transition-colors duration-500 overflow-x-hidden", isDarkMode ? "bg-slate-950 text-slate-100" : "bg-slate-50 text-slate-900")}>
