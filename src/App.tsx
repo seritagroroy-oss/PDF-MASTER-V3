@@ -35,6 +35,7 @@ import {
   AlertCircle,
   Heart,
   Users,
+  Library,
 } from 'lucide-react';
 import { BrandLockup } from './components/BrandLockup';
 import { AuthModal } from './components/AuthModal';
