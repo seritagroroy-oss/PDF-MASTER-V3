@@ -8,7 +8,6 @@ import { cn } from '../utils/cn';
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { useSessionPersistence } from '../hooks/useSessionPersistence';
 import { SessionRecoveryBanner, AutoSaveIndicator } from './SessionRecoveryBanner';
-import { useProjectManager } from '../hooks/useProjectManager';
 
 import { AISidebar } from './PDFEditor/AISidebar';
 import { TextSidebar } from './PDFEditor/TextSidebar';
@@ -38,11 +37,17 @@ import { usePDFCanvas } from '../hooks/usePDFCanvas';
 interface PDFEditorProps {
   projectId: string;
   onBack: () => void;
+  addProject: (name: string, pageCount: number, thumbnailUrl?: string) => string;
+  updateProject: (id: string, updates: any) => void;
 }
 
-export const PDFEditor: React.FC<PDFEditorProps> = ({ projectId: initialProjectId, onBack }) => {
+export const PDFEditor: React.FC<PDFEditorProps> = ({ 
+  projectId: initialProjectId, 
+  onBack,
+  addProject,
+  updateProject
+}) => {
   const [projectId, setProjectId] = useState(initialProjectId);
-  const { addProject, updateProject } = useProjectManager();
   const [files, setFiles] = useState<any[]>([]);
   const [rawFiles, setRawFiles] = useState<File[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);

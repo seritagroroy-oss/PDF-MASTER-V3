@@ -443,7 +443,12 @@ export default function App() {
             />
           );
         }
-        return <PDFEditor projectId={activeProjectId} onBack={() => setActiveProjectId(null)} />;
+        return <PDFEditor 
+          projectId={activeProjectId} 
+          onBack={() => setActiveProjectId(null)} 
+          addProject={addProject}
+          updateProject={updateProject}
+        />;
       case 'compress': return <PDFCompressor />;
       case 'watermark': return <PDFWatermark />;
       case 'convert': return <PDFConverter />;
