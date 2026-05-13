@@ -1942,11 +1942,18 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
 
 
 
-        <FileUpload
-          files={files}
-          setFiles={setFiles}
-          onFilesChange={setRawFiles}
-        />
+        {isRestoring ? (
+          <div className="flex flex-col items-center justify-center py-20 bg-white/50 dark:bg-white/5 rounded-[2.5rem] border-2 border-dashed border-slate-200 dark:border-slate-800 animate-pulse">
+            <Loader2 className="animate-spin text-indigo-600 mb-4" size={48} />
+            <p className="text-slate-500 font-bold">Chargement de votre projet...</p>
+          </div>
+        ) : thumbnails.length === 0 && (
+          <FileUpload
+            files={files}
+            setFiles={setFiles}
+            onFilesChange={setRawFiles}
+          />
+        )}
 
         <AnimatePresence>
           <HelpModal showHelp={showHelp} setShowHelp={setShowHelp} />
