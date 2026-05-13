@@ -68,6 +68,23 @@ export const PDFEditor: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [editorZoom, setEditorZoom] = useState(typeof window !== 'undefined' && window.innerWidth < 768 ? 0.4 : 1);
 
+
+  const deselectAll = () => {
+    setSelectedIds(new Set());
+  };
+  const [previewPage, setPreviewPage] = useState<PageThumbnail | null>(null);
+  const [highResUrl, setHighResUrl] = useState<string | null>(null);
+  const [isRenderingHighRes, setIsRenderingHighRes] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [activeEditMode, setActiveEditMode] = useState<'text' | 'visual'>('visual');
+  const [isPickingColor, setIsPickingColor] = useState(false);
+  const [lastNonEraserColor, setLastNonEraserColor] = useState("#1a1a1a");
+  const [isAISidebarOpen, setIsAISidebarOpen] = useState(false);
+  const [isElementsSidebarOpen, setIsElementsSidebarOpen] = useState(false);
+  const [isTextSidebarOpen, setIsTextSidebarOpen] = useState(false);
+  const [aiResponse, setAiResponse] = useState("");
+  const [isAIProcessing, setIsAIProcessing] = useState(false);
+  
   // ── Session persistence hook ─────────────────────────────────────────────
   const {
     saveSession,
@@ -85,22 +102,6 @@ export const PDFEditor: React.FC = () => {
     activeMode: activeEditMode, 
     enabled: true,
   });
-
-  const deselectAll = () => {
-    setSelectedIds(new Set());
-  };
-  const [previewPage, setPreviewPage] = useState<PageThumbnail | null>(null);
-  const [highResUrl, setHighResUrl] = useState<string | null>(null);
-  const [isRenderingHighRes, setIsRenderingHighRes] = useState(false);
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [activeEditMode, setActiveEditMode] = useState<'text' | 'visual'>('visual');
-  const [isPickingColor, setIsPickingColor] = useState(false);
-  const [lastNonEraserColor, setLastNonEraserColor] = useState("#1a1a1a");
-  const [isAISidebarOpen, setIsAISidebarOpen] = useState(false);
-  const [isElementsSidebarOpen, setIsElementsSidebarOpen] = useState(false);
-  const [isTextSidebarOpen, setIsTextSidebarOpen] = useState(false);
-  const [aiResponse, setAiResponse] = useState("");
-  const [isAIProcessing, setIsAIProcessing] = useState(false);
   
   const triggerImageUpload = () => {
     imageInputRef.current?.click();
@@ -1649,8 +1650,6 @@ export const PDFEditor: React.FC = () => {
       case 2: return "p-4";
       default: return "p-2";
     }
-  };
-
   };
 
   return (
