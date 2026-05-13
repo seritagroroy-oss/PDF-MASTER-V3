@@ -1,0 +1,102 @@
+import react from '@vitejs/plugin-react';
+import path from 'path';
+import { defineConfig, loadEnv } from 'vite';
+import { VitePWA } from 'vite-plugin-pwa';
+
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, '.', '');
+
+  return {
+    base: '/',
+    plugins: [
+      react(),
+      VitePWA({
+        registerType: 'autoUpdate',
+        workbox: {
+          skipWaiting: true,
+          clientsClaim: true,
+          globPatterns: ['**/*.{js,mjs,tsx,ts,css,html,ico,png,svg,json,woff,woff2,xml}'],
+          maximumFileSizeToCacheInBytes: 5000000, // 5MB limit to allow caching massive pdf workers
+          runtimeCaching: [
+            {
+              // For external assets like CDNs or APIs, use NetworkFirst
+              urlPattern: /^https:\/\/cdn\.jsdelivr\.net\/.*$/i,
+              handler: 'NetworkFirst',
+              options: {
+                cacheName: 'cdn-cache',
+                expiration: {
+                  maxEntries: 10,
+                  maxAgeSeconds: 60 * 60 * 24 * 30, // 30 Days
+                },
+                networkTimeoutSeconds: 5, // Fallback to cache if network is slow
+              },
+            },
+          ],
+        },
+        manifest: {
+          name: 'PDF Master - ROY INDUSTRIE',
+          short_name: 'PDFMaster',
+          description: 'Une plateforme moderne et professionnelle pour fusionner, modifier et gerer vos fichiers PDF.',
+          theme_color: '#020617',
+          background_color: '#020617',
+          display: 'standalone',
+          start_url: '/',
+          icons: [
+            {
+              src: '/icons/icon-192.png',
+              sizes: '192x192',
+              type: 'image/png',
+              purpose: 'any maskable',
+            },
+            {
+              src: '/icons/icon-512.png',
+              sizes: '512x512',
+              type: 'image/png',
+              purpose: 'any maskable',
+            },
+          ],
+        },
+      }),
+    ],
+    // Vite gère nativement les variables commençant par VITE_
+    // Pas besoin de define manuel ici sauf cas très spécifique
+    resolve: {
+      alias: {
+        '@': path.resolve(__dirname, '.'),
+      },
+    },
+    build: {
+      chunkSizeWarningLimit: 900,
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (!id.includes('node_modules')) return;
+
+            if (id.includes('react') || id.includes('scheduler')) {
+              return 'react-vendor';
+            }
+
+            if (id.includes('tesseract.js')) {
+              return 'ocr-vendor';
+            }
+
+            if (id.includes('pdf-lib') || id.includes('pdfjs-dist') || id.includes('jszip')) {
+              return 'pdf-vendor';
+            }
+
+            if (id.includes('motion') || id.includes('lucide-react')) {
+              return 'ui-vendor';
+            }
+
+            return 'vendor';
+          },
+        },
+      },
+    },
+    server: {
+      // HMR is disabled in AI Studio via DISABLE_HMR env var.
+      // Do not modify; file watching is disabled to prevent flickering during agent edits.
+      hmr: process.env.DISABLE_HMR !== 'true',
+    },
+  };
+});
