@@ -159,6 +159,26 @@ export const PDFEditor: React.FC = () => {
   const isRestoringRef = useRef(false);
   const [showRecoveryBanner, setShowRecoveryBanner] = useState(true);
 
+  // ── Helper: Render HD Page ───────────────────────────────────────────────
+  const renderHighResPage = async (file: File, pageIndex: number) => {
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise;
+      const page = await pdf.getPage(pageIndex + 1);
+      const viewport = page.getViewport({ scale: 1.5 });
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      if (!ctx) throw new Error("Canvas context failed");
+      canvas.height = viewport.height;
+      canvas.width = viewport.width;
+      await page.render({ canvasContext: ctx, viewport: viewport, canvas: canvas }).promise;
+      return canvas.toDataURL();
+    } catch (err) {
+      console.error("[PDFEditor] HD Render failed:", err);
+      return null;
+    }
+  };
+
   // ── Thumbnail loading ─────────────────────────────────────────────────────
   const loadThumbnails = async (files: File[], existingThumbnails?: PageThumbnail[]) => {
     console.log('[PDFEditor] loadThumbnails started', { filesCount: files.length, existingCount: existingThumbnails?.length });
@@ -272,8 +292,12 @@ export const PDFEditor: React.FC = () => {
           const targetPage = rehydratedThumbnails.find(t => t.id === pageId);
           
           if (targetPage) {
-            console.log('[PDFEditor] Restoring draft state for page:', pageId);
-            setEditingPage(targetPage);
+            console.log('[PDFEditor] Restoring draft state in HD for page:', pageId);
+            
+            // On génère la version HD pour l'éditeur
+            const hdUrl = await renderHighResPage(restoredFiles[targetPage.sourceFileIndex], targetPage.index);
+            
+            setEditingPage({ ...targetPage, url: hdUrl || targetPage.url });
             setTempText(snapshot.draft?.text || "");
             setCurrentDrawings(snapshot.draft?.drawings || []);
             setActiveEditMode(snapshot.meta.editorState?.activeMode as any || 'visual');
