@@ -178,24 +178,27 @@ export const PDFEditor: React.FC = () => {
       });
 
       if (restoredFiles.length > 0) {
-        // IMPORTANT: On met à jour les fichiers d'abord
         setRawFiles(restoredFiles);
         
-        // On attend un court instant pour que le state se stabilise
-        // puis on injecte les thumbnails restaurés (avec annotations)
-        setTimeout(() => {
-          if (snapshot.thumbnailsMeta.length > 0) {
-            setThumbnails(snapshot.thumbnailsMeta);
+        // RE-HYDRATATION : On régénère les images tout en fusionnant les données (dessins, texte)
+        const rehydratedThumbnails = await loadThumbnails(restoredFiles, snapshot.thumbnailsMeta);
+
+        // ── RESTAURATION DU BROUILLON (DRAFT) ──
+        if (snapshot.draft && snapshot.meta.editorState?.editingPageId && rehydratedThumbnails) {
+          const pageId = snapshot.meta.editorState.editingPageId;
+          const targetPage = rehydratedThumbnails.find(t => t.id === pageId);
+          
+          if (targetPage) {
+            setEditingPage(targetPage);
+            setTempText(snapshot.draft?.text || "");
+            setCurrentDrawings(snapshot.draft?.drawings || []);
+            setActiveEditMode(snapshot.meta.editorState?.activeMode as any || 'visual');
           }
-          isRestoringRef.current = false;
-          setIsRestoring(false);
-        }, 300);
+        }
       } else {
         if (snapshot.thumbnailsMeta.length > 0) {
           setThumbnails(snapshot.thumbnailsMeta);
         }
-        isRestoringRef.current = false;
-        setIsRestoring(false);
       }
 
       // Restaurer le zoom
@@ -203,22 +206,8 @@ export const PDFEditor: React.FC = () => {
         setEditorZoom(snapshot.meta.editorState.zoom);
       }
 
-      // ── RESTAURATION DU BROUILLON (DRAFT) ──
-      if (snapshot.draft && snapshot.meta.editorState?.editingPageId) {
-        const pageId = snapshot.meta.editorState.editingPageId;
-        // Trouver la page correspondante dans les thumbnails restaurés
-        const targetPage = snapshot.thumbnailsMeta.find(t => t.id === pageId);
-        
-        if (targetPage) {
-          setTimeout(() => {
-            setEditingPage(targetPage);
-            setTempText(snapshot.draft?.text || "");
-            setCurrentDrawings(snapshot.draft?.drawings || []);
-            setActiveEditMode(snapshot.meta.editorState?.activeMode as any || 'visual');
-          }, 400);
-        }
-      }
-
+      isRestoringRef.current = false;
+      setIsRestoring(false);
       setShowRecoveryBanner(false);
     } catch (e) {
       console.error('[PDFEditor] Restore failed:', e);
@@ -432,7 +421,7 @@ export const PDFEditor: React.FC = () => {
     }
   }, [rawFiles]);
 
-  const loadThumbnails = async (files: File[]) => {
+  const loadThumbnails = async (files: File[], existingThumbnails?: PageThumbnail[]) => {
     setIsLoadingPages(true);
     setLoadingProgress(0);
     setError(null);
@@ -472,18 +461,29 @@ export const PDFEditor: React.FC = () => {
             canvas: canvas
           }).promise;
 
-          allThumbnails.push({
-            id: `page-${fileIdx}-${i}-${Math.random()}`,
-            sourceFileIndex: fileIdx,
-            index: i - 1,
-            url: canvas.toDataURL()
-          });
+          const dataUrl = canvas.toDataURL();
+          const existing = existingThumbnails?.find(t => t.sourceFileIndex === fileIdx && t.index === i - 1);
+
+          if (existing) {
+            allThumbnails.push({
+              ...existing,
+              url: dataUrl
+            });
+          } else {
+            allThumbnails.push({
+              id: `page-${fileIdx}-${i}-${Math.random()}`,
+              sourceFileIndex: fileIdx,
+              index: i - 1,
+              url: dataUrl
+            });
+          }
 
           totalPagesProcessed++;
           setLoadingProgress(Math.round((totalPagesProcessed / totalPagesCount) * 100));
         }
       }
       setThumbnails(allThumbnails);
+      return allThumbnails;
     } catch (err: any) {
       console.error("PDF Loading Error:", err);
       setError(`Erreur lors du chargement des pages du PDF : ${err.message || "Erreur inconnue"}. Vérifiez que le fichier n'est pas protégé par un mot de passe.`);
