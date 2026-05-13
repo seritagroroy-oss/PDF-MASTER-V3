@@ -297,17 +297,17 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
 
   // ── Restore session handler ───────────────────────────────────────────────
   const handleRestoreSession = useCallback(async () => {
-    console.log('[PDFEditor] handleRestoreSession triggered');
+    console.log('[PDFEditor] handleRestoreSession triggered for ID:', projectId);
     setIsRestoring(true);
     isRestoringRef.current = true;
     hasAttemptedRestoreRef.current = true;
     try {
       const snapshot = await restoreSession();
       if (!snapshot) {
-        console.warn('[PDFEditor] No snapshot found');
-        alert("Désolé, aucune donnée de session n'a pu être récupérée.");
-        isRestoringRef.current = false;
+        console.warn('[PDFEditor] No snapshot found for ID:', projectId);
+        alert("Désolé, aucune donnée de session n'a pu être récupérée pour ce projet.");
         setIsRestoring(false);
+        isRestoringRef.current = false;
         return;
       }
 
@@ -364,7 +364,7 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
   // ── Auto-restore for existing projects ────────────────────────────────────
   useEffect(() => {
     if (projectId !== 'new' && rawFiles.length === 0 && hasRecoverableSession && !isRestoringRef.current && !hasAttemptedRestoreRef.current) {
-      console.log('[PDFEditor] Auto-restoring existing project:', projectId);
+      console.log('[PDFEditor] Auto-restore candidate detected:', projectId);
       handleRestoreSession();
     }
   }, [projectId, rawFiles.length, hasRecoverableSession, handleRestoreSession]);

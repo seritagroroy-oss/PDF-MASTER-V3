@@ -13,7 +13,7 @@ import {
 } from '../types';
 
 // ─── Constants ───────────────────────────────────────────────────────────────
-const DB_NAME = 'PDFMasterDB';
+const DB_NAME = 'PDFMaster_Studio_V3_Final';
 const DB_VERSION = 1;
 const STORE_NAME = 'sessions';
 const AUTO_SAVE_INTERVAL = 30_000; // 30 secondes
