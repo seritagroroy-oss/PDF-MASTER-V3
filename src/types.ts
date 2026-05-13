@@ -1,36 +1,16 @@
-export interface DrawingStroke {
-  points: { x: number; y: number }[];
-  color: string;
-  width: number;
-  mode: 'pen' | 'eraser' | 'magic-eraser' | 'highlighter' | 'rect' | 'circle' | 'arrow' | 'stamp' | 'text' | 'move';
-  text?: string;
-  fontSize?: number;
-  isBold?: boolean;
-  isItalic?: boolean;
-  isHighlighted?: boolean;
-  canvasWidth?: number;
-  canvasHeight?: number;
-}
+import { PageThumbnail, DrawingStroke } from './types';
 
-export interface PageThumbnail {
+// ─── Project & Session Types ──────────────────────────────────────────────────
+
+export interface Project {
   id: string;
-  sourceFileIndex: number;
-  index: number;
-  url: string;
-  modifiedText?: string;
-  fontSize?: number;
-  color?: string;
-  isBold?: boolean;
-  isItalic?: boolean;
-  drawings?: DrawingStroke[];
-  rotation?: number; // 0, 90, 180, 270
-  isBlank?: boolean;
-  isTextModified?: boolean;
-  hasManualTextEdit?: boolean;
+  name: string;
+  updatedAt: number;
+  pageCount: number;
+  thumbnailUrl?: string; 
 }
 
-/** Snapshot complet d'une session de travail sauvegardée */
-export interface SessionSnapshot {
+export interface SessionMeta {
   toolId: string;
   timestamp: number;
   fileNames: string[];
@@ -40,6 +20,38 @@ export interface SessionSnapshot {
   editorState?: {
     zoom: number;
     activeMode: string;
+    editingPageId: string | null;
   };
 }
 
+export interface SessionSnapshot {
+  meta: SessionMeta;
+  thumbnailsMeta: PageThumbnail[];
+  rawFilesBuffers: ArrayBuffer[];
+  draft?: {
+    text: string;
+    drawings: DrawingStroke[];
+  };
+}
+
+export interface UseSessionPersistenceOptions {
+  toolId: string;
+  thumbnails: PageThumbnail[];
+  rawFiles: File[];
+  editorZoom?: number;
+  activeMode?: string;
+  editingPageId?: string | null;
+  draftText?: string;
+  draftDrawings?: DrawingStroke[];
+  enabled?: boolean;
+}
+
+export interface UseSessionPersistenceReturn {
+  saveSession: () => Promise<void>;
+  restoreSession: () => Promise<SessionSnapshot | null>;
+  clearSession: () => Promise<void>;
+  hasRecoverableSession: boolean;
+  sessionMeta: SessionMeta | null;
+  lastSavedAt: Date | null;
+  isSaving: boolean;
+}

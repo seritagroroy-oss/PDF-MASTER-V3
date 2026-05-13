@@ -12,6 +12,7 @@ interface EditorHeaderProps {
   undo: () => void;
   redo: () => void;
   savePageEdits: () => void;
+  onBack: () => void;
 }
 
 export const EditorHeader: React.FC<EditorHeaderProps> = ({
@@ -23,12 +24,16 @@ export const EditorHeader: React.FC<EditorHeaderProps> = ({
   setIsSidebarHidden,
   undo,
   redo,
-  savePageEdits
+  savePageEdits,
+  onBack
 }) => {
   return (
     <header className="h-[56px] md:bg-gradient-to-r md:from-[#00c4cc] md:to-[#2ce3d3] bg-white flex items-center px-4 justify-between shrink-0 z-[110] shadow-md border-b border-slate-200 md:border-white/10 relative">
       <div className="flex items-center gap-3 md:gap-5">
-          <div className="w-9 h-9 bg-slate-100 md:bg-white/15 rounded-lg flex items-center justify-center hover:bg-slate-200 md:hover:bg-white/25 cursor-pointer transition-colors group">
+          <div 
+            onClick={onBack}
+            className="w-9 h-9 bg-slate-100 md:bg-white/15 rounded-lg flex items-center justify-center hover:bg-slate-200 md:hover:bg-white/25 cursor-pointer transition-colors group"
+          >
               <Menu size={20} className="text-slate-600 md:text-white group-active:scale-95 transition-transform hidden sm:block" />
               <Home size={20} className="text-[#00c4cc] md:text-white group-active:scale-95 transition-transform sm:hidden" />
           </div>

@@ -42,6 +42,8 @@ import { WizardModal } from './components/WizardModal';
 import { SupportModal } from './components/SupportModal';
 import { CommunityModal } from './components/CommunityModal';
 import { UserDashboard } from './components/UserDashboard';
+import { ProjectDashboard } from './components/ProjectDashboard';
+import { useProjectManager } from './hooks/useProjectManager';
 import { updateLastSeen, addRecentFile } from './hooks/useUserStorage';
 import { cn } from './utils/cn';
 
@@ -324,6 +326,8 @@ export default function App() {
     } catch { return null; }
   });
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
+  const { projects, addProject, deleteProject, updateProject } = useProjectManager();
 
   const handleLogin = (user: AppUser) => {
     setCurrentUser(user);
@@ -416,7 +420,18 @@ export default function App() {
     }
     switch (activeTool) {
       case 'merge': return <PDFMerger />;
-      case 'edit': return <PDFEditor />;
+      case 'edit': 
+        if (!activeProjectId) {
+          return (
+            <ProjectDashboard 
+              projects={projects} 
+              onOpenProject={(id) => setActiveProjectId(id)}
+              onNewProject={() => setActiveProjectId('new')}
+              onDeleteProject={deleteProject}
+            />
+          );
+        }
+        return <PDFEditor projectId={activeProjectId} onBack={() => setActiveProjectId(null)} />;
       case 'compress': return <PDFCompressor />;
       case 'watermark': return <PDFWatermark />;
       case 'convert': return <PDFConverter />;

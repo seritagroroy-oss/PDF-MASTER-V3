@@ -2,12 +2,13 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { PDFDocument, rgb, StandardFonts, degrees, PDFPage } from 'pdf-lib';
 import { pdfjs } from '../pdfjs-setup';
 import { FileUpload } from './FileUpload';
-import { Scissors, Download, Upload, Loader2, CheckCircle2, AlertCircle, Trash2, GripVertical, RefreshCw, X, Eye, Search, CheckSquare, Square, Check, Minus, Plus, Type, Bold, Italic, Underline, Palette, Eraser, Pencil, Undo2, RotateCcw, FileText, Pipette, RotateCw, Sun, Moon, Square as SquareIcon, Circle, ArrowRight, Highlighter, Stamp, PlusCircle, Lock, Zap, Sparkles, Menu, Languages, ScanLine, Volume2, Layout, Shapes, Folder, Grid, Settings, Star, AlignLeft, List, Home, MoreHorizontal, MessageCircle, Undo, PenTool, LayoutGrid, Library, MousePointer2, PlusCircle as AddIcon, ArrowUp, ArrowDown, Maximize, Minimize, Share2 } from 'lucide-react';
+import { Scissors, Download, Upload, Loader2, CheckCircle2, AlertCircle, Trash2, GripVertical, RefreshCw, X, Eye, Search, CheckSquare, Square, Check, Minus, Plus, Type, Bold, Italic, Underline, Palette, Eraser, Pencil, Undo2, RotateCcw, FileText, Pipette, RotateCw, Sun, Moon, Square as SquareIcon, Circle, ArrowRight, Highlighter, Stamp, PlusCircle, Lock, Zap, Sparkles, Menu, Languages, ScanLine, Volume2, Layout, Shapes, Folder, Grid, Settings, Star, AlignLeft, List, Home, MoreHorizontal, MessageCircle, Undo, PenTool, LayoutGrid, Library, MousePointer2, PlusCircle as AddIcon, ArrowUp, ArrowDown, Maximize, Minimize, Share2, ArrowLeft } from 'lucide-react';
 import { motion, AnimatePresence, Reorder } from 'framer-motion';
 import { cn } from '../utils/cn';
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { useSessionPersistence } from '../hooks/useSessionPersistence';
 import { SessionRecoveryBanner, AutoSaveIndicator } from './SessionRecoveryBanner';
+import { useProjectManager } from '../hooks/useProjectManager';
 
 import { AISidebar } from './PDFEditor/AISidebar';
 import { TextSidebar } from './PDFEditor/TextSidebar';
@@ -34,7 +35,14 @@ const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY || "");
 import { PageThumbnail, DrawingStroke } from '../types';
 import { usePDFCanvas } from '../hooks/usePDFCanvas';
 
-export const PDFEditor: React.FC = () => {
+interface PDFEditorProps {
+  projectId: string;
+  onBack: () => void;
+}
+
+export const PDFEditor: React.FC<PDFEditorProps> = ({ projectId: initialProjectId, onBack }) => {
+  const [projectId, setProjectId] = useState(initialProjectId);
+  const { addProject, updateProject } = useProjectManager();
   const [files, setFiles] = useState<any[]>([]);
   const [rawFiles, setRawFiles] = useState<File[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -95,7 +103,7 @@ export const PDFEditor: React.FC = () => {
     lastSavedAt,
     isSaving,
   } = useSessionPersistence({
-    toolId: 'edit',
+    toolId: projectId,
     thumbnails,
     rawFiles,
     editorZoom,
@@ -240,6 +248,20 @@ export const PDFEditor: React.FC = () => {
       }
       setThumbnails(allThumbnails);
       console.log('[PDFEditor] loadThumbnails finished', { count: allThumbnails.length });
+      
+      // Si c'est un nouveau projet, on l'enregistre dans le dashboard
+      if (projectId === 'new' && allThumbnails.length > 0) {
+        console.log('[PDFEditor] Registering new project...');
+        const newId = addProject(files[0].name, allThumbnails.length, allThumbnails[0].url);
+        setProjectId(newId);
+      } else if (projectId !== 'new') {
+        console.log('[PDFEditor] Updating existing project metadata...');
+        updateProject(projectId, { 
+          pageCount: allThumbnails.length, 
+          thumbnailUrl: allThumbnails[0]?.url 
+        });
+      }
+
       return allThumbnails;
     } catch (err: any) {
       console.error("[PDFEditor] loadThumbnails Error:", err);
@@ -1718,7 +1740,14 @@ export const PDFEditor: React.FC = () => {
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-8 sm:py-12">
 
         <div className="flex flex-col items-center justify-center text-center gap-4 mb-2 md:mb-12">
-            <div className="flex items-center gap-3 md:gap-4 w-full justify-center">
+            <div className="flex items-center gap-3 md:gap-4 w-full justify-center relative">
+                <button
+                  onClick={onBack}
+                  className="absolute left-0 p-3 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-all text-slate-500 hover:text-indigo-600 hidden md:block"
+                  title="Retour au dashboard"
+                >
+                  <ArrowLeft size={24} />
+                </button>
                 <div className="p-2 sm:p-4 bg-indigo-600 rounded-2xl shadow-xl shadow-indigo-200 rotate-3 shrink-0">
                     <Scissors className="text-white w-5 h-5 md:w-7 md:h-7" />
                 </div>
@@ -1960,6 +1989,7 @@ export const PDFEditor: React.FC = () => {
                 undo={undo}
                 redo={redo}
                 savePageEdits={savePageEdits}
+                onBack={() => setEditingPage(null)} // Retour à la grille
               />
 
               <div className="flex flex-1 overflow-hidden relative">
