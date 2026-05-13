@@ -170,6 +170,7 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
   const [isSharing, setIsSharing] = useState(false);
   const [isRestoring, setIsRestoring] = useState(false);
   const isRestoringRef = useRef(false);
+  const hasAttemptedRestoreRef = useRef(false);
   const [showRecoveryBanner, setShowRecoveryBanner] = useState(true);
 
   // ── Helper: Render HD Page ───────────────────────────────────────────────
@@ -292,6 +293,7 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
     console.log('[PDFEditor] handleRestoreSession triggered');
     setIsRestoring(true);
     isRestoringRef.current = true;
+    hasAttemptedRestoreRef.current = true;
     try {
       const snapshot = await restoreSession();
       if (!snapshot) {
@@ -353,6 +355,13 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
   }, [restoreSession, loadThumbnails, renderHighResPage]);
 
   // ── Auto-restore for existing projects ────────────────────────────────────
+  useEffect(() => {
+    if (projectId !== 'new' && rawFiles.length === 0 && hasRecoverableSession && !isRestoringRef.current && !hasAttemptedRestoreRef.current) {
+      console.log('[PDFEditor] Auto-restoring existing project:', projectId);
+      handleRestoreSession();
+    }
+  }, [projectId, rawFiles.length, hasRecoverableSession, handleRestoreSession]);
+
   // ── Auto-save when projectId changes from 'new' ──────────────────────────
   useEffect(() => {
     if (projectId !== 'new' && (rawFiles.length > 0 || thumbnails.length > 0) && !isRestoringRef.current) {
