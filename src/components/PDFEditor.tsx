@@ -2063,22 +2063,23 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
                 </button>
               )}
 
-              {isCloudInited && (
-                <button
-                  onClick={handleLinkToCloud}
-                  disabled={thumbnails.length === 0 || isProcessing || isLinking}
-                  className={cn(
-                    "flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 sm:px-6 py-2 sm:py-3 rounded-2xl transition-all text-xs sm:text-sm font-bold shadow-lg",
-                    projectStorageType?.startsWith('cloud') 
-                      ? "bg-blue-500 text-white shadow-blue-200" 
-                      : "bg-white dark:bg-slate-800 text-slate-700 dark:text-white hover:bg-slate-50 border border-slate-100 dark:border-slate-700"
-                  )}
-                  title={projectStorageType?.startsWith('cloud') ? "Mode Cloud activé (Google Drive)" : "Activer le Mode Cloud (Google Drive)"}
-                >
-                  {isLinking ? <Loader2 className="animate-spin" size={16} /> : <Globe size={16} />}
-                  <span className="hidden sm:inline">{projectStorageType?.startsWith('cloud') ? "Mode Cloud Actif" : "Mode Cloud"}</span>
-                </button>
-              )}
+              <button
+                onClick={handleLinkToCloud}
+                disabled={thumbnails.length === 0 || isProcessing || isLinking || !import.meta.env.VITE_GOOGLE_API_KEY}
+                className={cn(
+                  "flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 sm:px-6 py-2 sm:py-3 rounded-2xl transition-all text-xs sm:text-sm font-bold shadow-lg",
+                  projectStorageType?.startsWith('cloud') 
+                    ? "bg-blue-500 text-white shadow-blue-200" 
+                    : "bg-white dark:bg-slate-800 text-slate-700 dark:text-white hover:bg-slate-50 border border-slate-100 dark:border-slate-700",
+                  !import.meta.env.VITE_GOOGLE_API_KEY && "opacity-50 grayscale cursor-not-allowed"
+                )}
+                title={!import.meta.env.VITE_GOOGLE_API_KEY ? "Configuration Cloud manquante (VITE_GOOGLE_API_KEY)" : (projectStorageType?.startsWith('cloud') ? "Mode Cloud activé (Google Drive)" : "Activer le Mode Cloud (Google Drive)")}
+              >
+                {isLinking ? <Loader2 className="animate-spin" size={16} /> : <Globe size={16} />}
+                <span className="hidden sm:inline">
+                  {!import.meta.env.VITE_GOOGLE_API_KEY ? "Cloud non configuré" : (projectStorageType?.startsWith('cloud') ? "Mode Cloud Actif" : "Mode Cloud")}
+                </span>
+              </button>
 
               <button
                 onClick={editPDF}
