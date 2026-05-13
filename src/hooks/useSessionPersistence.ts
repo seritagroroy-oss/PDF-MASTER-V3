@@ -220,6 +220,29 @@ export function useSessionPersistence(options: UseSessionPersistenceOptions): Us
     setLastSavedAt(null);
   }, [projectId, clearMetaLocal]);
 
+  const duplicateSession = useCallback(async (oldId: string, newId: string): Promise<void> => {
+    console.log(`[SessionPersistence] Duplicating session from ${oldId} to ${newId}`);
+    try {
+      const idbData = await readFromIDB(oldId);
+      const oldMetaKey = `pdfmaster_session_meta_${oldId}`;
+      const oldDraftKey = `pdfmaster_session_draft_${oldId}`;
+      const oldMetaRaw = localStorage.getItem(oldMetaKey);
+      const oldDraftRaw = localStorage.getItem(oldDraftKey);
+
+      if (idbData) {
+        await writeToIDB(newId, { ...idbData, toolId: newId });
+      }
+      if (oldMetaRaw) {
+        localStorage.setItem(`pdfmaster_session_meta_${newId}`, oldMetaRaw);
+      }
+      if (oldDraftRaw) {
+        localStorage.setItem(`pdfmaster_session_draft_${newId}`, oldDraftRaw);
+      }
+    } catch (e) {
+      console.error('[SessionPersistence] Duplication failed:', e);
+    }
+  }, []);
+
   useEffect(() => {
     if (!enabled) return;
     const interval = setInterval(() => {
@@ -266,5 +289,6 @@ export function useSessionPersistence(options: UseSessionPersistenceOptions): Us
     sessionMeta,
     lastSavedAt,
     isSaving,
+    duplicateSession,
   };
 }

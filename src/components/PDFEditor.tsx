@@ -107,6 +107,7 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
     sessionMeta,
     lastSavedAt,
     isSaving,
+    duplicateSession
   } = useSessionPersistence({
     toolId: projectId,
     thumbnails,
@@ -259,6 +260,12 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
       if (projectId === 'new' && allThumbnails.length > 0) {
         console.log('[PDFEditor] Registering new project...');
         const newId = addProject(files[0].name, allThumbnails.length, allThumbnails[0].url);
+        
+        // On sauvegarde d'abord la session actuelle ('new')
+        await saveSession();
+        // Puis on la duplique vers le nouvel ID
+        await duplicateSession('new', newId);
+        
         setProjectId(newId);
         // On ne retourne rien ici pour laisser le useEffect suivant déclencher la sauvegarde
       } else if (projectId !== 'new') {
