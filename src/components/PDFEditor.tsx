@@ -259,6 +259,7 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
         console.log('[PDFEditor] Registering new project...');
         const newId = addProject(files[0].name, allThumbnails.length, allThumbnails[0].url);
         setProjectId(newId);
+        // On ne retourne rien ici pour laisser le useEffect suivant déclencher la sauvegarde
       } else if (projectId !== 'new') {
         console.log('[PDFEditor] Updating existing project metadata...');
         updateProject(projectId, { 
@@ -352,6 +353,14 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
   }, [restoreSession, loadThumbnails, renderHighResPage]);
 
   // ── Auto-restore for existing projects ────────────────────────────────────
+  // ── Auto-save when projectId changes from 'new' ──────────────────────────
+  useEffect(() => {
+    if (projectId !== 'new' && (rawFiles.length > 0 || thumbnails.length > 0) && !isRestoringRef.current) {
+      console.log('[PDFEditor] Project ID changed, forcing immediate save...', projectId);
+      saveSession();
+    }
+  }, [projectId, saveSession]);
+
   useEffect(() => {
     if (projectId !== 'new' && rawFiles.length === 0 && hasRecoverableSession && !isRestoringRef.current) {
       console.log('[PDFEditor] Auto-restoring existing project:', projectId);
