@@ -104,6 +104,7 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
   const [projectCloudId, setProjectCloudId] = useState<string | null>(null);
   const [isLinking, setIsLinking] = useState(false);
   const [isCloudInited, setIsCloudInited] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   // Sync storage metadata from project
   useEffect(() => {
@@ -155,7 +156,7 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
             storageType: 'cloud-gdrive',
             cloudId: driveId
           });
-          alert("Succès ! Votre projet est maintenant synchronisé avec Google Drive.");
+          setSuccessMessage("Votre projet est maintenant synchronisé avec Google Drive.");
         }
       }
     } catch (e: any) {
@@ -195,7 +196,7 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
             storageType: 'filesystem'
           });
           
-          alert("Succès ! Ce projet est maintenant lié à votre fichier local. Chaque modification sera enregistrée directement.");
+          setSuccessMessage("Ce projet est maintenant lié à votre fichier local. Chaque modification sera enregistrée directement.");
         }
       }
     } catch (e) {
@@ -2515,6 +2516,33 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
                       triggerImageUpload={triggerImageUpload}
                     />
                   )}
+                  {/* 6. Success Notification (Toast) */}
+          <AnimatePresence>
+            {successMessage && (
+              <motion.div
+                initial={{ opacity: 0, y: -100, x: '-50%' }}
+                animate={{ opacity: 1, y: 0, x: '-50%' }}
+                exit={{ opacity: 0, y: -100, x: '-50%' }}
+                className="fixed top-6 left-1/2 z-[1000] w-full max-w-md px-4 pointer-events-none"
+              >
+                <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-emerald-500/30 rounded-2xl shadow-2xl shadow-emerald-500/10 p-4 flex items-center gap-4 pointer-events-auto">
+                  <div className="w-12 h-12 rounded-xl bg-emerald-500 flex items-center justify-center shrink-0 shadow-lg shadow-emerald-500/20">
+                    <CheckCircle2 className="text-white" size={24} />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-tight">Succès !</h4>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium leading-relaxed mt-0.5">{successMessage}</p>
+                  </div>
+                  <button 
+                    onClick={() => setSuccessMessage(null)}
+                    className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors text-slate-400 hover:text-slate-600"
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
                 </AnimatePresence>
 
               </div>
