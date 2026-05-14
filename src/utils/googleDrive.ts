@@ -47,18 +47,25 @@ export const loadGoogleScripts = (): Promise<void> => {
 export const authenticateGoogle = (): Promise<string> => {
   return new Promise((resolve, reject) => {
     try {
+      // 1. Check if we already have a valid token in memory or GAPI
+      const existingToken = (window as any).gapi.client.getToken();
+      if (existingToken && existingToken.access_token) {
+        return resolve(existingToken.access_token);
+      }
+
+      // 2. Setup callback for the popup
       tokenClient.callback = async (resp: any) => {
         if (resp.error !== undefined) {
           reject(resp);
+          return;
         }
+        // Store token in GAPI for reuse
+        (window as any).gapi.client.setToken(resp);
         resolve(resp.access_token);
       };
 
-      if ((window as any).gapi.client.getToken() === null) {
-        tokenClient.requestAccessToken({ prompt: 'consent' });
-      } else {
-        tokenClient.requestAccessToken({ prompt: '' });
-      }
+      // 3. Request token (only prompt if necessary)
+      tokenClient.requestAccessToken({ prompt: existingToken ? '' : 'consent' });
     } catch (err) {
       reject(err);
     }
