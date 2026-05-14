@@ -78,11 +78,11 @@ export const SessionRecoveryBanner: React.FC<SessionRecoveryBannerProps> = ({
     <AnimatePresence>
       {visible && (
         <motion.div
-          initial={{ opacity: 0, y: -80, scale: 0.97 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: -60, scale: 0.97 }}
-          transition={{ type: 'spring', stiffness: 380, damping: 32 }}
-          className="fixed top-4 left-1/2 -translate-x-1/2 z-[999] w-full max-w-lg px-4"
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.9 }}
+          transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+          className="fixed inset-0 z-[999] flex items-center justify-center bg-slate-900/60 backdrop-blur-md px-4"
           role="alert"
           aria-live="polite"
         >
